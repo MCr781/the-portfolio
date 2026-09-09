@@ -113,12 +113,11 @@
   function calcGrids() {
     var w = html.clientWidth || 1280;
     var h = html.clientHeight || 800;
-    var gw = w < 560 ? 3 : (w < 1280 ? 4 : (w < 1800 ? 5 : 6));
-    /* height-aware: the whole title screen — copy, deck, coin row —
-       must fit the viewport, so tall grids need a tall window too */
-    var gh = Math.max(3, Math.round((h - 160) / 170));
-    PXG = Math.max(3, Math.min(gw, gh));
-    PXT = PXG >= 6 ? 3 : 2;
+    /* Adjust grid multipliers to keep elements readable (min 3 on desktop) */
+    var gw = w < 560 ? 2 : (w < 1024 ? 3 : 4);
+    var gh = h < 700 ? 2 : (h < 900 ? 3 : 4);
+    PXG = Math.max(2, Math.min(gw, gh));
+    PXT = 2;
   }
 
   /* deterministic noise — the whole world is a function of position */
@@ -630,7 +629,7 @@
     if (!conf) { return; }
     var host = span.parentElement;
     if (!host) { return; }
-    var text = span.textContent.replace(/\s+/g, ' ').trim();
+    var text = span.textContent.replace(/[ \t\r\n]+/g, ' ').trim();
     if (!text) { return; }
     var narrow = html.clientWidth < 560;
     if (narrow && PX_MOBILE[kind]) {
@@ -1462,22 +1461,23 @@
     }
 
     if (mode === 'hero') {
-      /* ── the arcade HUD, 5×7 font ── */
+      /* ── the arcade HUD, 5×7 font, offset cleanly from CRT vignette corners ── */
       var blinkOn = (Math.floor(t / 450) % 2) === 0;
-      drawText(g, '1UP', 2, 2, blinkOn ? PC.score : PC.bg);
+      /* move HUD texts further away from the corners to avoid vignette occlusion */
+      drawText(g, '1UP', 22, 12, blinkOn ? PC.score : PC.bg);
       var sc = '' + (w.score % 1000000);
       while (sc.length < 6) { sc = '0' + sc; }
-      drawText(g, sc, 22, 2, PC.score);
+      drawText(g, sc, 44, 12, PC.score);
       var hi = 'HI 045000';
-      drawText(g, hi, Math.round(cols / 2 - textW(hi) / 2), 2, PC.hud);
-      var fpX = cols - textW('FREE PLAY') - 2;
-      drawText(g, 'FREE PLAY', fpX, 2, PC.score);
+      drawText(g, hi, Math.round(cols / 2 - textW(hi) / 2), 12, PC.hud);
+      var fpX = cols - textW('FREE PLAY') - 22;
+      drawText(g, 'FREE PLAY', fpX, 12, PC.score);
       for (var li = 0; li < 3; li++) {
-        drawSpr(g, SPR_LIFE, fpX - 9 - li * 8, 3, LIFE_LEG);
+        drawSpr(g, SPR_LIFE, fpX - 12 - li * 8, 11, LIFE_LEG);
       }
 
       /* radar band — the whole planet compressed, blips alive + active scan line */
-      var rTop = 12, rBot = 18;
+      var rTop = 13, rBot = 19;
       g.fillStyle = PC.radarRim;
       g.fillRect(0, rTop - 1, cols, 1);
       g.fillRect(0, rBot, cols, 1);
