@@ -875,11 +875,11 @@
       var ny = (y / rows) * 2 - 1;
       for (var x = 0; x < cols; x++) {
         var nx = (x / cols) * 2 - 1;
-        var d = Math.sqrt(nx * nx * 1.15 + ny * ny * 1.35);
-        if (d < 1.02) { continue; }
-        var k = (d - 1.02) / 0.55;
+        var d = Math.sqrt(nx * nx * 1.1 + ny * ny * 1.25);
+        if (d < 1.16) { continue; }
+        var k = (d - 1.16) / 0.55;
         if (k > 1) { k = 1; }
-        if (bayerAt(x, y) < k * 0.85) { g.fillRect(x, y, 1, 1); }
+        if (bayerAt(x, y) < k * 0.7) { g.fillRect(x, y, 1, 1); }
       }
     }
     return c;
@@ -1461,19 +1461,18 @@
     }
 
     if (mode === 'hero') {
-      /* ── the arcade HUD, 5×7 font, offset cleanly from CRT vignette corners ── */
+      /* ── the arcade HUD, 5×7 font, positioned cleanly above radar band (rTop=13) ── */
       var blinkOn = (Math.floor(t / 450) % 2) === 0;
-      /* move HUD texts further away from the corners to avoid vignette occlusion */
-      drawText(g, '1UP', 22, 12, blinkOn ? PC.score : PC.bg);
+      drawText(g, '1UP', 18, 4, blinkOn ? PC.score : PC.bg);
       var sc = '' + (w.score % 1000000);
       while (sc.length < 6) { sc = '0' + sc; }
-      drawText(g, sc, 44, 12, PC.score);
+      drawText(g, sc, 38, 4, PC.score);
       var hi = 'HI 045000';
-      drawText(g, hi, Math.round(cols / 2 - textW(hi) / 2), 12, PC.hud);
-      var fpX = cols - textW('FREE PLAY') - 22;
-      drawText(g, 'FREE PLAY', fpX, 12, PC.score);
+      drawText(g, hi, Math.round(cols / 2 - textW(hi) / 2), 4, PC.hud);
+      var fpX = cols - textW('FREE PLAY') - 18;
+      drawText(g, 'FREE PLAY', fpX, 4, PC.score);
       for (var li = 0; li < 3; li++) {
-        drawSpr(g, SPR_LIFE, fpX - 12 - li * 8, 11, LIFE_LEG);
+        drawSpr(g, SPR_LIFE, fpX - 12 - li * 8, 4, LIFE_LEG);
       }
 
       /* radar band — the whole planet compressed, blips alive + active scan line */
