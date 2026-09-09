@@ -288,34 +288,34 @@
   var fieldOn = false;
   var heroVisible = true;
 
-  /* night-flight palette — deep ink sky, gold phosphor, 3-tone matter */
+  /* night-flight palette — 16-bit arcade sky, neon cyan phosphor, gold matter */
   var PC = {
-    bg: '#07070c',
-    sky: ['#0a0a16', '#0e0f22', '#141229', '#1a1635', '#221a40'],
-    star1: '#3f3f63', star2: '#8a8ab4', star3: '#d8d8f2', starG: '#ffd76a',
-    moon: '#d8d8f2', moonDk: '#8a8ab4',
-    far: '#0e0c1e', mid: '#16112b', midEdge: '#241c3c',
-    terr: '#241c3e', terrLite: '#332a55', terrDim: '#151028',
-    terrHi: '#d4af37', terrGlint: '#fff3c2',
-    ship: '#f2f2f7', shipSh: '#b9b9c9', cock: '#6ae3ff',
-    gold: '#d4af37', goldHi: '#fff3c2', goldLo: '#8a6d1f', goldDk: '#241c0f',
-    goldFace: '#f2ce58', goldDeep: '#9a7a24',
-    lander: '#5bd96b', landerDk: '#2e9243', white: '#ffffff',
-    bomb: '#ff5d84',
-    hum: '#e8e8ef', humSh: '#9d9dab',
-    bullet: '#9df1ff', thr: '#ffd76a', thrLo: '#ff9d4d',
-    boom: ['#ffffff', '#ffd76a', '#ff9d4d', '#e0512f'],
-    score: '#ffd76a', hud: '#8a8ab0',
-    radarBg: '#10182c', radarRim: '#2c4a58', radarTerr: '#3a5a6c', blip: '#e06ae0',
-    post: '#9d9dab', ok: '#ffd76a', coin: '#ffd76a', start: '#f2f2f7',
-    panel: '#0d0c20', panelBd: '#3a3454', panelHi: '#4a4468',
+    bg: '#05050a',
+    sky: ['#040410', '#09081e', '#100c30', '#191244', '#241859', '#331f72'],
+    star1: '#3f3f63', star2: '#8a8ab4', star3: '#d8d8f2', starG: '#ffd76a', starCyan: '#6ae3ff',
+    moon: '#e8e8f8', moonDk: '#9a9ab8', moonRing: 'rgba(216, 216, 242, 0.25)',
+    far: '#0d0b1a', mid: '#181230', midEdge: '#2b1f48',
+    terr: '#281e44', terrLite: '#3a2e62', terrDim: '#16102b',
+    terrHi: '#ffc83b', terrGlint: '#fff9d6',
+    ship: '#ffffff', shipSh: '#a4a4b8', cock: '#00f0ff',
+    gold: '#ffd76a', goldHi: '#fff4cc', goldLo: '#9e791e', goldDk: '#2b1e0a',
+    goldFace: '#ffdf6d', goldDeep: '#ab8420',
+    lander: '#42e66c', landerDk: '#1e8538', white: '#ffffff',
+    bomb: '#ff3366',
+    hum: '#f0f0f8', humSh: '#9292a8',
+    bullet: '#00f0ff', bulletGlow: '#0077ff', thr: '#ffc837', thrLo: '#ff6b35',
+    boom: ['#ffffff', '#ffe600', '#ff6b35', '#d90429'],
+    score: '#ffd76a', hud: '#9a9ab8',
+    radarBg: '#0b1326', radarRim: '#254456', radarTerr: '#386178', blip: '#ff007f',
+    post: '#a0a0b8', ok: '#50e3c2', coin: '#ffd76a', start: '#ffffff',
+    panel: '#0e0c24', panelBd: '#433c63', panelHi: '#564e7a',
     ink: '#03030a', out: '#241c0f',
-    shell: '#f2f2f7', shellDk: '#9d9dab', shellOut: '#1d1d26',
-    red: '#ff5d84', redHi: '#ffb3c6', redDk: '#8f0b38', redOut: '#3d0212',
-    metal: '#26262f', metalHi: '#3a3a46', metalDk: '#14141c', metalBd: '#34343f',
-    shaft: '#4a4a58', shaftHi: '#6a6a78', shaftDk: '#2a2a36',
-    slate: '#55555f', slateHi: '#8a8a99', cueFa: '#8a8a99',
-    text: '#f2f2f7', textSub: '#b9b9c6'
+    shell: '#ffffff', shellDk: '#9292a8', shellOut: '#161622',
+    red: '#ff2a6d', redHi: '#ff85a2', redDk: '#990033', redOut: '#380010',
+    metal: '#2c2c38', metalHi: '#444456', metalDk: '#161620', metalBd: '#3c3c4c',
+    shaft: '#525266', shaftHi: '#787890', shaftDk: '#2e2e3a',
+    slate: '#5c5c6b', slateHi: '#9494a8', cueFa: '#9494a8',
+    text: '#ffffff', textSub: '#b9b9c6'
   };
 
   /* 5×7 bitmap font — every latin string on the tube is drawn with it */
@@ -731,43 +731,66 @@
     return Math.round((0.665 + vnoise(wx, 23) * 0.10) * rows);
   }
 
-  /* sprites — string maps, chars legend-keyed, flipped by mirroring */
+  /* sprites — 16-bit arcade pixel art maps, chars legend-keyed */
   var SPR_SHIP = [
-    '......WW......',
-    '....WWWWWW....',
-    '...WWWWCCWW...',
-    '..WWWWWCCWWW..',
-    '.SWWWWWWWWWGG.',
-    '.SSWWWWWWWGG..',
-    '..SSSWWWW.....',
-    '...SS..WW.....'
+    '........GGGG........',
+    '......GGWWWWGG......',
+    '.....GGWWCCCCGG.....',
+    '....SGGWWCCCCWWGG...',
+    '.SSSSGGWWWWWWWWGGGG.',
+    'SSSSSSGGGGGGGGGGGGGG',
+    '.SSSSGGWWWWWWWWGGGG.',
+    '....SGGWWCCCCWWGG...',
+    '.....GGWWCCCCGG.....',
+    '......GGWWWWGG......',
+    '........GGGG........'
   ];
   var SHIP_LEG = { W: PC.ship, S: PC.shipSh, C: PC.cock, G: PC.gold };
   var SPR_LANDER = [
-    '..D...D..',
-    '..DD.DD..',
-    '.GGGGGGG.',
-    'GGWGGGWGG',
-    'GGGGGGGGG',
-    '.GDDDDDG.',
-    '..G...G..'
+    '....EEEE....',
+    '..EEEEEEEE..',
+    '.EECCCCEEEE.',
+    'GGGGGGGGGGGG',
+    'GGRGGGGGRGGG',
+    '.GDDDDDDDDG.',
+    '.D.D....D.D.'
   ];
   var SPR_LANDER2 = [
-    '..D...D..',
-    '..DD.DD..',
-    '.GGGGGGG.',
-    'GGWGGGWGG',
-    'GGGGGGGGG',
-    '.GDDDDDG.',
-    '..D.G....'
+    '....EEEE....',
+    '..EEEEEEEE..',
+    '.EECCCCEEEE.',
+    'GGGGGGGGGGGG',
+    'GGRGGGGGRGGG',
+    '.GDDDDDDDDG.',
+    '..D.D..D.D..'
   ];
-  var LANDER_LEG = { G: PC.lander, D: PC.landerDk, W: PC.white };
-  var SPR_HUM = ['.W.', 'WWW', '.W.', '.W.', 'WWW', 'W.W'];
-  var SPR_HUM2 = ['.W.', 'WWW', '.W.', '.W.', 'WWW', '.W.'];
-  var HUM_LEG = { W: PC.hum };
-  var SPR_HUMF = ['.W.', 'WWW', '.W.', '.W.', 'WWW', 'W.W'];
-  var SPR_LIFE = ['..WW..', 'WWWWWW', '.S..S.'];
-  var LIFE_LEG = { W: PC.shell, S: PC.cock };
+  var LANDER_LEG = { E: PC.lander, C: PC.white, G: PC.landerDk, R: PC.red, D: PC.landerDk };
+  var SPR_HUM = [
+    '.HH.',
+    'HHHH',
+    '.WW.',
+    '.WW.',
+    'W..W',
+    'W..W'
+  ];
+  var SPR_HUM2 = [
+    '.HH.',
+    'HHHH',
+    '.WW.',
+    '.WW.',
+    '.WW.',
+    '.WW.'
+  ];
+  var HUM_LEG = { H: PC.gold, W: PC.hum };
+  var SPR_HUMF = ['.HH.', 'HHHH', '.WW.', '.WW.', 'W..W', 'W..W'];
+  var SPR_LIFE = [
+    '..GG..',
+    '.GGGG.',
+    'SGGCCG',
+    '.GGGG.',
+    '..GG..'
+  ];
+  var LIFE_LEG = { G: PC.gold, S: PC.shipSh, C: PC.cock };
   var SPR_ARROW = ['01110', '00100', '00100', '00100', '00100'];
 
   var POST = [
@@ -1399,31 +1422,32 @@
       }
     }
 
-    /* bullets — three-pixel dashes */
-    g.fillStyle = PC.bullet;
+    /* bullets — 16-bit plasma laser bolts */
     for (i = 0; i < w.bullets.length; i++) {
-      g.fillRect(Math.round(w.bullets[i].x), Math.round(w.bullets[i].y), 3, 1);
+      var bx = Math.round(w.bullets[i].x);
+      var by = Math.round(w.bullets[i].y);
+      g.fillStyle = PC.bulletGlow;
+      g.fillRect(bx - 1, by, 5, 1);
+      g.fillStyle = PC.bullet;
+      g.fillRect(bx, by, 3, 1);
+      g.fillStyle = '#ffffff';
+      g.fillRect(bx + 1, by, 1, 1);
     }
 
-    /* the ship + thruster flame */
+    /* the ship + dual thruster flames */
     var S = w.ship;
     var flip = t < (S.flipUntil || 0) ? 1 : 0;
     var shipX = Math.round(S.x);
     var shipY = Math.round(S.y + S.hopY);
     drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
     var flameX = flip ? shipX + sprW(SPR_SHIP) : shipX - 1;
-    if ((Math.floor(t / 120) % 2) === 0) {
-      g.fillStyle = PC.thr;
-      g.fillRect(flameX, shipY + 5, 1, 1);
-      g.fillRect(flameX + (flip ? 1 : -1), shipY + 5, 1, 1);
-      g.fillStyle = PC.thrLo;
-      g.fillRect(flameX + (flip ? 2 : -2), shipY + 5, 1, 1);
-    } else {
-      g.fillStyle = PC.thr;
-      g.fillRect(flameX, shipY + 5, 1, 1);
-      g.fillStyle = PC.thrLo;
-      g.fillRect(flameX + (flip ? 1 : -1), shipY + 5, 1, 1);
-    }
+    var fPulse = (Math.floor(t / 100) % 2) === 0;
+    g.fillStyle = PC.thr;
+    g.fillRect(flameX, shipY + 3, fPulse ? 3 : 2, 1);
+    g.fillRect(flameX, shipY + 7, fPulse ? 3 : 2, 1);
+    g.fillStyle = PC.thrLo;
+    g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
+    g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
 
     /* starburst explosions, burning out */
     for (i = 0; i < w.booms.length; i++) {
@@ -1460,7 +1484,7 @@
         drawSpr(g, SPR_LIFE, fpX - 9 - li * 8, 3, LIFE_LEG);
       }
 
-      /* radar band — the whole planet compressed, blips alive */
+      /* radar band — the whole planet compressed, blips alive + active scan line */
       var rTop = 12, rBot = 18;
       g.fillStyle = PC.radarRim;
       g.fillRect(0, rTop - 1, cols, 1);
@@ -1473,6 +1497,10 @@
         g.fillStyle = PC.radarTerr;
         g.fillRect(rx, ry, 1, 1);
       }
+      var sweepX = Math.round(((t * 0.04) % cols));
+      g.fillStyle = 'rgba(0, 240, 255, 0.45)';
+      g.fillRect(sweepX, rTop, 1, rBot - rTop);
+
       for (i = 0; i < w.landers.length; i++) {
         var Lr = w.landers[i];
         var rbx = Math.round((Lr.wx - w.worldX) / 3) % cols;
