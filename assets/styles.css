@@ -1,0 +1,931 @@
+@font-face {
+  font-family: 'Estedad';
+  src: url('fonts/Estedad-VF.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('fonts/SpaceMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('fonts/SpaceMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@property --c-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #d4af37;
+}
+
+:root {
+  --ink: #0c0c11;
+  --shell-surface: #16161f;
+  --shell-line: #f2f2f7;
+  --shell-text: #f2f2f7;
+  --shell-muted: #8a8a99;
+  --t-fast: 120ms;
+  --t-snap: 240ms;
+  --t-slow: 480ms;
+  --ease-snap: cubic-bezier(.2, .9, .25, 1);
+  --ease-power: cubic-bezier(.7, 0, .2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
+  background: var(--ink);
+  color: var(--shell-text);
+  line-height: 1.9;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  --c-accent: #d4af37;
+  --c-text: #f2f2f7;
+  --c-shadow: #000000;
+  --c-bg: #0c0c11;
+  --btn-ink: #241c0f;
+  transition: --c-accent 480ms var(--ease-power);
+}
+body[data-world="02"] { --c-accent: #b24fd8; }
+body[data-world="03"] { --c-accent: #028c85; }
+body[data-world="04"] { --c-accent: #ed145b; }
+
+h1, h2, h3, p, ul, figure {
+  margin: 0;
+  padding: 0;
+}
+ul { list-style: none; }
+a { color: inherit; }
+
+::selection {
+  background: #d4af37;
+  color: #0c0c11;
+}
+
+:focus-visible {
+  outline: 3px solid var(--c-accent);
+  outline-offset: 3px;
+}
+
+.mono {
+  font-family: 'Space Mono', 'Courier New', monospace;
+}
+.nowrap { white-space: nowrap; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip {
+  position: fixed;
+  top: -100px;
+  inset-inline-start: 1rem;
+  z-index: 1100;
+  background: var(--ink);
+  color: var(--shell-text);
+  border: 3px solid var(--shell-line);
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip:focus { top: 1rem; }
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 1002;
+  pointer-events: none;
+  --sl-dark: rgba(0, 0, 0, .06);
+  --sl-light: rgba(255, 255, 255, .05);
+  background:
+    repeating-linear-gradient(0deg, var(--sl-dark) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(0deg, transparent 0 2px, var(--sl-light) 2px 3px, transparent 3px 4px);
+}
+body[data-world="02"] .scanlines,
+body[data-world="04"] .scanlines {
+  --sl-dark: rgba(0, 0, 0, .1);
+  --sl-light: rgba(255, 255, 255, .09);
+}
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: -150px;
+  height: 130px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .03) 35%, rgba(0, 0, 0, .055) 72%, transparent);
+  animation: crtroll 8s linear infinite;
+}
+@keyframes crtroll {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(100vh + 300px)); }
+}
+
+/* ── custom cursor sprite ───────────────────────────── */
+/* A pixel arrow drawn on a tiny canvas — the pointer lives on the same
+   pixel grid as everything else. No circles, no rotation, no blend. */
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button {
+  cursor: none;
+}
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1004;
+  pointer-events: none;
+  display: none;
+}
+html.has-cursor .cursor { display: block; }
+.cursor-cv {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+.cursor-tag {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1003;
+  pointer-events: none;
+  display: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+.cursor-tag.show { display: block; }
+
+/* ── the tube · boot & hero share one screen ───────── */
+/* No cabinet, no bezel, no drawn frame of any kind: the browser viewport
+   IS the arcade machine's CRT. Your real monitor's plastic frame plays the
+   part of the screen frame, so the picture runs edge to edge and every
+   control is drawn on the glass with canvas + css — no bitmaps anywhere. */
+
+/* ── THE PIXEL GRID · one art policy for the whole tube ── */
+/* Everything — sky, mountains, ship, Persian headlines, the joystick,
+   START, JUMP/FIRE, the coin door, the cursor — is drawn as literal
+   pixels on canvases at a shared internal resolution (the game grid),
+   then scaled up with image-rendering: pixelated. No gradients, no
+   blurs, no rounded domes, no anti-aliased chrome: one hard-pixel
+   language, hi-bit style. The only soft layer left is the scanline
+   sheet, which is the CRT glass itself. */
+
+.pxcv {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Persian display text: the DOM text stays for screen readers and search
+   engines; once its pixel twin is painted, the live text folds away. */
+[data-px] { display: inline-block; }
+[data-px].px-on {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── arcade power-on boot · the tube from a cold start ─ */
+/* The whole picture — power flash, BIOS POST, ROM check, title card,
+   coin drop, PRESS START — is pixels on #bootfx. The two Persian lines
+   are pixel-rendered too (data-px canvases painted once fonts land). */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #07070c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+}
+.boot[hidden] { display: none; }
+#bootfx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+.boot-fa {
+  position: absolute;
+  bottom: 8.5vh;
+  z-index: 3;
+  opacity: 0;
+}
+.boot.go .boot-fa { opacity: 1; transition: opacity 300ms 900ms steps(3); }
+.boot-skip {
+  position: absolute;
+  bottom: 3.2vh;
+  z-index: 3;
+  opacity: 0;
+}
+.boot.go .boot-skip { opacity: 1; transition: opacity 200ms 700ms steps(2); }
+/* exit — channel change: the tube flicks white-hot and the title screen
+   fades through from underneath (same tube, new signal). */
+.boot.lift { animation: bootflick 460ms steps(4) forwards; }
+@keyframes bootflick {
+  0% { opacity: 1; }
+  30% { opacity: 1; filter: brightness(2.1); }
+  55% { opacity: .35; filter: brightness(1.4); }
+  100% { opacity: 0; filter: brightness(1); }
+}
+
+/* ── hero · the title screen on the same tube ───────── */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #07070c;
+  padding: clamp(1.1rem, 2.6vh, 1.7rem) clamp(1.1rem, 3.5vw, 2.6rem) clamp(3.4rem, 7vh, 4.6rem);
+  overflow: clip;
+}
+#field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+/* while the boot screen owns the tube, the title screen waits dark; when
+   the channel flips it steps in — copy, cue, deck, coin row, decal */
+html.booting .hero-inner,
+html.booting .hero-cue,
+html.booting .hero-deck,
+html.booting .coin-row,
+html.booting .crt-decal { opacity: 0; }
+html.awake .hero-inner { animation: fadeinstep 420ms steps(3) 140ms forwards; }
+html.awake .hero-cue { animation: fadeinstep 380ms steps(3) 340ms forwards; }
+html.awake .hero-deck { animation: fadeinstep 420ms steps(4) 260ms forwards; }
+html.awake .coin-row { animation: fadeinstep 420ms steps(4) 400ms forwards; }
+html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
+@keyframes fadeinstep {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 46rem;
+  margin-inline: auto;
+  width: 100%;
+}
+/* the pixel canvases carry their own heights; the gaps below just keep
+   the title-card rhythm (kept in whole pixels on purpose) */
+.hero-role { margin-bottom: 10px; }
+.hero-name { margin-bottom: 12px; }
+.hero-statement { margin-bottom: 12px; }
+/* no-JS / pre-paint fallback: the live text styles itself until the
+   pixel twin takes over (same copy, same meaning) */
+.hero-name { font-size: clamp(2.3rem, 5.6vw, 3.6rem); font-weight: 900; line-height: 1.14; color: var(--shell-text); text-wrap: balance; }
+.hero-statement { font-size: clamp(1.05rem, 2.1vw, 1.5rem); font-weight: 800; line-height: 1.5; color: var(--c-accent); max-width: 44rem; }
+.hero-para { max-width: 42rem; color: #b9b9c6; font-size: clamp(.92rem, 1.25vw, 1.04rem); line-height: 1.85; }
+
+.hero-cue {
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.cue-cv { animation: cueblink 1.15s steps(2) infinite; }
+@keyframes cueblink { 50% { opacity: 0; } }
+.cue-fa,
+.coin-fa,
+.pstart-fa,
+.boot-fa,
+.boot-skip {
+  line-height: 1.3;   /* canvas-hosting lines: no 1.9 prose leading */
+}
+.cue-fa { color: var(--shell-muted); font-size: .88rem; }
+
+/* ── control deck · every control is a canvas sprite ── */
+/* JS sizes each canvas to an exact integer multiple of the game grid,
+   so every pixel on the deck lands on the same grid as the sky behind */
+.hero-deck {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(1.6rem, 6vw, 4.2rem);
+  margin-top: clamp(.9rem, 2.8vh, 1.8rem);
+  width: 100%;
+  /* a control panel is hardware, not prose: stick on the player's left,
+     action buttons on the right — even though the page reads RTL */
+  direction: ltr;
+}
+.joy { position: relative; flex: none; }
+.pstart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+.pstart-fa { font-size: .8rem; font-weight: 700; color: var(--c-accent); }
+.panel-btns {
+  display: flex;
+  gap: clamp(.7rem, 1.6vw, 1.1rem);
+  align-items: flex-end;
+  flex: none;
+  padding-bottom: 16px;
+}
+.pbtn { position: relative; display: block; flex: none; }
+
+/* ── coin row · a pixel coin door on the glass ──────── */
+.coin-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: clamp(.7rem, 2.2vh, 1.2rem);
+}
+.coin-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  min-height: 44px;
+}
+.coin-fa { font-size: .76rem; color: var(--shell-muted); }
+.crt-decal {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(.6rem, 1.9vh, 1rem);
+}
+.crt-decal canvas,
+.coin-label canvas { display: block; margin-inline: auto; }
+
+/* ── marquee seam ───────────────────────────────────── */
+.marquee {
+  border-block: 3px solid var(--shell-line);
+  background: var(--shell-surface);
+  overflow: hidden;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+.marquee-seq {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding: .9rem .7rem;
+  flex-shrink: 0;
+}
+.mq-fa { font-weight: 700; font-size: 1.05rem; color: var(--shell-text); white-space: nowrap; }
+.mq-mono { color: var(--c-accent); letter-spacing: .14em; font-size: .75rem; white-space: nowrap; }
+.mq-dot { color: var(--shell-muted); }
+
+/* ── the four worlds ────────────────────────────────── */
+.world {
+  position: relative;
+  background: var(--c-bg);
+  color: var(--c-text);
+}
+.world::before {
+  content: "";
+  display: block;
+  height: 14px;
+  background: repeating-linear-gradient(90deg, var(--c-text) 0 7px, var(--c-bg) 7px 14px);
+}
+.w01 { --c-bg: #faf7f2; --c-accent: #d4af37; --c-text: #241c0f; --c-shadow: #241c0f; --btn-ink: #241c0f; }
+.w02 { --c-bg: #4a154b; --c-accent: #d4af37; --c-text: #f7effa; --c-shadow: #2a0c2c; --btn-ink: #2a0c2c; }
+.w03 { --c-bg: #f4f6f6; --c-accent: #028c85; --c-text: #1f2e2c; --c-shadow: #10302d; --btn-ink: #f4f6f6; }
+.w04 { --c-bg: #311b92; --c-accent: #ed145b; --c-text: #f3efff; --c-shadow: #1b0f55; --btn-ink: #ffffff; }
+
+.world-inner {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: clamp(3.5rem, 7vh, 6rem) 1.5rem;
+  min-height: 84vh;
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-content: center;
+  align-items: center;
+}
+.world:nth-of-type(even) .world-text { order: 2; }
+.world:nth-of-type(even) .world-art { order: 1; }
+
+.world-kicker {
+  display: flex;
+  gap: .9rem;
+  align-items: baseline;
+  margin-bottom: 1.2rem;
+}
+.world-kicker .mono {
+  color: var(--c-accent);
+  font-size: .7rem;
+  letter-spacing: .16em;
+}
+.kicker-fa { font-size: .85rem; font-weight: 600; opacity: .72; }
+.world-title {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: .7rem;
+  text-wrap: balance;
+}
+.world-sub {
+  font-size: 1.05rem;
+  font-weight: 500;
+  opacity: .72;
+  margin-bottom: 1.4rem;
+}
+.world-body {
+  font-size: 1.02rem;
+  line-height: 2.05;
+  margin-bottom: 1.8rem;
+  max-width: 38rem;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-bottom: 2.2rem;
+}
+.chip {
+  border: 3px solid var(--c-text);
+  padding: .22rem .7rem;
+  font-size: .78rem;
+  font-weight: 600;
+}
+.world-cta {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+}
+.path-chip {
+  font-size: .72rem;
+  letter-spacing: .1em;
+  border: 2px solid var(--c-text);
+  padding: .28rem .55rem;
+  opacity: .68;
+}
+
+/* ── gate buttons ───────────────────────────────────── */
+/* pixel-notch body: the link itself stays unclipped and carries the hard
+   drop-shadow, so the shadow follows the notched silhouette of the two
+   clipped pseudo layers (border layer + fill layer) at every size.
+   clip-path + filter on the SAME element would clip the shadow away —
+   keeping them on separate layers is what makes the notch cast cleanly. */
+.btn-gate {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .8rem;
+  padding: 1rem 1.7rem;
+  background: none;
+  color: var(--btn-ink);
+  filter: drop-shadow(8px 8px 0 var(--c-shadow));
+  font-weight: 800;
+  font-size: 1.15rem;
+  text-decoration: none;
+  min-height: 44px;
+}
+.btn-gate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--c-text);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, calc(100% - 12px) 12px, 100% 12px, 100% 100%, 0 100%);
+}
+.btn-gate::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  z-index: -1;
+  background: var(--c-accent);
+  /* same 12px notch as the border layer — the 3px inset naturally offsets
+     the inner cut, leaving a 3px dark rim wrapping the notch's cut edges */
+  clip-path: polygon(0 0, calc(100% - 12px) 0, calc(100% - 12px) 12px, 100% 12px, 100% 100%, 0 100%);
+}
+.btn-gate.is-hover { filter: drop-shadow(12px 12px 0 var(--c-shadow)); }
+.btn-gate.snap { animation: btnsting 330ms steps(1); }
+@keyframes btnsting {
+  0%  { filter: drop-shadow(8px 8px 0 var(--c-shadow)); }
+  33% { filter: drop-shadow(12px 12px 0 var(--c-accent)); }
+  66% { filter: drop-shadow(10px 10px 0 var(--c-shadow)); }
+  100% { filter: drop-shadow(12px 12px 0 var(--c-shadow)); }
+}
+.btn-gate:active {
+  transform: translate(4px, 4px);
+  filter: drop-shadow(2px 2px 0 var(--c-shadow));
+}
+.btn-arrow { font-size: 1.25em; line-height: 1; }
+.btn-label { white-space: nowrap; }
+
+.contact .btn-gate:not(.btn-primary) { color: var(--shell-text); }
+.contact .btn-gate:not(.btn-primary)::before { background: var(--shell-line); }
+.contact .btn-gate:not(.btn-primary)::after { background: var(--ink); }
+
+/* ── cartridge composition ──────────────────────────── */
+.world-art { display: flex; justify-content: center; }
+.cartridge {
+  position: relative;
+  width: min(19rem, 78vw);
+  aspect-ratio: 3 / 3.4;
+  border: 3px solid var(--c-text);
+  background: var(--c-bg);
+  box-shadow: 8px 8px 0 var(--c-shadow);
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem;
+  gap: 1rem;
+  transform-style: preserve-3d;
+}
+.cartridge.is-hover { box-shadow: 12px 12px 0 var(--c-accent); }
+.cartridge.snap { animation: cartsting 330ms steps(1); }
+@keyframes cartsting {
+  0%  { box-shadow: 8px 8px 0 var(--c-shadow); }
+  33% { box-shadow: 12px 12px 0 var(--c-accent); }
+  66% { box-shadow: 10px 10px 0 var(--c-shadow); }
+  100% { box-shadow: 12px 12px 0 var(--c-accent); }
+}
+.cartridge.tilting { transition: none; }
+.cartridge:not(.tilting) { transition: transform var(--t-snap) steps(4, end); }
+.cart-stair {
+  height: 14px;
+  background: repeating-linear-gradient(90deg, var(--c-text) 0 7px, transparent 7px 14px);
+}
+.cart-num {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(4rem, 9vw, 6.2rem);
+  font-weight: 700;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 3px var(--c-accent);
+  margin: auto 0;
+  text-align: center;
+  letter-spacing: .04em;
+}
+.cart-plate {
+  font-size: .68rem;
+  letter-spacing: .14em;
+  border: 2px solid var(--c-text);
+  padding: .3rem .6rem;
+  align-self: flex-start;
+}
+.cartridge.is-hover .cart-num { color: var(--c-accent); }
+.cart-bar {
+  height: 12px;
+  width: 58%;
+  background: var(--c-accent);
+  transition: width 240ms steps(4, end);
+}
+.cartridge.is-hover .cart-bar { width: 100%; }
+.cart-slot {
+  height: 14px;
+  margin-top: auto;
+  background: repeating-linear-gradient(90deg, var(--c-text) 0 9px, transparent 9px 18px);
+}
+
+/* ── manifesto ──────────────────────────────────────── */
+.manifesto {
+  position: relative;
+  background: var(--ink);
+  color: var(--shell-text);
+  background-image: radial-gradient(rgba(242, 242, 247, .05) 1px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.manifesto::before {
+  content: "";
+  display: block;
+  height: 14px;
+  background: repeating-linear-gradient(90deg, #f2f2f7 0 7px, #0c0c11 7px 14px);
+}
+.manifesto-inner {
+  max-width: 60rem;
+  margin-inline: auto;
+  padding: clamp(4rem, 10vh, 7rem) 1.5rem;
+}
+.section-kicker {
+  color: var(--c-accent);
+  font-size: .72rem;
+  letter-spacing: .2em;
+}
+.manifesto-title {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 900;
+  margin: .8rem 0 1.8rem;
+}
+.manifesto-body {
+  font-size: 1.15rem;
+  line-height: 2.15;
+  color: #c9c9d4;
+  max-width: 46rem;
+  border-inline-start: 6px solid var(--c-accent);
+  padding-inline-start: 1.6rem;
+}
+
+/* ── contact · the fifth world ──────────────────────── */
+.contact {
+  background: var(--ink);
+}
+.contact-inner {
+  max-width: 60rem;
+  margin-inline: auto;
+  padding: clamp(4rem, 10vh, 7rem) 1.5rem;
+}
+.contact-title {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 900;
+  color: var(--c-accent);
+  margin: .8rem 0 1.4rem;
+}
+.contact-body {
+  font-size: 1.1rem;
+  line-height: 2.05;
+  color: #c9c9d4;
+  max-width: 40rem;
+}
+.contact-ctas {
+  display: flex;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+  margin-top: 2.6rem;
+}
+.contact-micro {
+  margin-top: 1.3rem;
+  color: var(--shell-muted);
+  font-size: .9rem;
+}
+
+/* ── footer ─────────────────────────────────────────── */
+.footer {
+  background: var(--ink);
+  border-top: 3px solid var(--shell-line);
+  padding: 2.6rem 1.5rem 7.5rem;
+  text-align: center;
+}
+.foot-line { font-size: .95rem; }
+.foot-ornament {
+  color: var(--shell-muted);
+  font-size: .7rem;
+  letter-spacing: .16em;
+  margin-top: .8rem;
+}
+.foot-fa { color: var(--shell-muted); font-size: .85rem; margin-top: .35rem; }
+.foot-hint {
+  color: #4a4a55;
+  font-size: .55rem;
+  letter-spacing: .3em;
+  margin-top: 1.1rem;
+  padding: 12px 0;
+}
+
+/* ── HUD ────────────────────────────────────────────── */
+.hud {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 500;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(12, 12, 17, .94);
+  border-top: 3px solid var(--shell-line);
+  padding: .45rem 1.1rem;
+  padding-bottom: calc(.45rem + env(safe-area-inset-bottom, 0px));
+}
+.hud-right {
+  display: flex;
+  gap: .9rem;
+  align-items: baseline;
+}
+.hud-index {
+  color: var(--shell-muted);
+  font-size: .68rem;
+  letter-spacing: .12em;
+}
+.hud-world {
+  color: var(--shell-text);
+  font-weight: 700;
+  font-size: .95rem;
+}
+.hud-pips { display: flex; gap: .55rem; }
+.pip {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--c-accent);
+}
+.pip.visited { background: var(--c-accent); }
+.pip.current { animation: blink 1s steps(2) infinite; }
+.pip.win { animation: pipwin 260ms steps(2) 4; }
+@keyframes pipwin {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.9); background: var(--c-accent); }
+}
+.hud.party { border-top-color: var(--c-accent); }
+.hud.party .hud-index { color: var(--c-accent); }
+.hud.party .hud-world { color: var(--c-accent); animation: blink .34s steps(2) infinite; }
+.confetti-bit {
+  position: absolute;
+  bottom: 8px;
+  width: 6px;
+  height: 6px;
+  display: block;
+  pointer-events: none;
+  animation: confrise 900ms steps(9) forwards;
+}
+@keyframes confrise {
+  from { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  to { transform: translate(var(--cx), var(--cy)) rotate(180deg); opacity: 0; }
+}
+.hud-left { display: flex; justify-content: flex-end; }
+.hud-sound {
+  display: flex;
+  gap: .6rem;
+  align-items: baseline;
+  background: none;
+  border: none;
+  color: var(--shell-muted);
+  font-family: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  padding: .5rem .3rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+.hud-sound .mono {
+  font-size: .68rem;
+  letter-spacing: .12em;
+}
+.hud-sound.is-hover { color: var(--shell-text); }
+.hud-sound[aria-pressed="true"] { color: var(--c-accent); }
+
+/* ── modal & toast ──────────────────────────────────── */
+.modal { position: fixed; inset: 0; z-index: 800; display: flex; align-items: center; justify-content: center; }
+.modal[hidden] { display: none; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(12, 12, 17, .92); }
+.modal-card {
+  position: relative;
+  background: var(--ink);
+  border: 3px solid var(--shell-line);
+  box-shadow: 10px 10px 0 #000;
+  max-width: 26rem;
+  margin: 1.5rem;
+  padding: 2.2rem;
+}
+.modal-card .btn-gate { color: var(--shell-text); }
+.modal-card .btn-gate::before { background: var(--shell-line); }
+.modal-card .btn-gate::after { background: var(--ink); }
+.modal-title { font-size: 1.4rem; font-weight: 800; color: var(--c-accent); margin-bottom: 1rem; }
+.modal-body { color: #c9c9d4; line-height: 2; margin-bottom: 1.9rem; }
+
+.toast {
+  position: fixed;
+  bottom: 6.8rem;
+  inset-inline-start: 1.5rem;
+  z-index: 700;
+  background: var(--ink);
+  border: 3px solid var(--shell-line);
+  box-shadow: 8px 8px 0 #000;
+  padding: 1rem 1.4rem;
+  font-weight: 600;
+  font-size: .95rem;
+  max-width: 21rem;
+}
+.toast[hidden] { display: none; }
+.toast.show { animation: toastin var(--t-snap) var(--ease-snap); }
+@keyframes toastin {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+/* ── adaptation ─────────────────────────────────────── */
+/* The pixel canvases size themselves to whole multiples of the game grid,
+   so no per-control size overrides are needed anymore: the deck scales
+   by grid, not by css clamps. Only rhythm + copy fallbacks adapt. */
+@media (max-height: 960px) and (min-width: 861px) {
+  .hero { padding: .9rem clamp(1.1rem, 3vw, 2rem) 4.5rem; }
+  .hero-name { font-size: clamp(2.1rem, 4.8vw, 3rem); }
+  .hero-statement { font-size: clamp(1rem, 1.9vw, 1.3rem); }
+  .hero-para { font-size: .95rem; }
+  .hero-role { margin-bottom: 8px; }
+  .hero-deck { gap: clamp(1.4rem, 4.5vw, 3.2rem); margin-top: .9rem; }
+  .coin-row { margin-top: .7rem; }
+  .crt-decal { margin-top: .5rem; }
+}
+@media (max-width: 860px) {
+  .world-inner {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 2.6rem;
+  }
+  .world:nth-of-type(even) .world-text { order: 0; }
+  .world:nth-of-type(even) .world-art { order: 0; }
+  .cartridge { width: min(15rem, 68vw); }
+  .hud-world { display: none; }
+  .hero { padding: 1rem .8rem 4.2rem; }
+  .hero-name { font-size: clamp(1.9rem, 8vw, 2.6rem); }
+  .hero-para { font-size: .92rem; }
+  .hero-deck {
+    flex-wrap: wrap;
+    row-gap: 1rem;
+    gap: 1.6rem;
+    margin-top: 1rem;
+  }
+  .pstart {
+    order: 5;
+    flex: 1 1 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: .9rem;
+  }
+  .panel-btns { padding-bottom: 10px; }
+  .coin-row { gap: .7rem 1rem; }
+}
+@media (max-width: 480px) {
+  .sound-label { display: none; }
+  .contact-ctas .btn-gate { width: 100%; justify-content: center; }
+  .world-cta { width: 100%; }
+  .world-cta .btn-gate { flex: 1; justify-content: center; }
+  .toast { inset-inline-start: 1rem; max-width: 16rem; }
+  .coin-fa { font-size: .66rem; }
+  .hero-para { font-size: .88rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot { display: none; }
+  .cue-cv,
+  .pip.current,
+  .pip.win,
+  .confetti-bit,
+  .cartridge.snap,
+  .btn-gate.snap,
+  .hud.party .hud-world,
+  .scanlines::after { animation: none; }
+  html.booting .hero-inner,
+  html.booting .hero-cue,
+  html.booting .hero-deck,
+  html.booting .coin-row,
+  html.booting .crt-decal { opacity: 1; }
+  .toast.show { animation: none; }
+  body,
+  .btn-gate,
+  .cartridge,
+  .cart-bar { transition: none; }
+  * { scroll-behavior: auto; }
+}
