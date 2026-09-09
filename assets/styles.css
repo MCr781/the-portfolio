@@ -272,8 +272,8 @@ html.has-cursor .cursor { display: block; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #07070c;
-  padding: clamp(1.1rem, 2.6vh, 1.7rem) clamp(1.1rem, 3.5vw, 2.6rem) clamp(3.4rem, 7vh, 4.6rem);
+  background: #05050a;
+  padding: clamp(3.2rem, 5.5vh, 4.2rem) clamp(1.1rem, 3.5vw, 2.6rem) clamp(2.2rem, 4.5vh, 3.5rem);
   overflow: clip;
 }
 #field {

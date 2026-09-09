@@ -532,29 +532,21 @@
   }
 
   function quantizeAlpha(img) {
-    /* 1-bit ink: full or empty, never semi-transparent. A rescue pass
-       promotes weak pixels that touch a full stroke, so thin Farsi
-       strokes stay connected while every edge stays hard. */
+    /* 16-bit hi-clarity alpha quantization: preserves subpixel curves,
+       dots, and ligatures while giving edges a crisp 16-bit arcade tone */
     var d = img.data;
-    var w = img.width, h = img.height;
-    var full = new Uint8Array(w * h);
-    var i, x, y, idx;
-    for (i = 0; i < w * h; i++) {
-      full[i] = d[i * 4 + 3] >= 96 ? 1 : 0;
-    }
-    for (y = 0; y < h; y++) {
-      for (x = 0; x < w; x++) {
-        idx = y * w + x;
-        if (!full[idx] && d[idx * 4 + 3] >= 44) {
-          if ((x > 0 && full[idx - 1]) || (x < w - 1 && full[idx + 1]) ||
-              (y > 0 && full[idx - w]) || (y < h - 1 && full[idx + w])) {
-            full[idx] = 1;
-          }
-        }
+    var i, a;
+    for (i = 0; i < d.length; i += 4) {
+      a = d[i + 3];
+      if (a < 32) {
+        d[i + 3] = 0;
+      } else if (a < 110) {
+        d[i + 3] = 110;
+      } else if (a < 190) {
+        d[i + 3] = 190;
+      } else {
+        d[i + 3] = 255;
       }
-    }
-    for (i = 0; i < w * h; i++) {
-      d[i * 4 + 3] = full[i] ? 255 : 0;
     }
   }
 
@@ -611,12 +603,12 @@
 
   /* mounts the pixel twin of a [data-px] element's text */
   var PX_CONF = {
-    chip:      { src: 8,  weight: 800, color: null, grid: null, chip: true, align: 'start' },
-    name:      { src: 14, weight: 900, color: PC.text,  align: 'start' },
-    statement: { src: 10, weight: 900, color: PC.gold,  align: 'start' },
+    chip:      { src: 9,  weight: 800, color: null, grid: null, chip: true, align: 'start' },
+    name:      { src: 16, weight: 900, color: PC.text,  align: 'start' },
+    statement: { src: 11, weight: 900, color: PC.gold,  align: 'start' },
     para:      { src: 10, weight: 700, color: PC.textSub, grid: 'half', align: 'start' },
     cuefa:     { src: 9,  weight: 700, color: PC.cueFa, grid: 'half', align: 'center' },
-    pstartfa:  { src: 9,  weight: 800, color: null, grid: 'half', align: 'center' },
+    pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center' },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
     bootfa:    { src: 8,  weight: 800, color: PC.slateHi, align: 'center' },
     bootskip:  { src: 10, weight: 700, color: PC.slate,   grid: 'half', align: 'center' }
