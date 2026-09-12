@@ -194,3 +194,30 @@ in Persian, on a living cabinet.
 6. **Para line break** — `<br>` in a [data-px] source survives pxify (innerHTML
    → `\n`) and `faWrap` treats it as a hard break; the em-dash after «خیریه»
    is gone, the line ends there.
+
+### §8 · Third work order — the cabinet learns to hurt, die and continue
+
+1. **Micro chrome** — the glass row (1P / HIGH SCORE + digits / 2P) now sets in
+   the 3×5 MFONT at scale 1 (scale 2 only on PXG≤2 tubes): half the old
+   footprint, still crisp, still over the vignette.
+2. **Key legends split** — `WASD` under the stick, `SPACE` under the FIRE dome
+   (`data-px="joyfa" / "firefa"`, nowrap captions).
+3. **Hardware tells the truth** — one input state, two hands: WASD tilts and
+   presses the same stick the pointer does (`syncStick`), SPACE sinks the FIRE
+   dome, Enter sinks START and runs `doStart()`, and any hop (key, dome or
+   pointer) flashes the JUMP dome.
+4. **More people** — nine at build, respawn floor raised to nine (was five).
+5. **Impact damage** — bombs burst with `blastAt`: shock ring, scorch on the
+   ridge (9 s), and every humanoid inside the radius is gone — area grief,
+   not a single tag.
+6. **The wreck and the gate** — a lander that touches the ship kills her:
+   34-particle burst, twin shock rings, tube shake, gold flash, staged hull
+   fires, smoke columns, and a blinking GAME OVER / INSERT COIN plate. The
+   next coin opens a portal: dithered beam, spinning ring, hull materialising
+   from the spine outward (`drawSprClip`), sparkle on arrival.
+   `#fwdebug` opens a service hatch (`window.__fw`) so the loop is testable.
+7. **The paid clock** — a coin buys 30 s; a 2.6 s grace window lets a handful
+   of coins buy a handful of minutes; while seconds remain the slot, its
+   label and its caption leave the bezel (`html.coin-hidden`) and the bezel
+   reads `TIME NN`. At zero the door wakes. A wreck ends the clock early —
+   the continue is a fresh coin.

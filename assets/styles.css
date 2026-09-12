@@ -398,6 +398,11 @@ html.banner-on .hero-cue { visibility: hidden; }
 }
 .pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); }
 .joy-fa { margin: .4rem 0 0; text-align: center; }
+.pbtn-fa { display: block; margin: .4rem 0 0; text-align: center; }
+.panel-btns { align-items: flex-start; }
+/* the paid clock owns the slot: while seconds remain, the door,
+   its label and its caption step off the bezel entirely */
+html.coin-hidden .coin-row { visibility: hidden; }
 .pstart { overflow: visible; }
 .panel-btns {
   display: flex;

@@ -430,18 +430,19 @@
   }
   function textW(str, scale) { return str.length * 6 * (scale || 1); }
 
-  function drawMText(g, str, x, y, color) {
+  function drawMText(g, str, x, y, color, scale) {
+    scale = scale || 1;
     g.fillStyle = color;
     for (var i = 0; i < str.length; i++) {
       var rows = MFONT[str.charAt(i)];
-      if (!rows) { x += 4; continue; }
+      if (!rows) { x += 4 * scale; continue; }
       for (var r = 0; r < 5; r++) {
         var line = rows[r];
         for (var c = 0; c < 3; c++) {
-          if (line.charAt(c) === '1') { g.fillRect(x + c, y + r, 1, 1); }
+          if (line.charAt(c) === '1') { g.fillRect(x + c * scale, y + r * scale, scale, scale); }
         }
       }
-      x += 4;
+      x += 4 * scale;
     }
   }
   function mTextW(str) { return str.length * 4 - 1; }
@@ -463,6 +464,23 @@
     }
   }
   function sprW(spr) { return spr[0].length; }
+  /* drawSpr, but only columns c0..c1 — how a hull materialises out
+     of a portal: from the spine outward */
+  function drawSprClip(g, spr, x, y, legend, flip, c0, c1) {
+    var r, c, ch;
+    for (r = 0; r < spr.length; r++) {
+      var line = spr[r];
+      var w = line.length;
+      for (c = c0; c <= c1 && c < w; c++) {
+        ch = line.charAt(c);
+        if (ch === '.') { continue; }
+        var col = legend[ch];
+        if (!col) { continue; }
+        g.fillStyle = col;
+        g.fillRect(x + (flip ? w - 1 - c : c), y + r, 1, 1);
+      }
+    }
+  }
 
   /* pixel ball — a shaded circle, the pixel-art way to draw domes */
   function pxBall(g, cx, cy, r, tones, squishX) {
@@ -637,6 +655,7 @@
     cuefa:     { src: 9,  weight: 700, color: PC.cueFa, grid: 'half', align: 'center' },
     pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
     joyfa:     { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
+    firefa:    { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
     bootfa:    { src: 8,  weight: 800, color: PC.slateHi, align: 'center' },
     bootskip:  { src: 10, weight: 700, color: PC.slate,   grid: 'half', align: 'center' }
@@ -644,7 +663,7 @@
 
   /* narrow screens: the same pixel twin, set a touch smaller so the
      title screen keeps its rhythm on a phone tube */
-  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, joyfa: 8, bootfa: 7, bootskip: 9 };
+  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, joyfa: 8, firefa: 8, bootfa: 7, bootskip: 9 };
 
   function accentOf(el) {
     var w = el.closest('[data-world]');
@@ -1050,9 +1069,11 @@
       score: old ? old.score : 0,
       flash: old ? old.flash : 0,
       banner: old ? old.banner : null,
-      bombCd: 2600, humCd: 4000
+      bombCd: 2600, humCd: 4000,
+      rings: [], scorch: [], shake: 0,
+      shipDead: false, shipDeadAt: 0, portal: null
     };
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 9; i++) {
       world.hums.push({
         wx: world.worldX + 24 + Math.random() * cols * 2.4,
         y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
@@ -1094,6 +1115,47 @@
     }
   }
 
+  /* a bomb's burst is impact damage: a shock ring, a scorch on the
+     ridge, and everyone caught in the radius is gone — not just the
+     one soul the shell touched */
+  function blastAt(sx, sy) {
+    var w = world;
+    boomAt(sx, sy, 12);
+    w.rings.push({ x: sx, y: sy, r: 2, life: 420, max: 420 });
+    w.scorch.push({ x: sx, y: sy, ttl: 9000 });
+    for (var j = 0; j < w.hums.length; j++) {
+      var H = w.hums[j];
+      if (H.gone || H.state !== 'ground') { continue; }
+      var hx = H.wx - w.worldX;
+      if (Math.abs(hx + 2 - sx) < 7 && Math.abs(H.y + 4 - sy) < 8) {
+        H.gone = true;
+        boomAt(Math.round(hx + 2), Math.round(H.y + 3), 6);
+      }
+    }
+  }
+
+  /* the wreck: enhanced visuals — shock rings, shake, staged fires,
+     and the bezel demanding the next coin */
+  function killShip(L) {
+    var w = world;
+    var S = w.ship;
+    if (L) { L.gone = true; boomAt(Math.round(L.wx - w.worldX + 4), Math.round(L.y + 3), 12); }
+    w.shipDead = true;
+    w.shipDeadAt = w.t;
+    w.ds1 = w.ds2 = w.ds3 = 0;
+    w.shake = 750;
+    w.flash = 520;
+    boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 34);
+    w.rings.push({ x: S.x + 4, y: S.y + 5, r: 2, life: 620, max: 620 });
+    w.rings.push({ x: S.x + 4, y: S.y + 5, r: 1, life: 430, max: 430 });
+    w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15 };
+    playT = 0; coinGrace = 0;
+    html.classList.remove('coin-hidden');
+    paintCredit(); paintCoinLabel();
+    blip(70, 420);
+    setTimeout(function () { blip(52, 520); }, 160);
+  }
+
   /* the three player verbs — wired to FIRE / JUMP / the joystick */
   function fireShip(user) {
     var w = world;
@@ -1125,8 +1187,11 @@
     }
   }
   function hopShip() {
-    if (!world) { return; }
+    if (!world || world.shipDead) { return; }
     world.ship.hopV = -36;
+    pbtnState[0] = 2;
+    paintPBtns();
+    setTimeout(function () { pbtnState[0] = 0; paintPBtns(); }, 240);
   }
   function bankShip(right) {
     var w = world;
@@ -1167,6 +1232,13 @@
       var L = w.landers[i];
       L.wx += L.drift * ds;
       if (L.wx - w.worldX < -8) { L.gone = true; continue; }
+      var lsx0 = L.wx - w.worldX;
+      if (!w.shipDead && !w.portal &&
+          Math.abs(lsx0 + 4 - (w.ship.x + 4)) < 6 &&
+          Math.abs(L.y + 3 - (w.ship.y + w.ship.hopY + 5)) < 6) {
+        killShip(L);
+        continue;
+      }
       if (L.state === 'drift') {
         L.y = L.base + Math.sin(w.t * 0.0021 + L.ph) * 4;
         L.grabCd -= dt;
@@ -1235,15 +1307,15 @@
       }
       bo.x += bo.vx * ds;
       bo.y += bo.vy * ds;
-      /* a bomb that reaches a person kills them — the old grief */
+      /* a bomb that reaches a person bursts — and the burst has a
+         radius: impact damage, not a single-tag kill */
       for (j = 0; j < w.hums.length; j++) {
         var Hb = w.hums[j];
         if (Hb.gone || Hb.state !== 'ground') { continue; }
         var hxs = Hb.wx - w.worldX;
         if (Math.abs(bo.x - hxs - 2) < 3.5 && Math.abs(bo.y - (Hb.y + 4)) < 5) {
-          Hb.gone = true;
           bo.gone = true;
-          boomAt(Math.round(hxs + 2), Math.round(Hb.y + 3), 8);
+          blastAt(Math.round(hxs + 2), Math.round(Hb.y + 4));
           break;
         }
       }
@@ -1251,18 +1323,31 @@
       var bR = terrRow(Math.round(bo.x + w.worldX), w.rows);
       if (bo.y >= bR - 1) {
         bo.gone = true;
-        boomAt(Math.round(bo.x), bR - 1, 5);
+        blastAt(Math.round(bo.x), bR - 1);
       }
     }
 
     /* ship — hands on the stick? then the attract pilot stands down:
        WASD flies, the wander resumes a beat after the keys go quiet */
     var S = w.ship;
+    if (w.shipDead) {
+      /* the wreck keeps dying in stages — fires along the hull */
+      var stg = w.t - w.shipDeadAt;
+      if (stg > 200 && !w.ds1) { w.ds1 = 1; boomAt(Math.round(S.x + 3), Math.round(S.y + 4), 10); }
+      if (stg > 430 && !w.ds2) { w.ds2 = 1; boomAt(Math.round(S.x + 6), Math.round(S.y + 7), 8); }
+      if (stg > 720 && !w.ds3) { w.ds3 = 1; boomAt(Math.round(S.x + 1), Math.round(S.y + 2), 6); }
+    }
+    if (w.portal && w.t - w.portal.t0 >= 1500) {
+      w.portal = null;
+      boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 10);
+      w.rings.push({ x: S.x + 4, y: S.y + 5, r: 2, life: 420, max: 420 });
+    }
     var mv = 0, mh = 0;
     if (keys.w) { mv -= 1; }
     if (keys.s) { mv += 1; }
     if (keys.a) { mh -= 1; }
     if (keys.d) { mh += 1; }
+    if (w.shipDead || w.portal) { mv = 0; mh = 0; }
     if (mv !== 0 || mh !== 0) { S.manualUntil = w.t + 2600; }
     if (mh !== 0) { S.face = mh; }
     if (w.t < (S.manualUntil || 0)) {
@@ -1295,7 +1380,7 @@
     S.fireCd -= dt;
     /* the auto-gun only fires while the attract pilot is alone; a hand
        on the keys means SPACE is the only trigger */
-    if (w.t >= (S.manualUntil || 0) && S.fireCd <= 0) {
+    if (!w.shipDead && !w.portal && w.t >= (S.manualUntil || 0) && S.fireCd <= 0) {
       S.fireCd = 620 + Math.random() * 1100;
       fireShip(false);
     }
@@ -1352,12 +1437,37 @@
       if (H.wx - w.worldX < -6) { H.gone = true; }
     }
     w.humCd -= dt;
-    if (w.humCd <= 0 && w.hums.length < 5) {
-      w.humCd = 5000;
+    if (w.humCd <= 0 && w.hums.length < 9) {
+      w.humCd = 4200;
       w.hums.push({
         wx: w.worldX + w.cols + Math.random() * w.cols,
         y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
       });
+    }
+
+    for (i = 0; i < w.rings.length; i++) {
+      w.rings[i].r += 26 * ds;
+      w.rings[i].life -= dt;
+    }
+    w.rings = w.rings.filter(function (r) { return r.life > 0; });
+    for (i = 0; i < w.scorch.length; i++) { w.scorch[i].ttl -= dt; }
+    w.scorch = w.scorch.filter(function (sc2) { return sc2.ttl > 0; });
+    if (w.shake > 0) { w.shake = Math.max(0, w.shake - dt); }
+
+    /* the paid clock: coins buy seconds; the slot sleeps while it
+       runs and wakes the moment the last second burns */
+    if (playT > 0) {
+      var prevSec = Math.ceil(playT / 1000);
+      playT = Math.max(0, playT - dt);
+      if (playT === 0) {
+        html.classList.remove('coin-hidden');
+        paintCredit(); paintCoinLabel();
+      } else {
+        if (Math.ceil(playT / 1000) !== prevSec) { paintCredit(); }
+        var g0 = coinGrace;
+        coinGrace = Math.max(0, coinGrace - dt);
+        if (g0 > 0 && coinGrace === 0) { html.classList.add('coin-hidden'); }
+      }
     }
 
     /* explosion particles burn out white → gold → orange → red */
@@ -1468,6 +1578,12 @@
     var cols = w.cols, rows = w.rows;
     var i;
     g.imageSmoothingEnabled = false;
+    g.save();
+    if (w.shake > 0) {
+      var shk = w.shake / 750;
+      g.translate(Math.round((Math.random() * 2 - 1) * 3 * shk),
+                  Math.round((Math.random() * 2 - 1) * 2 * shk));
+    }
 
     /* sky — attract mode keeps clean near-black glass like a title
        screen; boot mode keeps the dithered dusk bands + moon */
@@ -1555,6 +1671,26 @@
       if (tr + 12 < rows) { g.fillRect(sx, tr + 12, 1, rows - tr - 12); }
     }
 
+    /* impact damage leaves its signature: scorched ridge and a
+       shock ring still walking outward */
+    for (i = 0; i < w.scorch.length; i++) {
+      var scd = w.scorch[i];
+      g.fillStyle = scd.ttl > 6000 ? '#050408' : 'rgba(5,4,8,.6)';
+      g.fillRect(Math.round(scd.x) - 3, Math.round(scd.y), 7, 1);
+      g.fillRect(Math.round(scd.x) - 2, Math.round(scd.y) + 1, 5, 1);
+      g.fillRect(Math.round(scd.x) - 1, Math.round(scd.y) - 1, 3, 1);
+    }
+    for (i = 0; i < w.rings.length; i++) {
+      var rg = w.rings[i];
+      var ra = rg.life / rg.max;
+      g.fillStyle = ra > 0.6 ? PC.white : (ra > 0.3 ? PC.score : PC.starRed);
+      for (var rk = 0; rk < 14; rk++) {
+        var ran = rk / 14 * 6.28;
+        g.fillRect(Math.round(rg.x + Math.cos(ran) * rg.r),
+                   Math.round(rg.y + Math.sin(ran) * rg.r * 0.7), 1, 1);
+      }
+    }
+
     /* humanoids on the mountains */
     var cheering = w.cheerUntil && t < w.cheerUntil;
     for (i = 0; i < w.hums.length; i++) {
@@ -1601,21 +1737,55 @@
       g.fillRect(bd > 0 ? bx + 2 : bx - 3, by, 2, 1);
     }
 
-    /* the ship + dual thruster flames */
+    /* the ship + dual thruster flames — or her wreck, or her portal */
     var S = w.ship;
-    /* facing mirrors the hull; a victory roll flips it once more */
-    var flip = ((S.face || 1) < 0 ? 1 : 0) ^ (t < (S.flipUntil || 0) ? 1 : 0);
-    var shipX = Math.round(S.x);
-    var shipY = Math.round(S.y + S.hopY);
-    drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
-    var flameX = flip ? shipX + sprW(SPR_SHIP) : shipX - 1;
-    var fPulse = (Math.floor(t / 100) % 2) === 0;
-    g.fillStyle = PC.thr;
-    g.fillRect(flameX, shipY + 3, fPulse ? 3 : 2, 1);
-    g.fillRect(flameX, shipY + 7, fPulse ? 3 : 2, 1);
-    g.fillStyle = PC.thrLo;
-    g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
-    g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
+    if (w.shipDead) {
+      /* smoke columns crawl out of the crash while the fires cool */
+      var smk = Math.floor(t / 130) % 6;
+      g.fillStyle = PC.slate;
+      g.fillRect(Math.round(S.x + 4) + (smk % 2), Math.round(S.y + 3) - smk, 1, 1);
+      g.fillStyle = PC.slateHi;
+      g.fillRect(Math.round(S.x + 5) - (smk % 2), Math.round(S.y + 4) - Math.floor(smk / 2), 1, 1);
+      if ((Math.floor(t / 220) % 3) === 0) {
+        g.fillStyle = PC.starRed;
+        g.fillRect(Math.round(S.x + 3) + (smk % 3), Math.round(S.y + 6), 1, 1);
+      }
+    } else if (w.portal) {
+      /* the gate: dithered beam, a spinning ring, and the hull
+         materialising from the spine outward */
+      var age = w.t - w.portal.t0;
+      var px = Math.round(S.x), py = Math.round(S.y);
+      g.fillStyle = (Math.floor(t / 90) % 2) ? PC.bulletGlow : PC.gold;
+      for (var pr = py - 7; pr < py + 16; pr++) {
+        if (((pr + Math.floor(t / 60)) % 2) === 0) {
+          g.fillRect(px + 3, pr, 1, 1);
+          g.fillRect(px + 6, pr, 1, 1);
+        }
+      }
+      var rr2 = 3 + (Math.floor(age / 120) % 5);
+      g.fillStyle = PC.bulletGlow;
+      for (var pk = 0; pk < 14; pk++) {
+        var pa = pk / 14 * 6.28 + t * 0.004;
+        g.fillRect(px + 4 + Math.round(Math.cos(pa) * rr2),
+                   py + 5 + Math.round(Math.sin(pa) * (rr2 - 1)), 1, 1);
+      }
+      var half = Math.min(4, Math.floor(age / 1500 * 4) + 1);
+      drawSprClip(g, SPR_SHIP, px, py, SHIP_LEG, 0, 4 - half, 3 + half);
+    } else {
+      /* facing mirrors the hull; a victory roll flips it once more */
+      var flip = ((S.face || 1) < 0 ? 1 : 0) ^ (t < (S.flipUntil || 0) ? 1 : 0);
+      var shipX = Math.round(S.x);
+      var shipY = Math.round(S.y + S.hopY);
+      drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
+      var flameX = flip ? shipX + sprW(SPR_SHIP) : shipX - 1;
+      var fPulse = (Math.floor(t / 100) % 2) === 0;
+      g.fillStyle = PC.thr;
+      g.fillRect(flameX, shipY + 3, fPulse ? 3 : 2, 1);
+      g.fillRect(flameX, shipY + 7, fPulse ? 3 : 2, 1);
+      g.fillStyle = PC.thrLo;
+      g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
+      g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
+    }
 
     /* starburst explosions, burning out */
     for (i = 0; i < w.booms.length; i++) {
@@ -1794,6 +1964,7 @@
       }
     }
 
+    g.restore();
     /* CRT vignette — pre-rendered dither, over the world but UNDER
        the glass text: the score row must never be eaten by it */
     g.drawImage(vigCv, 0, 0);
@@ -1810,23 +1981,37 @@
      so corner dither never eats the 1P / 2P columns; small tubes get
      it at 2x because 1px strokes on a 2px grid read as noise */
   function drawAttractChrome(g, cols, rows, w) {
+    /* micro type on the glass: present, crisp, and out of the
+       marquee's way — half the footprint of the old 5×7 row */
     var sc = PXG <= 2 ? 2 : 1;
-    var y1 = sc === 2 ? 2 : 3;
-    var y2 = y1 + 8 * sc;
+    var y1 = 2;
+    var y2 = y1 + 7 * sc;
     var chrome = PC.shell;   /* white glass text, over the vignette */
-    drawText(g, '1P', 6, y1, chrome, sc);
-    if (sc === 2) { drawText(g, '00', 6, y2, chrome, sc); }
+    function mW(str) { return (str.length * 4 - 1) * sc; }
+    drawMText(g, '1P', 5, y1, chrome, sc);
+    if (sc === 2) { drawMText(g, '00', 5, y2, chrome, sc); }
     var hs1 = 'HIGH SCORE';
     var hs2 = pad10(hiScore);
-    drawText(g, hs1, Math.round(cols / 2 - textW(hs1, sc) / 2), y1, chrome, sc);
-    drawText(g, hs2, Math.round(cols / 2 - textW(hs2, sc) / 2), y2, chrome, sc);
+    drawMText(g, hs1, Math.round(cols / 2 - mW(hs1) / 2), y1, chrome, sc);
+    drawMText(g, hs2, Math.round(cols / 2 - mW(hs2) / 2), y2, chrome, sc);
+    drawMText(g, '2P', cols - 5 - mW('2P'), y1, chrome, sc);
     if (sc === 1) {
       /* wide tubes carry the live run score and the empty 2P slot */
-      drawText(g, pad10(w ? w.score : 0), 6, y2, chrome, sc);
-      drawText(g, '0000000000', cols - 6 - textW('0000000000', sc), y2, chrome, sc);
+      drawMText(g, pad10(w ? w.score : 0), 5, y2, chrome, sc);
+      drawMText(g, '0000000000', cols - 5 - mW('0000000000'), y2, chrome, sc);
     } else {
-      drawText(g, '00', cols - 6 - textW('00', sc), y2, chrome, sc);
+      drawMText(g, '00', cols - 5 - mW('00'), y2, chrome, sc);
     }
+  }
+
+  /* #fwdebug opens a service hatch: the death/continue/portal loop
+     is testable without winning a fight against a lander */
+  if (typeof location !== 'undefined' && /fwdebug/.test(location.hash || '')) {
+    window.__fw = {
+      world: function () { return world; },
+      kill: function () { killShip(null); },
+      coin: function () { if (coinBtn) { coinBtn.click(); } }
+    };
   }
 
   if (hero && cv) {
@@ -1867,6 +2052,8 @@
       store('fw-hiscore', '' + hiScore);
     }
   }
+  var playT = 0;        /* ms of paid play left on the cabinet clock */
+  var coinGrace = 0;    /* brief window to pump more coins in */
   function pad10(n) {
     n = Math.max(0, Math.min(9999999999, Math.floor(n)));
     return ('0000000000' + n).slice(-10);
@@ -1887,20 +2074,48 @@
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { return; }
     if (!heroVisible || !world) { return; }
     var k = KEYMAP[e.code];
-    if (k) { keys[k] = true; e.preventDefault(); return; }
+    if (k) {
+      keys[k] = true;
+      e.preventDefault();
+      syncStick();
+      return;
+    }
     if (e.code === 'Space') {
       e.preventDefault();
+      pbtnState[1] = 2;      /* the FIRE dome sinks with the key */
+      paintPBtns();
       if (!e.repeat) { manualGun(); }
+      return;
+    }
+    if (e.code === 'Enter') {
+      e.preventDefault();
+      if (!e.repeat) {
+        startState = 2;      /* the START key sinks with the key */
+        paintStart();
+        doStart();
+      }
     }
   });
   addEventListener('keyup', function (e) {
     var k = KEYMAP[e.code];
-    if (k) { keys[k] = false; }
+    if (k) { keys[k] = false; syncStick(); return; }
+    if (e.code === 'Space') { pbtnState[1] = 0; paintPBtns(); return; }
+    if (e.code === 'Enter') { startState = 0; paintStart(); }
   });
   addEventListener('blur', function () { keys.w = keys.a = keys.s = keys.d = false; });
 
   var joyTilt = 0, joyPress = false;
   var startState = 0;   /* 0 idle · 1 hover · 2 press */
+  /* one stick, two hands: the keyboard tilts the same stick the
+     pointer does, so the hardware always tells the truth */
+  function syncStick() {
+    var nt = keys.a ? -3 : (keys.d ? 3 : 0);
+    var np = !!(keys.w || keys.s);
+    if (nt !== joyTilt || np !== joyPress) {
+      joyTilt = nt; joyPress = np;
+      paintJoy();
+    }
+  }
   var pbtnState = [0, 0];
   var coinLed = true, coinAnimT0 = -1, coinCredit = false;
 
@@ -2104,9 +2319,18 @@
 
   function paintCoinLabel() {
     if (!coinLabel) { return; }
-    var nn = credits < 10 ? '0' + credits : '' + credits;
-    var text = coinCredit ? 'THANK YOU' : (credits > 0 ? 'CREDIT ' + nn : 'INSERT COIN');
-    var color = coinCredit || credits > 0 ? PC.gold : PC.slateHi;
+    var text, color;
+    if (coinCredit) { text = 'THANK YOU'; color = PC.gold; }
+    else if (world && world.shipDead) { text = 'INSERT COIN'; color = PC.gold; }
+    else if (playT > 0) {
+      var sec2 = Math.ceil(playT / 1000);
+      text = 'TIME ' + (sec2 < 10 ? '0' + sec2 : '' + sec2);
+      color = PC.gold;
+    } else {
+      var nn = credits < 10 ? '0' + credits : '' + credits;
+      text = credits > 0 ? 'CREDIT ' + nn : 'INSERT COIN';
+      color = credits > 0 ? PC.gold : PC.slateHi;
+    }
     var W = textW(text) + 1;
     var H = 9;
     var mount = coinLabel.querySelector('canvas') || doc.createElement('canvas');
@@ -2126,9 +2350,16 @@
   var creditLabel = $('#creditLabel');
   function paintCredit() {
     if (!creditLabel) { return; }
-    var nn = credits < 10 ? '0' + credits : '' + credits;
-    var text = 'CREDIT ' + nn;
-    var color = credits > 0 || coinCredit ? PC.gold : PC.shell;
+    var text, color;
+    if (playT > 0) {
+      var sec = Math.ceil(playT / 1000);
+      text = 'TIME ' + (sec < 10 ? '0' + sec : '' + sec);
+      color = PC.gold;
+    } else {
+      var nn = credits < 10 ? '0' + credits : '' + credits;
+      text = 'CREDIT ' + nn;
+      color = credits > 0 || coinCredit ? PC.gold : PC.shell;
+    }
     var W = textW(text) + 1;
     var H = 9;
     var mount = creditLabel.querySelector('canvas') || doc.createElement('canvas');
@@ -2508,7 +2739,8 @@
     };
     startBtn.addEventListener('pointerup', releaseStart);
     startBtn.addEventListener('pointerleave', releaseStart);
-    startBtn.addEventListener('click', function () {
+    startBtn.addEventListener('click', doStart);
+    function doStart() {
       /* a kept coin is spent on the way in; without one, entry is
          still free — the cabinet just remembers who tipped it */
       var spent = credits > 0;
@@ -2524,7 +2756,7 @@
       if (w1 && w1.scrollIntoView) {
         w1.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
       }
-    });
+    }
   }
 
   var coinReset = null;
@@ -2535,6 +2767,14 @@
       paintCoin();
       credits = Math.min(99, credits + 1);
       saveCredits();
+      /* the policy: every coin buys thirty seconds, the grace window
+         lets a handful of coins buy a handful of minutes, and then
+         the slot vanishes until the clock burns out */
+      playT = Math.min(999000, playT + 30000);
+      coinGrace = 2600;
+      html.classList.remove('coin-hidden');
+      paintCredit();
+      paintCoinLabel();
       setCoinCredit(true);
       clearTimeout(coinReset);
       coinReset = setTimeout(function () {
@@ -2545,9 +2785,17 @@
          gold star joins the sky — a receipt you can see from space */
       if (world) {
         world.flash = 900;
-        world.cheerUntil = world.t + 2200;
-        world.ship.flipUntil = world.t + 700;
-        world.banner = { l1: 'THANK YOU', l2: 'PLAYER 1', until: performance.now() + 1700 };
+        if (world.shipDead) {
+          /* the continue: a gate opens and she steps back out of it */
+          world.shipDead = false;
+          world.ds1 = world.ds2 = world.ds3 = 0;
+          world.portal = { t0: world.t };
+          world.banner = { l1: 'WORLD 01', l2: 'GOOD LUCK!', until: performance.now() + 1700 };
+        } else {
+          world.cheerUntil = world.t + 2200;
+          world.ship.flipUntil = world.t + 700;
+          world.banner = { l1: 'THANK YOU', l2: 'PLAYER 1', until: performance.now() + 1700 };
+        }
         world.stars.push({
           x: Math.random() * world.cols,
           y: Math.floor(Math.random() * Math.max(8, Math.round(world.rows * 0.5))),
