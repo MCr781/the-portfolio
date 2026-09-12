@@ -307,10 +307,7 @@
     score: '#ffd76a', hud: '#9a9ab8',
     radarBg: '#0b1326', radarRim: '#254456', radarTerr: '#386178', blip: '#ff007f',
     post: '#a0a0b8', ok: '#50e3c2', coin: '#ffd76a', start: '#ffffff',
-    /* the attract title screen — flat space, warm pixel stars, and the
-       big orange PRESS START straight off a 1980s title card */
-    titleBg: '#0d0d13',
-    tstarW: '#e6e6ea', tstarM: '#8f8f9c', tstarO: '#e0653a', tstarR: '#c04a2e',
+    /* the PRESS START splash — orange caps, dark outline + hard shadow */
     press: '#f0913c', pressHi: '#ffc07a', pressSh: '#6e2413', pressDim: '#382721',
     panel: '#0e0c24', panelBd: '#433c63', panelHi: '#564e7a',
     ink: '#03030a', out: '#241c0f',
@@ -607,11 +604,10 @@
 
   /* mounts the pixel twin of a [data-px] element's text */
   var PX_CONF = {
-    /* the title screen is centered, like the attract card it honors */
-    chip:      { src: 9,  weight: 800, color: null, grid: null, chip: true, align: 'center' },
-    name:      { src: 16, weight: 900, color: PC.text,  align: 'center' },
-    statement: { src: 11, weight: 900, color: PC.gold,  align: 'center' },
-    para:      { src: 10, weight: 700, color: PC.textSub, grid: 'half', align: 'center' },
+    chip:      { src: 9,  weight: 800, color: null, grid: null, chip: true, align: 'start' },
+    name:      { src: 16, weight: 900, color: PC.text,  align: 'start' },
+    statement: { src: 11, weight: 900, color: PC.gold,  align: 'start' },
+    para:      { src: 10, weight: 700, color: PC.textSub, grid: 'half', align: 'start' },
     cuefa:     { src: 9,  weight: 700, color: PC.cueFa, grid: 'half', align: 'center' },
     pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center' },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
@@ -710,9 +706,8 @@
      ink bands, a crescent moon, drifting dithered clouds, three parallax
      mountain ridges, a 3-tone gold terrain, chunky multi-tone sprites,
      starburst explosions — one shared world state feeding BOTH screens
-     (boot canvas dimmed under the title card, hero canvas as the attract
-     title screen with the demo dimmed beneath it), so the channel flip
-     hands over a game already in motion. */
+     (boot canvas dimmed under the title card, hero canvas with the full
+     HUD), so the channel flip hands over a game already in motion. */
 
   var skyCv = null, vigCv = null, dimCv = null, flashCvs = [];
   var cloudSprs = [];
@@ -780,6 +775,17 @@
     '.WW.'
   ];
   var HUM_LEG = { H: PC.gold, W: PC.hum };
+  var SPR_HUMF = ['.HH.', 'HHHH', '.WW.', '.WW.', 'W..W', 'W..W'];
+  var SPR_LIFE = [
+    '..GG..',
+    '.GGGG.',
+    'SGGCCG',
+    '.GGGG.',
+    '..GG..'
+  ];
+  var LIFE_LEG = { G: PC.gold, S: PC.shipSh, C: PC.cock };
+  var SPR_ARROW = ['01110', '00100', '00100', '00100', '00100'];
+
   var POST = [
     ['MMR-84 BIOS 4.0', ''],
     ['CPU 6809 ......... ', 'OK'],
@@ -799,23 +805,6 @@
         l: 1 + Math.floor(Math.random() * 3),
         tw: Math.random() * 6.28,
         gold: Math.random() < 0.1
-      });
-    }
-    return out;
-  }
-
-  /* title-screen stars — sparse, scattered over the whole tube, mostly
-     white with the odd warm ember, like the reference attract screen */
-  function makeTitleStars(cols, rows) {
-    var out = [];
-    var n = Math.round(cols * rows / 110);
-    for (var i = 0; i < n; i++) {
-      out.push({
-        x: Math.floor(Math.random() * cols),
-        y: Math.floor(Math.random() * rows),
-        warm: Math.random() < 0.22,
-        big: Math.random() < 0.08,
-        tw: Math.random() * 6.28
       });
     }
     return out;
@@ -984,7 +973,6 @@
       t: old ? old.t : 0,
       bootT0: old ? old.bootT0 : performance.now(),
       stars: makeStars(cols, rows),
-      tstars: makeTitleStars(cols, rows),
       landers: [], bullets: [], bombs: [], booms: [], hums: [],
       ship: {
         x: Math.round(cols * 0.3), y: Math.round(rows * 0.42),
@@ -1294,57 +1282,42 @@
     var i;
     g.imageSmoothingEnabled = false;
 
-    if (mode === 'boot') {
-      /* sky — pre-rendered dithered bands + moon */
-      g.drawImage(skyCv, 0, 0);
+    /* sky — pre-rendered dithered bands + moon */
+    g.drawImage(skyCv, 0, 0);
 
-      /* starfield — three parallax depths, the odd star glints gold */
-      for (i = 0; i < w.stars.length; i++) {
-        var st = w.stars[i];
-        var bright = st.l === 1 ? PC.star1 : (st.l === 2 ? PC.star2 : PC.star3);
-        if (st.gold) { bright = PC.starG; }
-        if (st.l === 3 && Math.sin(t * 0.004 + st.tw) < -0.55) { continue; }
-        g.fillStyle = bright;
-        g.fillRect(Math.round(st.x), st.y, 1, 1);
-      }
+    /* starfield — three parallax depths, the odd star glints gold */
+    for (i = 0; i < w.stars.length; i++) {
+      var st = w.stars[i];
+      var bright = st.l === 1 ? PC.star1 : (st.l === 2 ? PC.star2 : PC.star3);
+      if (st.gold) { bright = PC.starG; }
+      if (st.l === 3 && Math.sin(t * 0.004 + st.tw) < -0.55) { continue; }
+      g.fillStyle = bright;
+      g.fillRect(Math.round(st.x), st.y, 1, 1);
+    }
 
-      /* drifting dithered clouds */
-      for (i = 0; i < cloudSprs.length; i++) {
-        var cl = cloudSprs[i];
-        g.drawImage(cl.cv, Math.round(cl.x), cl.y);
-      }
+    /* drifting dithered clouds */
+    for (i = 0; i < cloudSprs.length; i++) {
+      var cl = cloudSprs[i];
+      g.drawImage(cl.cv, Math.round(cl.x), cl.y);
+    }
 
-      /* far mountains — slow silhouette ridge */
-      var fx0 = Math.floor(w.worldX * 0.22);
-      for (var sx = 0; sx < cols; sx++) {
-        var ftr = farRow(fx0 + sx, rows);
-        g.fillStyle = PC.far;
-        g.fillRect(sx, ftr, 1, rows - ftr);
-      }
+    /* far mountains — slow silhouette ridge */
+    var fx0 = Math.floor(w.worldX * 0.22);
+    for (var sx = 0; sx < cols; sx++) {
+      var ftr = farRow(fx0 + sx, rows);
+      g.fillStyle = PC.far;
+      g.fillRect(sx, ftr, 1, rows - ftr);
+    }
 
-      /* mid mountains — silhouette with a lit top edge */
-      var mx0 = Math.floor(w.worldX * 0.45);
-      for (sx = 0; sx < cols; sx++) {
-        var mtr = midRow(mx0 + sx, rows);
-        g.fillStyle = PC.mid;
-        g.fillRect(sx, mtr, 1, rows - mtr);
-        if (hash01(mx0 + sx) > 0.5) {
-          g.fillStyle = PC.midEdge;
-          g.fillRect(sx, mtr, 1, 1);
-        }
-      }
-    } else {
-      /* the attract title screen — flat deep space, sparse static stars,
-         a few warm embers among the white ones, gentle twinkle */
-      g.fillStyle = PC.titleBg;
-      g.fillRect(0, 0, cols, rows);
-      for (i = 0; i < w.tstars.length; i++) {
-        var ts = w.tstars[i];
-        if (Math.sin(t * 0.0016 + ts.tw) < -0.82) { continue; }
-        g.fillStyle = ts.warm
-          ? (ts.big ? PC.tstarR : PC.tstarO)
-          : (ts.big ? PC.tstarW : PC.tstarM);
-        if (ts.big) { g.fillRect(ts.x, ts.y, 2, 2); } else { g.fillRect(ts.x, ts.y, 1, 1); }
+    /* mid mountains — silhouette with a lit top edge */
+    var mx0 = Math.floor(w.worldX * 0.45);
+    for (sx = 0; sx < cols; sx++) {
+      var mtr = midRow(mx0 + sx, rows);
+      g.fillStyle = PC.mid;
+      g.fillRect(sx, mtr, 1, rows - mtr);
+      if (hash01(mx0 + sx) > 0.5) {
+        g.fillStyle = PC.midEdge;
+        g.fillRect(sx, mtr, 1, 1);
       }
     }
 
@@ -1450,26 +1423,54 @@
     }
 
     if (mode === 'hero') {
-      /* ── the attract title screen ─────────────────────────────
-         the night-flight demo keeps playing underneath, dimmed to a
-         checker like a CRT in attract mode, while the title card —
-         score header, CREDIT, PRESS START — owns the glass */
-      g.drawImage(dimCv, 0, 0);
+      /* ── the arcade HUD, 5×7 font, positioned cleanly above radar band (rTop=13) ── */
+      var blinkOn = (Math.floor(t / 450) % 2) === 0;
+      drawText(g, '1UP', 18, 4, blinkOn ? PC.score : PC.bg);
+      var sc = '' + (w.score % 1000000);
+      while (sc.length < 6) { sc = '0' + sc; }
+      drawText(g, sc, 38, 4, PC.score);
+      var hi = 'HI 045000';
+      drawText(g, hi, Math.round(cols / 2 - textW(hi) / 2), 4, PC.hud);
+      var fpX = cols - textW('FREE PLAY') - 18;
+      drawText(g, 'FREE PLAY', fpX, 4, PC.score);
+      for (var li = 0; li < 3; li++) {
+        drawSpr(g, SPR_LIFE, fpX - 12 - li * 8, 4, LIFE_LEG);
+      }
 
-      /* score header — 1P / HIGH SCORE / 2P, straight off the old tube */
-      drawText(g, '1P', 6, 3, PC.text);
-      drawText(g, '00', 6, 12, PC.text);
-      var hsL = 'HIGH SCORE';
-      drawText(g, hsL, Math.round(cols / 2 - textW(hsL) / 2), 3, PC.text);
-      var hsV = '1234567890';
-      drawText(g, hsV, Math.round(cols / 2 - textW(hsV) / 2), 12, PC.text);
-      drawText(g, '2P', cols - textW('2P') - 6, 3, PC.text);
-      drawText(g, '00', cols - textW('00') - 6, 12, PC.text);
+      /* radar band — the whole planet compressed, blips alive + active scan line */
+      var rTop = 13, rBot = 19;
+      g.fillStyle = PC.radarRim;
+      g.fillRect(0, rTop - 1, cols, 1);
+      g.fillRect(0, rBot, cols, 1);
+      g.fillStyle = PC.radarBg;
+      g.fillRect(0, rTop, cols, rBot - rTop);
+      for (var rx = 0; rx < cols; rx++) {
+        var rtr = terrRow(Math.floor(w.worldX * 3) + rx * 3, rows);
+        var ry = rTop + 1 + Math.min(4, Math.max(0, Math.round((rtr / rows) * 7) - 4));
+        g.fillStyle = PC.radarTerr;
+        g.fillRect(rx, ry, 1, 1);
+      }
+      var sweepX = Math.round(((t * 0.04) % cols));
+      g.fillStyle = 'rgba(0, 240, 255, 0.45)';
+      g.fillRect(sweepX, rTop, 1, rBot - rTop);
 
-      /* CREDIT bottom-right — the coin door below feeds it */
-      var crd = coinCredit ? 'CREDIT 01' : 'CREDIT 00';
-      var crY = rows - Math.round(56 / w.px) - 2;
-      drawText(g, crd, cols - textW(crd) - 6, crY, PC.text);
+      for (i = 0; i < w.landers.length; i++) {
+        var Lr = w.landers[i];
+        var rbx = Math.round((Lr.wx - w.worldX) / 3) % cols;
+        if (rbx < 0) { rbx += cols; }
+        var rby = rTop + 1 + Math.min(4, Math.max(0, Math.round((Lr.y / rows) * 7) - 1));
+        g.fillStyle = PC.blip;
+        g.fillRect(rbx, rby, 1, 1);
+      }
+      for (i = 0; i < w.hums.length; i++) {
+        if (w.hums[i].state !== 'ground') { continue; }
+        var rhx = Math.round((w.hums[i].wx - w.worldX) / 3) % cols;
+        if (rhx < 0) { rhx += cols; }
+        g.fillStyle = PC.hud;
+        g.fillRect(rhx, rBot - 1, 1, 1);
+      }
+      g.fillStyle = PC.ship;
+      g.fillRect(Math.round(S.x / 3), rTop + 2, 2, 1);
 
       /* banner — START was pressed */
       if (w.banner && t < w.banner.until) {
@@ -1695,9 +1696,9 @@
     joyCv.style.height = (36 * PXG) + 'px';
   }
 
-  /* the big PRESS START — orange bitmap caps with a dark outline and a
-     hard drop shadow, blinking on the half-second like the real thing;
-     hover brightens the face, a press drops it one pixel */
+  /* the big PRESS START splash — orange bitmap caps with a dark outline
+     and a hard drop shadow, blinking on the half-second like the real
+     thing; hover brightens the face, a press drops it one pixel */
   function paintStart(t) {
     if (!startCv) { return; }
     t = t || performance.now();
@@ -1858,16 +1859,22 @@
   }
   function deccalText(el) { return (el.textContent || '').trim(); }
 
-  /* the cue under PRESS START: INSERT COIN TO CONTINUE, white bitmap caps */
+  /* the cue: PRESS [↓] START in bitmap font + a pixel arrow */
   function paintCue() {
     if (!cueCv) { return; }
     var g = cueCv.getContext('2d');
     g.imageSmoothingEnabled = false;
-    var str = 'INSERT COIN TO CONTINUE';
-    var W = textW(str) + 2;
+    var pre = 'PRESS ', post = ' START';
+    var W = textW(pre) + 5 + textW(post) + 2;
     cueCv.width = W; cueCv.height = 9;
     g.clearRect(0, 0, W, 9);
-    drawText(g, str, 1, 1, PC.text);
+    var x = 1;
+    drawText(g, 'PRESS', x, 1, PC.gold); x += textW('PRESS') + 4;
+    /* pixel arrow, gold with a dark under-shadow */
+    drawSpr(g, SPR_ARROW, x + 1, 3, { '1': PC.goldDk });
+    drawSpr(g, SPR_ARROW, x, 2, { '1': PC.gold });
+    x += 5 + 4;
+    drawText(g, 'START', x, 1, PC.gold);
     cueCv.style.width = (W * PXG) + 'px';
     cueCv.style.height = (9 * PXG) + 'px';
   }
@@ -2283,7 +2290,7 @@
       }
       if (needRepaint) { paintCoin(); }
     }
-    /* the big PRESS START blinks on its own clock */
+    /* the PRESS START splash blinks on its own clock */
     if (startCv) { paintStart(t); }
     /* joystick attract wiggle — stepped, never while pressed */
     if (joyCv && !joyPress && !reduced.matches) {

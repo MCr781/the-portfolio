@@ -315,13 +315,10 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   flex: 0 1 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  text-align: center;
   max-width: 44rem;
   margin-inline: auto;
-  /* clears the 1P / HIGH SCORE / 2P header painted on the tube */
-  margin-top: clamp(2.6rem, 6.5vh, 3.8rem);
+  margin-top: clamp(0.6rem, 1.8vh, 1.2rem);
   width: 100%;
 }
 /* the pixel canvases carry their own heights; the gaps below just keep
@@ -345,13 +342,13 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
-  margin-top: clamp(6px, 1.6vh, 16px);
+  margin-top: clamp(2px, 0.6vh, 6px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
-.cue-cv { animation: cueblink 1.6s steps(2) infinite; }
+.cue-cv { animation: cueblink 1.15s steps(2) infinite; }
 @keyframes cueblink { 50% { opacity: 0; } }
 .cue-fa,
 .coin-fa,
@@ -380,8 +377,8 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   direction: ltr;
 }
 .joy { position: relative; flex: none; }
-/* the big blinking PRESS START — the title screen's centerpiece and the
-   start button in one; the pixel canvas is painted by JS */
+/* the big blinking PRESS START splash — the title card's centerpiece and
+   the start button in one; the pixel canvas is painted by JS */
 .pstart {
   position: relative;
   z-index: 2;
@@ -947,7 +944,6 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   .hero { padding: 1rem .8rem 4.2rem; }
   .hero-name { font-size: clamp(1.9rem, 8vw, 2.6rem); }
   .hero-para { font-size: .92rem; }
-  .hero-inner { margin-top: 2.2rem; }
   .hero-deck {
     flex-wrap: wrap;
     row-gap: 1rem;
