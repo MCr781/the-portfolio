@@ -13,7 +13,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preload" href="assets/fonts/Estedad-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/styles.css?v=ff180db">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Person","name":"محمد‌مهدی رضائی","jobTitle":"Front-End Developer","sameAs":["https://t.me/mm1381r"]}
 </script>
@@ -42,15 +42,16 @@
       <p class="hero-role"><span data-px="chip">توسعه‌دهنده‌ی فرانت‌اند</span></p>
       <h1 class="hero-name"><span data-px="name"><span class="nowrap">محمد‌مهدی</span> رضائی</span></h1>
       <p class="hero-statement"><span data-px="statement">چهار دنیا ساخته‌ام؛ این صفحه، دروازه‌ی ورود به همه‌ی آن‌هاست.</span></p>
-      <p class="hero-para"><span data-px="para">از فروشگاه طلا و قلک دیجیتال تا بوتیک جواهرات، از شرکت مهندسی مشاور تا پلتفرم خیریه — چهار وب‌سایت واقعی که هر کدام در پوشه‌ی خود، در همین دامنه زنده‌اند. برای ورود، به پایین بیایید یا دکمه‌ی شروع را فشار دهید.</span></p>
+      <p class="hero-para"><span data-px="para">از فروشگاه طلا و قلک دیجیتال تا بوتیک جواهرات، از شرکت مهندسی مشاور تا پلتفرم خیریه<br>چهار وب‌سایت واقعی که هر کدام در پوشه‌ی خود، در همین دامنه زنده‌اند. برای ورود، به پایین بیایید یا دکمه‌ی شروع را فشار دهید.</span></p>
     </div>
     <div class="hero-cue" aria-hidden="true">
       <canvas class="cue-cv pxcv"></canvas>
-      <p class="cue-fa"><span data-px="cuefa">برای شروع، اسکرول کنید</span></p>
+      <canvas class="cue-sub pxcv"></canvas>
     </div>
     <div class="hero-deck">
       <div class="joy" aria-hidden="true">
         <canvas class="joy-cv pxcv"></canvas>
+        <p class="joy-fa"><span data-px="joyfa">WASD</span></p>
       </div>
       <button class="pstart" id="startBtn" type="button" aria-label="شروع بازی و رفتن به دنیای اول">
         <canvas class="pstart-cv pxcv" aria-hidden="true"></canvas>
@@ -58,7 +59,7 @@
       </button>
       <div class="panel-btns" aria-hidden="true">
         <span class="pbtn pbtn-white"><canvas class="pbtn-cv pxcv"></canvas></span>
-        <span class="pbtn pbtn-red"><canvas class="pbtn-cv pxcv"></canvas></span>
+        <span class="pbtn pbtn-red"><canvas class="pbtn-cv pxcv"></canvas><span class="pbtn-fa"><span data-px="firefa">SPACE</span></span></span>
       </div>
     </div>
     <div class="coin-row">
@@ -68,7 +69,10 @@
       <p class="coin-label" dir="ltr" id="coinLabel" aria-hidden="true">INSERT COIN</p>
       <p class="coin-fa"><span data-px="coinfa">سکه لازم نیست؛ ورود آزاد است.</span></p>
     </div>
-    <p class="crt-decal" dir="ltr" id="crtDecal" aria-hidden="true">MMR-84 · 1 PLAYER · 4 WORLDS</p>
+    <div class="hero-foot" aria-hidden="true">
+      <p class="crt-decal" dir="ltr" id="crtDecal">1 PLAYER · 4 WORLDS</p>
+      <p class="credit" dir="ltr" id="creditLabel">CREDIT 00</p>
+    </div>
   </section>
 
   <div class="marquee" dir="ltr" aria-hidden="true">
@@ -295,6 +299,6 @@
 
 <div class="toast" id="toast" role="status" hidden>هر چهار دنیا را پیمودید. حالا نوبت ساختن دنیای بعدی است.</div>
 
-<script src="assets/main.js" defer></script>
+<script src="assets/main.js?v=ff180db" defer></script>
 </body>
 </html>

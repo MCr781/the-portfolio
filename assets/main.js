@@ -115,7 +115,9 @@
     var h = html.clientHeight || 800;
     /* Adjust grid multipliers to keep elements readable (min 3 on desktop) */
     var gw = w < 560 ? 2 : (w < 1024 ? 3 : 4);
-    var gh = h < 700 ? 2 : (h < 900 ? 3 : 4);
+    /* short tubes step the whole art down a grid instead of letting
+       css scale it fractionally (which would break the pixel grid) */
+    var gh = h < 860 ? 2 : (h < 960 ? 3 : 4);
     PXG = Math.max(2, Math.min(gw, gh));
     PXT = 2;
   }
@@ -292,6 +294,10 @@
     bg: '#05050a',
     sky: ['#040410', '#09081e', '#100c30', '#191244', '#241859', '#331f72'],
     star1: '#3f3f63', star2: '#8a8ab4', star3: '#d8d8f2', starG: '#ffd76a', starCyan: '#6ae3ff',
+    starRed: '#c8524a',
+    /* attract-mode title screen: the peach PRESS START ink of a 1980s
+       bezel glass, its hard drop shadow, and the near-black tube back */
+    press: '#f09e6c', pressDk: '#4a1d0c', attractBg: '#0b0b0f',
     moon: '#e8e8f8', moonDk: '#9a9ab8', moonRing: 'rgba(216, 216, 242, 0.25)',
     far: '#0d0b1a', mid: '#181230', midEdge: '#2b1f48',
     terr: '#281e44', terrLite: '#3a2e62', terrDim: '#16102b',
@@ -304,8 +310,7 @@
     hum: '#f0f0f8', humSh: '#9292a8',
     bullet: '#00f0ff', bulletGlow: '#0077ff', thr: '#ffc837', thrLo: '#ff6b35',
     boom: ['#ffffff', '#ffe600', '#ff6b35', '#d90429'],
-    score: '#ffd76a', hud: '#9a9ab8',
-    radarBg: '#0b1326', radarRim: '#254456', radarTerr: '#386178', blip: '#ff007f',
+    score: '#ffd76a',
     post: '#a0a0b8', ok: '#50e3c2', coin: '#ffd76a', start: '#ffffff',
     panel: '#0e0c24', panelBd: '#433c63', panelHi: '#564e7a',
     ink: '#03030a', out: '#241c0f',
@@ -425,18 +430,19 @@
   }
   function textW(str, scale) { return str.length * 6 * (scale || 1); }
 
-  function drawMText(g, str, x, y, color) {
+  function drawMText(g, str, x, y, color, scale) {
+    scale = scale || 1;
     g.fillStyle = color;
     for (var i = 0; i < str.length; i++) {
       var rows = MFONT[str.charAt(i)];
-      if (!rows) { x += 4; continue; }
+      if (!rows) { x += 4 * scale; continue; }
       for (var r = 0; r < 5; r++) {
         var line = rows[r];
         for (var c = 0; c < 3; c++) {
-          if (line.charAt(c) === '1') { g.fillRect(x + c, y + r, 1, 1); }
+          if (line.charAt(c) === '1') { g.fillRect(x + c * scale, y + r * scale, scale, scale); }
         }
       }
-      x += 4;
+      x += 4 * scale;
     }
   }
   function mTextW(str) { return str.length * 4 - 1; }
@@ -458,6 +464,23 @@
     }
   }
   function sprW(spr) { return spr[0].length; }
+  /* drawSpr, but only columns c0..c1 — how a hull materialises out
+     of a portal: from the spine outward */
+  function drawSprClip(g, spr, x, y, legend, flip, c0, c1) {
+    var r, c, ch;
+    for (r = 0; r < spr.length; r++) {
+      var line = spr[r];
+      var w = line.length;
+      for (c = c0; c <= c1 && c < w; c++) {
+        ch = line.charAt(c);
+        if (ch === '.') { continue; }
+        var col = legend[ch];
+        if (!col) { continue; }
+        g.fillStyle = col;
+        g.fillRect(x + (flip ? w - 1 - c : c), y + r, 1, 1);
+      }
+    }
+  }
 
   /* pixel ball — a shaded circle, the pixel-art way to draw domes */
   function pxBall(g, cx, cy, r, tones, squishX) {
@@ -514,19 +537,23 @@
 
   function faWrap(text, src, weight, maxW) {
     faSctx.font = faFontStr(src, weight);
-    var words = text.split(' ');
     var lines = [];
-    var cur = '';
-    for (var i = 0; i < words.length; i++) {
-      var test = cur ? cur + ' ' + words[i] : words[i];
-      if (faSctx.measureText(test).width <= maxW || !cur) {
-        cur = test;
-      } else {
-        lines.push(cur);
-        cur = words[i];
+    /* a hard break in the source is a hard break on the tube */
+    var paras = text.split('\n');
+    for (var p = 0; p < paras.length; p++) {
+      var words = paras[p].split(' ');
+      var cur = '';
+      for (var i = 0; i < words.length; i++) {
+        var test = cur ? cur + ' ' + words[i] : words[i];
+        if (faSctx.measureText(test).width <= maxW || !cur) {
+          cur = test;
+        } else {
+          lines.push(cur);
+          cur = words[i];
+        }
       }
+      if (cur) { lines.push(cur); }
     }
-    if (cur) { lines.push(cur); }
     return lines;
   }
 
@@ -560,54 +587,75 @@
     var w = Math.max(4, Math.min(maxW, Math.ceil(Math.max.apply(null, lines.map(function (l) {
       return faSctx.measureText(l).width;
     })) + 2)));
-    var h = lines.length * lineH + 2;
-    faScratch.width = w;
+    /* optional hard drop shadow: one game pixel down-right, drawn
+       first so the quantizer crisps both inks together */
+    var sh = opts.shadow ? 1 : 0;
+    var sw = w + sh;
+    var h = lines.length * lineH + 2 + sh;
+    faScratch.width = sw;
     faScratch.height = h;
     faSctx.font = faFontStr(src, weight);
     faSctx.direction = 'rtl';
     faSctx.textAlign = 'right';
     faSctx.textBaseline = 'top';
-    faSctx.fillStyle = opts.color || PC.text;
-    for (var i = 0; i < lines.length; i++) {
-      faSctx.fillText(lines[i], w - 1, i * lineH + 1);
+    var i, lx;
+    /* marquee lines center one by one: RTL fillText right-aligns inside
+       the block, which leaves short lines hanging to the right edge */
+    function lineX(line, extra) {
+      if (!opts.centerLines) { return w - 1 + extra; }
+      var m = faSctx.measureText(line).width;
+      return Math.round((w - m) / 2) + m - 1 + extra;
     }
-    var img = faSctx.getImageData(0, 0, w, h);
+    if (sh) {
+      faSctx.fillStyle = opts.shadow;
+      for (i = 0; i < lines.length; i++) {
+        faSctx.fillText(lines[i], lineX(lines[i], 1), i * lineH + 2);
+      }
+    }
+    faSctx.fillStyle = opts.color || PC.text;
+    for (i = 0; i < lines.length; i++) {
+      faSctx.fillText(lines[i], lineX(lines[i], 0), i * lineH + 1);
+    }
+    var img = faSctx.getImageData(0, 0, sw, h);
     quantizeAlpha(img);
     faSctx.putImageData(img, 0, 0);
     /* trim empty top/bottom rows so layouts stay tight */
     var y0 = 0, y1 = h - 1, row, x, has;
     for (row = 0; row < h; row++) {
       has = false;
-      for (x = 0; x < w; x += 1) {
-        if (img.data[(row * w + x) * 4 + 3]) { has = true; break; }
+      for (x = 0; x < sw; x += 1) {
+        if (img.data[(row * sw + x) * 4 + 3]) { has = true; break; }
       }
       if (has) { y0 = row; break; }
     }
     for (row = h - 1; row >= 0; row--) {
       has = false;
-      for (x = 0; x < w; x += 1) {
-        if (img.data[(row * w + x) * 4 + 3]) { has = true; break; }
+      for (x = 0; x < sw; x += 1) {
+        if (img.data[(row * sw + x) * 4 + 3]) { has = true; break; }
       }
       if (has) { y1 = row; break; }
     }
     var th = Math.max(1, y1 - y0 + 1);
     var out = doc.createElement('canvas');
-    out.width = w;
+    out.width = sw;
     out.height = th;
     var og = out.getContext('2d');
     og.imageSmoothingEnabled = false;
-    og.drawImage(faScratch, 0, y0, w, th, 0, 0, w, th);
+    og.drawImage(faScratch, 0, y0, sw, th, 0, 0, sw, th);
     return out;
   }
 
   /* mounts the pixel twin of a [data-px] element's text */
   var PX_CONF = {
-    chip:      { src: 9,  weight: 800, color: null, grid: null, chip: true, align: 'start' },
-    name:      { src: 16, weight: 900, color: PC.text,  align: 'start' },
-    statement: { src: 11, weight: 900, color: PC.gold,  align: 'start' },
-    para:      { src: 10, weight: 700, color: PC.textSub, grid: 'half', align: 'start' },
+    /* attract-screen marquee: every title line centers on the tube */
+    chip:      { src: 7,  weight: 800, color: null, grid: null, chip: true, align: 'center', centerLines: true },
+    name:      { src: 16, weight: 900, color: PC.press, shadow: PC.pressDk, align: 'center', centerLines: true },
+    statement: { src: 11, weight: 900, color: '#e9e9f2', grid: 'half', align: 'center', centerLines: true },
+    para:      { src: 8,  weight: 700, color: PC.textSub, grid: 'half', align: 'center', centerLines: true },
     cuefa:     { src: 9,  weight: 700, color: PC.cueFa, grid: 'half', align: 'center' },
-    pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center' },
+    pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
+    joyfa:     { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
+    firefa:    { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
     bootfa:    { src: 8,  weight: 800, color: PC.slateHi, align: 'center' },
     bootskip:  { src: 10, weight: 700, color: PC.slate,   grid: 'half', align: 'center' }
@@ -615,7 +663,7 @@
 
   /* narrow screens: the same pixel twin, set a touch smaller so the
      title screen keeps its rhythm on a phone tube */
-  var PX_MOBILE = { chip: 7, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, bootfa: 7, bootskip: 9 };
+  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, joyfa: 8, firefa: 8, bootfa: 7, bootskip: 9 };
 
   function accentOf(el) {
     var w = el.closest('[data-world]');
@@ -629,11 +677,17 @@
     if (!conf) { return; }
     var host = span.parentElement;
     if (!host) { return; }
-    var text = span.textContent.replace(/[ \t\r\n]+/g, ' ').trim();
+    var raw = span.innerHTML != null ? span.innerHTML : (span.textContent || '');
+    var text = raw
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/[ \t\r]+/g, ' ')
+      .replace(/ *\n */g, '\n')
+      .trim();
     if (!text) { return; }
     var narrow = html.clientWidth < 560;
     if (narrow && PX_MOBILE[kind]) {
-      conf = { src: PX_MOBILE[kind], weight: conf.weight, color: conf.color, grid: conf.grid, chip: conf.chip, align: conf.align };
+      conf = { src: PX_MOBILE[kind], weight: conf.weight, color: conf.color, grid: conf.grid, chip: conf.chip, align: conf.align, centerLines: conf.centerLines };
     }
     var hostW = Math.floor(host.getBoundingClientRect().width);
     if (hostW < 24) { hostW = Math.floor(Math.min(html.clientWidth - 24, 46 * 16)); }
@@ -643,7 +697,8 @@
       src: conf.src,
       weight: conf.weight,
       color: conf.color === null ? accentOf(span) : (conf.color || PC.text),
-      maxW: conf.chip ? maxW - 10 : maxW
+      maxW: conf.nowrap ? 400 : (conf.chip ? maxW - 4 : maxW),
+      centerLines: conf.centerLines
     };
     var out = pxTextCanvas(text, opts);
     var mount = doc.createElement('canvas');
@@ -670,18 +725,30 @@
       mg.drawImage(out, pad, pad);
     } else {
       /* canvas spans the host; text aligns to the start edge (RTL right)
-         or centers — the canvas itself never breaks the column rhythm */
-      mount.width = maxW;
+         or centers — the canvas itself never breaks the column rhythm.
+         nowrap captions (key legends) size to their text instead, so a
+         two-word label never stacks into two lines */
+      var cw = conf.nowrap ? out.width : maxW;
+      mount.width = cw;
       mount.height = out.height;
       var g2 = mount.getContext('2d');
       g2.imageSmoothingEnabled = false;
-      var dx = conf.align === 'center'
-        ? Math.round((maxW - out.width) / 2)
-        : Math.max(0, maxW - out.width);
+      var dx = conf.nowrap ? 0
+        : (conf.align === 'center'
+          ? Math.round((maxW - out.width) / 2)
+          : Math.max(0, maxW - out.width));
       g2.drawImage(out, dx, 0);
     }
     mount.className = 'pxcv px-mounted';
     if (conf.align === 'center') { mount.style.marginInline = 'auto'; }
+    if (conf.nowrap) {
+      /* wider than its host? hang out both sides, still centered */
+      var cssW = mount.width * (conf.grid === 'half' ? PXT : (conf.grid || PXG));
+      if (cssW > hostW) {
+        mount.style.marginInline = '0';
+        mount.style.marginLeft = Math.round((hostW - cssW) / 2) + 'px';
+      }
+    }
     mount.style.width = (mount.width * grid) + 'px';
     mount.style.height = (mount.height * grid) + 'px';
     var old = host.querySelector('.px-mounted');
@@ -696,6 +763,7 @@
     paintCue();
     paintDecal();
     paintCoinLabel();
+    paintCredit();
   }
 
   /* ── the pixel world · a night-flight attract game ──── */
@@ -707,7 +775,7 @@
      (boot canvas dimmed under the title card, hero canvas with the full
      HUD), so the channel flip hands over a game already in motion. */
 
-  var skyCv = null, vigCv = null, dimCv = null, flashCvs = [];
+  var skyCv = null, vigCv = null, dimCv = null, attractCv = null, flashCvs = [];
   var cloudSprs = [];
 
   function terrRow(wx, rows) {
@@ -756,33 +824,70 @@
     '..D.D..D.D..'
   ];
   var LANDER_LEG = { E: PC.lander, C: PC.white, G: PC.landerDk, R: PC.red, D: PC.landerDk };
+  /* little people, not blobs: skin head, shirt, arms, pants legs —
+     stand / mid-stride / arms-up (carried, falling, or cheering) */
   var SPR_HUM = [
-    '.HH.',
-    'HHHH',
-    '.WW.',
-    '.WW.',
-    'W..W',
-    'W..W'
+    '..SS..',
+    '..SS..',
+    '.BBBB.',
+    'B.BB.B',
+    '.BBBB.',
+    '..PP..',
+    '..P.P.',
+    '..W.W.'
   ];
   var SPR_HUM2 = [
-    '.HH.',
-    'HHHH',
-    '.WW.',
-    '.WW.',
-    '.WW.',
-    '.WW.'
+    '..SS..',
+    '..SS..',
+    '.BBBB.',
+    'B.BB.B',
+    '.BBBB.',
+    '..PP..',
+    '.P..P.',
+    'W....W'
   ];
-  var HUM_LEG = { H: PC.gold, W: PC.hum };
-  var SPR_HUMF = ['.HH.', 'HHHH', '.WW.', '.WW.', 'W..W', 'W..W'];
-  var SPR_LIFE = [
-    '..GG..',
-    '.GGGG.',
-    'SGGCCG',
-    '.GGGG.',
-    '..GG..'
+  var HUM_LEG = { S: PC.press, B: PC.hum, P: PC.slateHi, W: PC.hum };
+  /* the guest: a small plumber in a red cap, bearing a gift */
+  var SPR_MARIO = [
+    '..RRRR..',
+    '.RRRRRR.',
+    '.HHFHFF.',
+    '.FFFFF..',
+    '.RBBBR..',
+    '.RBBBR..',
+    '..B..B..',
+    '.HH..HH.'
   ];
-  var LIFE_LEG = { G: PC.gold, S: PC.shipSh, C: PC.cock };
-  var SPR_ARROW = ['01110', '00100', '00100', '00100', '00100'];
+  var SPR_MARIO2 = [
+    '..RRRR..',
+    '.RRRRRR.',
+    '.HHFHFF.',
+    '.FFFFF..',
+    '.RBBBR..',
+    '.RBBBR..',
+    '..BB....',
+    '.HH.HH..'
+  ];
+  var MARIO_LEG = { R: '#e43b3b', F: PC.press, H: '#5b3213', B: '#3a6ea5' };
+  var SPR_SHROOM = [
+    '.RRRR.',
+    'RWRRWR',
+    'RRWWRR',
+    '.WWWW.',
+    '.WWWW.',
+    '..WW..'
+  ];
+  var SHROOM_LEG = { R: '#e43b3b', W: '#f4e6c8' };
+  var SPR_HUMF = [
+    'B.SS.B',
+    'B.SS.B',
+    '.BBBB.',
+    '..BB..',
+    '..BB..',
+    '..PP..',
+    '..P.P.',
+    '..W.W.'
+  ];
 
   var POST = [
     ['MMR-84 BIOS 4.0', ''],
@@ -802,7 +907,8 @@
         y: Math.floor(Math.random() * Math.max(8, Math.round(rows * 0.68))),
         l: 1 + Math.floor(Math.random() * 3),
         tw: Math.random() * 6.28,
-        gold: Math.random() < 0.1
+        gold: Math.random() < 0.1,
+        red: Math.random() < 0.12
       });
     }
     return out;
@@ -862,6 +968,17 @@
     g.fillRect(mcx - mr - 3, mcy - mr, 1, 1);
     g.fillRect(mcx + mr + 3, mcy - 2, 1, 1);
     g.fillRect(mcx - mr - 1, mcy + mr + 2, 1, 1);
+    return c;
+  }
+
+  /* pre-rendered attract sky: one flat near-black tube. The title
+     screen wants clean glass — all of its depth comes from stars. */
+  function buildAttractSky(cols, rows) {
+    var c = doc.createElement('canvas');
+    c.width = cols; c.height = rows;
+    var g = c.getContext('2d');
+    g.fillStyle = PC.attractBg;
+    g.fillRect(0, 0, cols, rows);
     return c;
   }
 
@@ -951,6 +1068,7 @@
       bfx = bootCv.getContext('2d');
     }
     skyCv = buildSky(cols, rows);
+    attractCv = buildAttractSky(cols, rows);
     vigCv = buildVig(cols, rows);
     dimCv = buildDim(cols, rows);
     flashCvs = [
@@ -973,16 +1091,21 @@
       stars: makeStars(cols, rows),
       landers: [], bullets: [], bombs: [], booms: [], hums: [],
       ship: {
-        x: Math.round(cols * 0.3), y: Math.round(rows * 0.42),
-        ty: Math.round(rows * 0.42), tyCd: 0,
+        /* the demo lane patrols the horizon ridge, well below the
+           title block — the ship must never fly through the marquee */
+        x: Math.round(cols * 0.3), y: Math.round(rows * 0.60),
+        ty: Math.round(rows * 0.60), tyCd: 0,
         hopY: 0, hopV: 0, flipUntil: 0, fireCd: 900
       },
-      score: old ? old.score : 1250,
+      score: old ? old.score : 0,
       flash: old ? old.flash : 0,
       banner: old ? old.banner : null,
-      bombCd: 2600, humCd: 4000
+      bombCd: 2600, humCd: 4000,
+      rings: [], scorch: [], shake: 0,
+      shipDead: false, shipDeadAt: 0, portal: null,
+      kills: 0, laserUntil: 0, mario: null
     };
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 9; i++) {
       world.hums.push({
         wx: world.worldX + 24 + Math.random() * cols * 2.4,
         y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
@@ -996,7 +1119,9 @@
     var w = world;
     w.landers.push({
       wx: w.worldX + w.cols + 3 + Math.random() * 16,
-      base: w.rows * (0.66 + Math.random() * 0.18),
+      /* cruise the gun lane: high enough to be shot, low enough
+         to menace the people on the deck */
+      base: w.rows * (0.52 + Math.random() * 0.18),
       ph: Math.random() * 6.28,
       drift: -3 - Math.random() * 3,
       state: 'drift', y: 0, gone: false,
@@ -1022,33 +1147,101 @@
     }
   }
 
+  /* a bomb's burst is impact damage: a shock ring, a scorch on the
+     ridge, and everyone caught in the radius is gone — not just the
+     one soul the shell touched */
+  function blastAt(sx, sy) {
+    var w = world;
+    boomAt(sx, sy, 12);
+    w.rings.push({ x: sx, y: sy, r: 2, life: 420, max: 420 });
+    w.scorch.push({ x: sx, y: sy, ttl: 9000 });
+    for (var j = 0; j < w.hums.length; j++) {
+      var H = w.hums[j];
+      if (H.gone || H.state !== 'ground') { continue; }
+      var hx = H.wx - w.worldX;
+      if (Math.abs(hx + 2 - sx) < 10 && Math.abs(H.y + 4 - sy) < 11) {
+        H.gone = true;
+        boomAt(Math.round(hx + 2), Math.round(H.y + 3), 6);
+      }
+    }
+  }
+
+  /* four kills charge the special; the button calls the plumber,
+     the plumber brings the mushroom, the mushroom brings lasers */
+  function useSpecial() {
+    var w = world;
+    if (!w || w.shipDead || w.portal || w.mario) { return; }
+    if ((w.kills || 0) < 4 || w.t < (w.laserUntil || 0)) { return; }
+    w.kills = 0;
+    w.mario = { t0: w.t, x: -10, y: Math.round(w.rows * 0.42), toss: 0, give: 0 };
+    pbtnState[0] = 2;
+    paintPBtns();
+    setTimeout(function () { pbtnState[0] = 0; paintPBtns(); }, 240);
+    blip(660, 90);
+    setTimeout(function () { blip(880, 90); }, 110);
+  }
+
+  /* the wreck: enhanced visuals — shock rings, shake, staged fires,
+     and the bezel demanding the next coin */
+  function killShip(L) {
+    var w = world;
+    var S = w.ship;
+    if (L) { L.gone = true; boomAt(Math.round(L.wx - w.worldX + 4), Math.round(L.y + 3), 12); }
+    w.shipDead = true;
+    w.shipDeadAt = w.t;
+    w.ds1 = w.ds2 = w.ds3 = 0;
+    w.shake = 750;
+    w.flash = 520;
+    boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 34);
+    w.rings.push({ x: S.x + 4, y: S.y + 5, r: 2, life: 620, max: 620 });
+    w.rings.push({ x: S.x + 4, y: S.y + 5, r: 1, life: 430, max: 430 });
+    w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15, keepText: true, dim: true };
+    playT = 0; coinGrace = 0;
+    html.classList.remove('coin-hidden');
+    paintCredit(); paintCoinLabel();
+    blip(70, 420);
+    setTimeout(function () { blip(52, 520); }, 160);
+  }
+
   /* the three player verbs — wired to FIRE / JUMP / the joystick */
   function fireShip(user) {
     var w = world;
     if (!w) { return; }
     var S = w.ship;
-    var sy = Math.round(S.y + S.hopY) + 2;
-    var best = null;
+    /* the bolt leaves the pointy head — whichever way she's facing */
+    var dir = S.face || 1;
+    var flip = dir < 0;
+    var sy = Math.round(S.y + S.hopY) + 5;
+    var noseX = flip ? S.x - 2 : S.x + sprW(SPR_SHIP) + 1;
+    var best = null, bestD = 1e9;
     for (var k = 0; k < w.landers.length; k++) {
       var L = w.landers[k];
       var lsx = L.wx - w.worldX;
-      if (lsx > S.x + 6 && lsx < w.cols - 2 && Math.abs(L.y - sy) < 15) {
-        if (!best || lsx < best.wx - w.worldX) { best = L; }
+      var ahead = flip ? (lsx < S.x - 6) : (lsx > S.x + 6);
+      if (ahead && lsx > -2 && lsx < w.cols + 2 && Math.abs(L.y + 3 - sy) < 15) {
+        var d = Math.abs(lsx - S.x);
+        if (d < bestD) { bestD = d; best = L; }
       }
     }
     if (best || user) {
-      var vx = 92, vy = 0;
+      var vx = 92 * dir, vy = 0;
       if (best) {
-        var tt = Math.max(0.12, (best.wx - w.worldX - S.x) / vx);
-        vy = Math.max(-14, Math.min(14, (best.y - sy) / tt));
+        var tt = Math.max(0.12, Math.abs(best.wx - w.worldX - S.x) / 92);
+        vy = Math.max(-14, Math.min(14, (best.y + 3 - sy) / tt));
       }
-      w.bullets.push({ x: S.x + 14, y: sy, vx: vx, vy: vy, gone: false });
+      w.bullets.push({
+        x: noseX, y: sy, vx: vx, vy: vy, dir: dir, gone: false,
+        laser: w.t < (w.laserUntil || 0)
+      });
       if (user) { blip(1244, 60, 622); }
     }
   }
   function hopShip() {
-    if (!world) { return; }
+    if (!world || world.shipDead) { return; }
     world.ship.hopV = -36;
+    pbtnState[0] = 2;
+    paintPBtns();
+    setTimeout(function () { pbtnState[0] = 0; paintPBtns(); }, 240);
   }
   function bankShip(right) {
     var w = world;
@@ -1089,6 +1282,13 @@
       var L = w.landers[i];
       L.wx += L.drift * ds;
       if (L.wx - w.worldX < -8) { L.gone = true; continue; }
+      var lsx0 = L.wx - w.worldX;
+      if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0) &&
+          Math.abs(lsx0 + 4 - (w.ship.x + 4)) < 6 &&
+          Math.abs(L.y + 3 - (w.ship.y + w.ship.hopY + 5)) < 6) {
+        killShip(L);
+        continue;
+      }
       if (L.state === 'drift') {
         L.y = L.base + Math.sin(w.t * 0.0021 + L.ph) * 4;
         L.grabCd -= dt;
@@ -1108,7 +1308,7 @@
         if (!tgt || tgt.state !== 'ground') { L.state = 'drift'; L.grabCd = 6000; }
         else {
           L.wx += (tgt.wx > L.wx ? 1 : -1) * Math.min(Math.abs(tgt.wx - L.wx), 7 * ds);
-          var gY = terrRow(Math.round(L.wx), w.rows) - 8;
+          var gY = terrRow(Math.round(L.wx), w.rows) - 10;
           L.y += (gY > L.y ? 1 : -1) * Math.min(Math.abs(gY - L.y), 9 * ds);
           if (Math.abs(gY - L.y) < 1.4 && Math.abs(tgt.wx - L.wx) < 1.4) {
             L.state = 'lift';
@@ -1135,44 +1335,145 @@
       w.bombCd = 2400 + Math.random() * 3200;
       var thrower = w.landers[Math.floor(Math.random() * w.landers.length)];
       if (thrower) {
+        /* pick the nearest person — bombs are aimed at the people */
+        var tgtH = null, td = 1e9;
+        for (j = 0; j < w.hums.length; j++) {
+          if (w.hums[j].state !== 'ground') { continue; }
+          var dd = Math.abs(w.hums[j].wx - thrower.wx);
+          if (dd < td) { td = dd; tgtH = w.hums[j]; }
+        }
         w.bombs.push({
           x: thrower.wx - w.worldX, y: thrower.y + 7,
-          vx: 0, vy: 7, gone: false
+          vx: 0, vy: 7, tgt: tgtH || null, gone: false
         });
       }
     }
     for (i = 0; i < w.bombs.length; i++) {
       var bo = w.bombs[i];
       bo.vy += 7 * ds;
-      bo.vx += Math.max(-4.5, Math.min(4.5, (w.ship.x - bo.x) * 0.05)) * ds;
+      if (bo.txw != null) {
+        var txs = bo.txw - w.worldX;
+        bo.vx += Math.max(-6, Math.min(6, (txs - bo.x) * 0.55)) * ds * 3;
+      }
+      /* the aim: re-pick if the mark dies or flees, steer harder */
+      if (bo.tgt && (bo.tgt.gone || bo.tgt.state !== 'ground')) { bo.tgt = null; }
+      if (!bo.tgt) {
+        var nb2 = null, nd2 = 1e9;
+        for (j = 0; j < w.hums.length; j++) {
+          var Hg = w.hums[j];
+          if (Hg.gone || Hg.state !== 'ground') { continue; }
+          var dg2 = Math.abs(Hg.wx - (bo.x + w.worldX));
+          if (dg2 < nd2) { nd2 = dg2; nb2 = Hg; }
+        }
+        bo.tgt = nb2;
+      }
+      if (bo.tgt) {
+        var txs2 = bo.tgt.wx - w.worldX;
+        bo.vx += Math.max(-9, Math.min(9, (txs2 - bo.x) * 1.1)) * ds * 3;
+      }
       bo.x += bo.vx * ds;
       bo.y += bo.vy * ds;
+      /* a bomb that reaches a person bursts — and the burst has a
+         radius: impact damage, not a single-tag kill */
+      for (j = 0; j < w.hums.length; j++) {
+        var Hb = w.hums[j];
+        if (Hb.gone || Hb.state !== 'ground') { continue; }
+        var hxs = Hb.wx - w.worldX;
+        if (Math.abs(bo.x - hxs - 2) < 3.5 && Math.abs(bo.y - (Hb.y + 4)) < 5) {
+          bo.gone = true;
+          blastAt(Math.round(hxs + 2), Math.round(Hb.y + 4));
+          break;
+        }
+      }
+      if (bo.gone) { continue; }
       var bR = terrRow(Math.round(bo.x + w.worldX), w.rows);
       if (bo.y >= bR - 1) {
         bo.gone = true;
-        boomAt(Math.round(bo.x), bR - 1, 5);
+        blastAt(Math.round(bo.x), bR - 1);
       }
     }
 
-    /* ship — wander its lane, hop physics, auto-fire at landers ahead */
+    /* ship — hands on the stick? then the attract pilot stands down:
+       WASD flies, the wander resumes a beat after the keys go quiet */
     var S = w.ship;
-    S.tyCd -= dt;
-    if (S.tyCd <= 0) {
-      S.tyCd = 1500 + Math.random() * 1500;
-      S.ty = w.rows * (0.30 + Math.random() * 0.24);
+    if (w.shipDead) {
+      /* the wreck keeps dying in stages — fires along the hull */
+      var stg = w.t - w.shipDeadAt;
+      if (stg > 200 && !w.ds1) { w.ds1 = 1; boomAt(Math.round(S.x + 3), Math.round(S.y + 4), 10); }
+      if (stg > 430 && !w.ds2) { w.ds2 = 1; boomAt(Math.round(S.x + 6), Math.round(S.y + 7), 8); }
+      if (stg > 720 && !w.ds3) { w.ds3 = 1; boomAt(Math.round(S.x + 1), Math.round(S.y + 2), 6); }
     }
-    S.y += (S.ty - S.y) * Math.min(1, ds * 1.6);
+    if (w.mario) {
+      var M = w.mario;
+      if (!M.give) {
+        if (M.x < S.x - 10) {
+          M.x += 34 * ds;
+        } else if (!M.toss) {
+          M.toss = w.t;
+        }
+        if (M.toss && (w.t - M.toss) >= 600) {
+          M.give = w.t;
+          w.laserUntil = w.t + 30000;
+          boomAt(Math.round(S.x + 4), Math.round(S.y + 4), 10);
+          w.rings.push({ x: S.x + 4, y: S.y + 5, r: 1, life: 420, max: 420 });
+          blip(1046, 120);
+        }
+      } else {
+        M.y -= 40 * ds;   /* one small hop off-stage, job done */
+      }
+      if (M.y < -12) { w.mario = null; }
+    }
+    if (w.portal && w.t - w.portal.t0 >= 1500) {
+      w.portal = null;
+      w.invUntil = w.t + 3000;   /* three seconds of grace, blinking */
+      boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 10);
+      w.rings.push({ x: S.x + 4, y: S.y + 5, r: 2, life: 420, max: 420 });
+    }
+    var mv = 0, mh = 0;
+    if (keys.w) { mv -= 1; }
+    if (keys.s) { mv += 1; }
+    if (keys.a) { mh -= 1; }
+    if (keys.d) { mh += 1; }
+    if (w.portal) { mv = 0; mh = 0; }   /* the ghost still flies */
+    if (mv !== 0 || mh !== 0) { S.manualUntil = w.t + 2600; }
+    if (mh !== 0) { S.face = mh; }
+    if (w.t < (S.manualUntil || 0)) {
+      S.x += mh * 70 * ds;
+      S.y += mv * 46 * ds;
+      if (S.x < 1) { S.x = 1; }
+      if (S.x > w.cols - 10) { S.x = w.cols - 10; }
+      if (S.y < w.rows * 0.16) { S.y = w.rows * 0.16; }
+      var floorY = terrRow(Math.round(S.x + 4), w.rows) - 12;
+      if (S.y > floorY) { S.y = floorY; }
+    } else {
+      S.face = 1;
+      S.tyCd -= dt;
+      if (S.tyCd <= 0) {
+        S.tyCd = 1500 + Math.random() * 1500;
+        S.ty = w.rows * (0.56 + Math.random() * 0.10);
+      }
+      S.y += (S.ty - S.y) * Math.min(1, ds * 1.6);
+    }
     if (S.hopV !== 0 || S.hopY !== 0) {
       S.hopY += S.hopV * ds;
       S.hopV += 105 * ds;
       if (S.hopY >= 0) { S.hopY = 0; S.hopV = 0; }
       if (S.hopY < -w.rows * 0.14) { S.hopY = -w.rows * 0.14; S.hopV = Math.max(S.hopV, 0); }
     }
-    var homeX = w.cols * 0.3 + Math.sin(w.t * 0.00037) * w.cols * 0.05;
-    S.x += (homeX - S.x) * Math.min(1, ds * 2.2);
+    if (w.t >= (S.manualUntil || 0)) {
+      var homeX = w.cols * 0.3 + Math.sin(w.t * 0.00037) * w.cols * 0.05;
+      S.x += (homeX - S.x) * Math.min(1, ds * 2.2);
+    }
     S.fireCd -= dt;
-    if (S.fireCd <= 0) {
-      S.fireCd = 620 + Math.random() * 1100;
+    /* a held SPACE rides the cooldown: consecutive shots, one hand */
+    if (keys.space && !w.portal && S.fireCd <= 0) {
+      S.fireCd = (w.t < (w.laserUntil || 0)) ? 170 : 260;
+      fireShip(true);
+    }
+    /* the auto-gun only fires while the attract pilot is alone; a hand
+       on the keys means SPACE is the only trigger */
+    if (!w.portal && !keys.space && w.t >= (S.manualUntil || 0) && S.fireCd <= 0) {
+      S.fireCd = (w.t < (w.laserUntil || 0)) ? 300 : 620 + Math.random() * 1100;
       fireShip(false);
     }
 
@@ -1187,9 +1488,11 @@
         if (Ld.gone) { continue; }
         var lsx = Ld.wx - w.worldX;
         if (Math.abs(b.x - (lsx + 4)) < 5 && Math.abs(b.y - (Ld.y + 3)) < 4.5) {
-          b.gone = true;
+          if (!b.laser) { b.gone = true; }   /* lasers punch through */
           Ld.gone = true;
           w.score += 150;
+          w.kills = (w.kills || 0) + 1;
+          bumpHi(w);
           boomAt(Math.round(lsx + 4), Math.round(Ld.y + 3), 9);
           if (Ld.target && Ld.target.state === 'held') {
             Ld.target.state = 'fall';
@@ -1206,30 +1509,58 @@
       var H = w.hums[i];
       if (H.gone) { continue; }
       if (H.state === 'ground') {
-        H.y = terrRow(Math.round(H.wx), w.rows) - 6;
+        H.y = terrRow(Math.round(H.wx), w.rows) - 8;
       } else if (H.state === 'held' && H.held) {
-        H.y = H.held.y + 8;
+        H.y = H.held.y + 7;
         H.wx = H.held.wx;
       } else if (H.state === 'fall') {
         H.vy += 30 * ds;
         H.y += H.vy * ds;
-        var gY2 = terrRow(Math.round(H.wx), w.rows) - 6;
+        var gY2 = terrRow(Math.round(H.wx), w.rows) - 8;
         if (H.y >= gY2) {
           H.y = gY2;
           H.state = 'ground';
           H.vy = 0;
+          H.cheerUntil = w.t + 1600;   /* saved: arms up, one happy hop */
+          w.score += 250;
+          bumpHi(w);
           boomAt(Math.round(H.wx - w.worldX), Math.round(gY2 + 3), 3);
         }
       }
       if (H.wx - w.worldX < -6) { H.gone = true; }
     }
     w.humCd -= dt;
-    if (w.humCd <= 0 && w.hums.length < 5) {
-      w.humCd = 5000;
+    if (w.humCd <= 0 && w.hums.length < 9) {
+      w.humCd = 4200;
       w.hums.push({
         wx: w.worldX + w.cols + Math.random() * w.cols,
         y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
       });
+    }
+
+    for (i = 0; i < w.rings.length; i++) {
+      w.rings[i].r += 26 * ds;
+      w.rings[i].life -= dt;
+    }
+    w.rings = w.rings.filter(function (r) { return r.life > 0; });
+    for (i = 0; i < w.scorch.length; i++) { w.scorch[i].ttl -= dt; }
+    w.scorch = w.scorch.filter(function (sc2) { return sc2.ttl > 0; });
+    if (w.shake > 0) { w.shake = Math.max(0, w.shake - dt); }
+
+    /* the paid clock: coins buy seconds; the slot sleeps while it
+       runs and wakes the moment the last second burns */
+    if (playT > 0) {
+      var prevSec = Math.ceil(playT / 1000);
+      playT = Math.max(0, playT - dt);
+      if (playT === 0) {
+        html.classList.remove('coin-hidden');
+        paintCredit(); paintCoinLabel();
+      } else {
+        if (Math.ceil(playT / 1000) !== prevSec) { paintCredit(); }
+        var g0 = coinGrace;
+        coinGrace = Math.max(0, coinGrace - dt);
+        if (g0 > 0 && coinGrace === 0) { html.classList.add('coin-hidden'); }
+      }
     }
 
     /* explosion particles burn out white → gold → orange → red */
@@ -1264,8 +1595,17 @@
     var rx = Math.max(1, r * s);
     pxBall(g, cx, cy, r, { out: PC.goldDk, hi: PC.goldHi, base: PC.gold, dk: PC.goldLo }, rx);
     if (s > 0.6) {
+      /* minted face: reeded rim ticks, an inner ring, a struck star */
       g.fillStyle = PC.goldDk;
       g.fillRect(cx - 1, cy - 2, 2, 4);
+      g.fillRect(cx - Math.round(rx) + 1, cy - 1, 1, 2);
+      g.fillRect(cx + Math.round(rx) - 2, cy - 1, 1, 2);
+      g.fillStyle = PC.goldLo;
+      g.fillRect(cx - 2, cy - 3, 4, 1); g.fillRect(cx - 2, cy + 2, 4, 1);
+      g.fillRect(cx - 3, cy - 2, 1, 4); g.fillRect(cx + 2, cy - 2, 1, 4);
+      g.fillStyle = PC.goldHi;
+      g.fillRect(cx - 1, cy - 1, 1, 1); g.fillRect(cx + 1, cy - 1, 1, 1);
+      g.fillRect(cx, cy, 1, 1);
     }
     if (s > 0.85) {
       g.fillStyle = PC.goldHi;
@@ -1309,8 +1649,20 @@
     /* glint pixels along the top edge */
     g.fillStyle = PC.goldHi;
     for (var gx = x + 3; gx < x + w - 3; gx += 3) { g.fillRect(gx, y + 1, 1, 1); }
-    /* label — 5×7, dead center */
-    drawText(g, label, x + Math.round((w - textW(label)) / 2), y + Math.round((h - 7) / 2) + (state === 2 ? 1 : 0), PC.goldDk);
+    /* side walls — the cap has thickness, it sits IN the panel */
+    g.fillStyle = PC.goldDk;
+    g.fillRect(x + 1, y + h - 1, w - 2, 1);
+    g.fillStyle = PC.out;
+    g.fillRect(x + 2, y + h, w - 4, 2);
+    /* label — 5×7, engraved: light under-shadow then the dark ink */
+    var lx = x + Math.round((w - textW(label)) / 2);
+    var ly = y + Math.round((h - 7) / 2) + (state === 2 ? 1 : 0);
+    drawText(g, label, lx, ly + 1, PC.goldHi);
+    drawText(g, label, lx, ly, PC.goldDk);
+    /* power LED — sleeps dark, wakes red on hover/press */
+    g.fillStyle = state > 0 ? PC.red : PC.redDk;
+    g.fillRect(x + w - 4, y + 3, 2, 2);
+    if (state > 0) { g.fillStyle = PC.redHi; g.fillRect(x + w - 4, y + 3, 1, 1); }
   }
 
   function renderWorld(g, mode, t) {
@@ -1319,31 +1671,53 @@
     var cols = w.cols, rows = w.rows;
     var i;
     g.imageSmoothingEnabled = false;
+    g.save();
+    if (w.shake > 0) {
+      var shk = w.shake / 750;
+      g.translate(Math.round((Math.random() * 2 - 1) * 3 * shk),
+                  Math.round((Math.random() * 2 - 1) * 2 * shk));
+    }
 
-    /* sky — pre-rendered dithered bands + moon */
-    g.drawImage(skyCv, 0, 0);
+    /* sky — attract mode keeps clean near-black glass like a title
+       screen; boot mode keeps the dithered dusk bands + moon */
+    g.drawImage(mode === 'hero' && attractCv ? attractCv : skyCv, 0, 0);
 
-    /* starfield — three parallax depths, the odd star glints gold */
+    /* starfield — three parallax depths; odd stars glint gold or red,
+       the speckled-glass look of an old attract screen. The title
+       screen keeps only a sparse twelfth of them: bezel glass is
+       speckled, not snowed. */
     for (i = 0; i < w.stars.length; i++) {
+      if (mode === 'hero' && (i % 12) !== 0) { continue; }
       var st = w.stars[i];
       var bright = st.l === 1 ? PC.star1 : (st.l === 2 ? PC.star2 : PC.star3);
       if (st.gold) { bright = PC.starG; }
+      else if (st.red) { bright = PC.starRed; }
       if (st.l === 3 && Math.sin(t * 0.004 + st.tw) < -0.55) { continue; }
       g.fillStyle = bright;
       g.fillRect(Math.round(st.x), st.y, 1, 1);
     }
 
-    /* drifting dithered clouds */
-    for (i = 0; i < cloudSprs.length; i++) {
-      var cl = cloudSprs[i];
-      g.drawImage(cl.cv, Math.round(cl.x), cl.y);
+    /* drifting dithered clouds — boot sky only; the attract screen
+       keeps its glass clean */
+    if (mode !== 'hero') {
+      for (i = 0; i < cloudSprs.length; i++) {
+        var cl = cloudSprs[i];
+        g.drawImage(cl.cv, Math.round(cl.x), cl.y);
+      }
     }
+
+    /* attract mode tones: the demo world sinks to near-black so the
+       title card owns the glass; boot mode keeps the dusk palette */
+    var heroMode = mode === 'hero';
+    var TONE = heroMode
+      ? { hi: '#241c3c', lite: '#1c1632', base: '#161129', dim: '#0d0a19', glint: PC.goldLo, gThr: 0.982 }
+      : { hi: PC.terrHi, lite: PC.terrLite, base: PC.terr, dim: PC.terrDim, glint: PC.terrGlint, gThr: 0.965 };
 
     /* far mountains — slow silhouette ridge */
     var fx0 = Math.floor(w.worldX * 0.22);
     for (var sx = 0; sx < cols; sx++) {
       var ftr = farRow(fx0 + sx, rows);
-      g.fillStyle = PC.far;
+      g.fillStyle = heroMode ? '#0e0d17' : PC.far;
       g.fillRect(sx, ftr, 1, rows - ftr);
     }
 
@@ -1351,10 +1725,10 @@
     var mx0 = Math.floor(w.worldX * 0.45);
     for (sx = 0; sx < cols; sx++) {
       var mtr = midRow(mx0 + sx, rows);
-      g.fillStyle = PC.mid;
+      g.fillStyle = heroMode ? '#131024' : PC.mid;
       g.fillRect(sx, mtr, 1, rows - mtr);
       if (hash01(mx0 + sx) > 0.5) {
-        g.fillStyle = PC.midEdge;
+        g.fillStyle = heroMode ? '#1c1832' : PC.midEdge;
         g.fillRect(sx, mtr, 1, 1);
       }
     }
@@ -1365,36 +1739,66 @@
       var wx = wx0 + sx;
       var tr = terrRow(wx, rows);
       var hv = hash01(wx);
-      if (hv > 0.965) {
-        g.fillStyle = PC.terrGlint;
+      if (hv > TONE.gThr) {
+        g.fillStyle = TONE.glint;
         g.fillRect(sx, tr - 1, 1, 1);
       }
-      g.fillStyle = hv > 0.68 ? PC.terrHi : (hv > 0.42 ? PC.terrLite : PC.terr);
+      /* attract mode dims the gold phosphor: the demo world stays a
+         whisper under the title card, not a headline */
+      g.fillStyle = hv > 0.68 ? TONE.hi : (hv > 0.42 ? TONE.lite : TONE.base);
       g.fillRect(sx, tr, 1, 1);
       if (hash01(wx * 7 + 3) > 0.45) {
-        g.fillStyle = PC.terrDim;
+        g.fillStyle = TONE.dim;
         g.fillRect(sx, tr + 1, 1, 1);
       }
       /* face → dithered fade into deep ground */
-      g.fillStyle = PC.terr;
+      g.fillStyle = TONE.base;
       g.fillRect(sx, tr + 2, 1, 6);
       for (var dRow = 0; dRow < 4; dRow++) {
         var yy = tr + 8 + dRow;
         if (yy >= rows) { break; }
-        if (bayerAt(sx, yy) > dRow / 4) { g.fillStyle = PC.terr; } else { g.fillStyle = PC.terrDim; }
+        if (bayerAt(sx, yy) > dRow / 4) { g.fillStyle = TONE.base; } else { g.fillStyle = TONE.dim; }
         g.fillRect(sx, yy, 1, 1);
       }
-      g.fillStyle = PC.terrDim;
+      g.fillStyle = TONE.dim;
       if (tr + 12 < rows) { g.fillRect(sx, tr + 12, 1, rows - tr - 12); }
     }
 
+    /* impact damage leaves its signature: scorched ridge and a
+       shock ring still walking outward */
+    for (i = 0; i < w.scorch.length; i++) {
+      var scd = w.scorch[i];
+      g.fillStyle = scd.ttl > 6000 ? '#050408' : 'rgba(5,4,8,.6)';
+      g.fillRect(Math.round(scd.x) - 3, Math.round(scd.y), 7, 1);
+      g.fillRect(Math.round(scd.x) - 2, Math.round(scd.y) + 1, 5, 1);
+      g.fillRect(Math.round(scd.x) - 1, Math.round(scd.y) - 1, 3, 1);
+    }
+    for (i = 0; i < w.rings.length; i++) {
+      var rg = w.rings[i];
+      var ra = rg.life / rg.max;
+      g.fillStyle = ra > 0.6 ? PC.white : (ra > 0.3 ? PC.score : PC.starRed);
+      for (var rk = 0; rk < 14; rk++) {
+        var ran = rk / 14 * 6.28;
+        g.fillRect(Math.round(rg.x + Math.cos(ran) * rg.r),
+                   Math.round(rg.y + Math.sin(ran) * rg.r * 0.7), 1, 1);
+      }
+    }
+
     /* humanoids on the mountains */
+    var cheering = w.cheerUntil && t < w.cheerUntil;
     for (i = 0; i < w.hums.length; i++) {
       var H = w.hums[i];
       var hx = Math.round(H.wx - w.worldX);
       if (hx < -4 || hx > cols + 4) { continue; }
-      var hSpr = ((Math.floor(w.t / 420) + i) % 2) ? SPR_HUM : SPR_HUM2;
-      drawSpr(g, hSpr, hx, Math.round(H.y), H.state === 'fall' ? HUM_LEG : HUM_LEG);
+      var hSpr;
+      var selfCheer = t < (H.cheerUntil || 0);
+      if (H.state === 'held' || H.state === 'fall' || ((cheering || selfCheer) && H.state === 'ground')) {
+        hSpr = SPR_HUMF;   /* arms up: carried off, falling, or thanking */
+      } else {
+        hSpr = ((Math.floor(w.t / 420) + i) % 2) ? SPR_HUM : SPR_HUM2;
+      }
+      var hy = Math.round(H.y) - (((cheering || selfCheer) && H.state === 'ground') ? 1 : 0);
+      drawSpr(g, hSpr, hx, hy, HUM_LEG);
     }
 
     /* landers, wobbling on two frames */
@@ -1417,28 +1821,121 @@
     for (i = 0; i < w.bullets.length; i++) {
       var bx = Math.round(w.bullets[i].x);
       var by = Math.round(w.bullets[i].y);
-      g.fillStyle = PC.bulletGlow;
-      g.fillRect(bx - 1, by, 5, 1);
-      g.fillStyle = PC.bullet;
-      g.fillRect(bx, by, 3, 1);
-      g.fillStyle = '#ffffff';
-      g.fillRect(bx + 1, by, 1, 1);
+      var bd = w.bullets[i].dir || 1;
+      if (w.bullets[i].laser) {
+        /* a lance of light: cyan sheath, white core, hot head */
+        g.fillStyle = PC.bulletGlow;
+        g.fillRect(bx - 6, by - 1, 13, 3);
+        g.fillStyle = '#ffffff';
+        g.fillRect(bx - 4, by, 9, 1);
+        g.fillStyle = PC.goldHi;
+        g.fillRect(bd > 0 ? bx + 4 : bx - 6, by, 2, 1);
+      } else {
+        g.fillStyle = PC.bulletGlow;
+        g.fillRect(bd > 0 ? bx - 2 : bx - 5, by, 8, 1);
+        g.fillStyle = PC.bullet;
+        g.fillRect(bd > 0 ? bx - 2 : bx - 2, by, 5, 1);
+        g.fillStyle = '#ffffff';
+        g.fillRect(bd > 0 ? bx + 2 : bx - 3, by, 2, 1);
+      }
     }
 
-    /* the ship + dual thruster flames */
+    /* the ship + dual thruster flames — or her wreck, or her portal */
     var S = w.ship;
-    var flip = t < (S.flipUntil || 0) ? 1 : 0;
-    var shipX = Math.round(S.x);
-    var shipY = Math.round(S.y + S.hopY);
-    drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
-    var flameX = flip ? shipX + sprW(SPR_SHIP) : shipX - 1;
-    var fPulse = (Math.floor(t / 100) % 2) === 0;
-    g.fillStyle = PC.thr;
-    g.fillRect(flameX, shipY + 3, fPulse ? 3 : 2, 1);
-    g.fillRect(flameX, shipY + 7, fPulse ? 3 : 2, 1);
-    g.fillStyle = PC.thrLo;
-    g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
-    g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
+    if (w.shipDead) {
+      /* the ghost: hull gone, but her engines still leak fire —
+         smoke for the first beat, then just the thruster tongues */
+      var stg2 = t - (w.shipDeadAt || 0);
+      if (stg2 < 720) {
+        var smk = Math.floor(t / 130) % 6;
+        g.fillStyle = PC.slate;
+        g.fillRect(Math.round(S.x + 4) + (smk % 2), Math.round(S.y + 3) - smk, 1, 1);
+        g.fillStyle = PC.slateHi;
+        g.fillRect(Math.round(S.x + 5) - (smk % 2), Math.round(S.y + 4) - Math.floor(smk / 2), 1, 1);
+      } else {
+        /* invisible hull, very visible engines: long tongues, hot
+           tips, and a heat pixel between them — the ghost leaks fire */
+        var gfl = (Math.floor(t / 90) % 2) === 0;
+        var gface = (S.face || 1) < 0;
+        var gfx = gface ? Math.round(S.x) + sprW(SPR_SHIP) : Math.round(S.x) - 1;
+        var gy = Math.round(S.y + S.hopY);
+        var tl = gfl ? 4 : 3;
+        g.fillStyle = PC.thr;
+        g.fillRect(gface ? gfx - tl + 3 : gfx, gy + 3, tl, 1);
+        g.fillRect(gface ? gfx - tl + 3 : gfx, gy + 7, tl, 1);
+        g.fillStyle = PC.thrLo;
+        g.fillRect(gface ? gfx + 3 : gfx - 2, gy + 3, 2, 1);
+        g.fillRect(gface ? gfx + 3 : gfx - 2, gy + 7, 2, 1);
+        g.fillStyle = gfl ? PC.goldHi : PC.thr;
+        g.fillRect(gface ? gfx - tl + 2 : gfx + tl - 1, gy + 3, 1, 1);
+        g.fillRect(gface ? gfx - tl + 2 : gfx + tl - 1, gy + 7, 1, 1);
+        g.fillStyle = PC.thrLo;
+        g.fillRect(Math.round(S.x) + 3, gy + 5, gfl ? 2 : 1, 1);
+      }
+    } else if (w.portal) {
+      /* the gate: dithered beam, a spinning ring, and the hull
+         materialising from the spine outward */
+      var age = w.t - w.portal.t0;
+      var px = Math.round(S.x), py = Math.round(S.y);
+      g.fillStyle = (Math.floor(t / 90) % 2) ? PC.bulletGlow : PC.gold;
+      for (var pr = py - 7; pr < py + 16; pr++) {
+        if (((pr + Math.floor(t / 60)) % 2) === 0) {
+          g.fillRect(px + 3, pr, 1, 1);
+          g.fillRect(px + 6, pr, 1, 1);
+        }
+      }
+      var rr2 = 3 + (Math.floor(age / 120) % 5);
+      g.fillStyle = PC.bulletGlow;
+      for (var pk = 0; pk < 14; pk++) {
+        var pa = pk / 14 * 6.28 + t * 0.004;
+        g.fillRect(px + 4 + Math.round(Math.cos(pa) * rr2),
+                   py + 5 + Math.round(Math.sin(pa) * (rr2 - 1)), 1, 1);
+      }
+      var half = Math.min(4, Math.floor(age / 1500 * 4) + 1);
+      drawSprClip(g, SPR_SHIP, px, py, SHIP_LEG, 0, 4 - half, 3 + half);
+    } else {
+      /* facing mirrors the hull; a victory roll flips it once more */
+      var flip = ((S.face || 1) < 0 ? 1 : 0) ^ (t < (S.flipUntil || 0) ? 1 : 0);
+      var shipX = Math.round(S.x);
+      var shipY = Math.round(S.y + S.hopY);
+      var inv = t < (w.invUntil || 0);
+      if (inv) {
+        /* a walking shield ring of cyan sparks around her */
+        g.fillStyle = (Math.floor(t / 120) % 2) ? PC.bulletGlow : PC.white;
+        for (var ik = 0; ik < 10; ik++) {
+          var ia = ik / 10 * 6.28 + t * 0.006;
+          g.fillRect(shipX + 4 + Math.round(Math.cos(ia) * 8),
+                     shipY + 5 + Math.round(Math.sin(ia) * 7), 1, 1);
+        }
+      }
+      if (!inv || (Math.floor(t / 110) % 2) === 0) {
+        drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
+      }
+      if (!inv || (Math.floor(t / 110) % 2) === 0) {
+        var flameX = flip ? shipX + sprW(SPR_SHIP) : shipX - 1;
+        var fPulse = (Math.floor(t / 100) % 2) === 0;
+        g.fillStyle = PC.thr;
+        g.fillRect(flameX, shipY + 3, fPulse ? 3 : 2, 1);
+        g.fillRect(flameX, shipY + 7, fPulse ? 3 : 2, 1);
+        g.fillStyle = PC.thrLo;
+        g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
+        g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
+      }
+    }
+    if (w.mario) {
+      /* the guest walks in, tosses the gift, hops off-stage */
+      var M2 = w.mario;
+      var mx2 = Math.round(M2.x), my2 = Math.round(M2.y);
+      drawSpr(g, (Math.floor(t / 160) % 2) ? SPR_MARIO2 : SPR_MARIO, mx2, my2, MARIO_LEG, 0);
+      if (M2.toss && !M2.give) {
+        var ft2 = Math.min(1, (t - M2.toss) / 600);
+        var shx = mx2 + 6 + (S.x + 4 - (mx2 + 6)) * ft2;
+        var shy = M2.y - 2 - Math.sin(ft2 * Math.PI) * 8;
+        drawSpr(g, SPR_SHROOM, Math.round(shx), Math.round(shy), SHROOM_LEG, 0);
+      } else if (M2.toss && M2.give && t - M2.give < 500) {
+        drawSpr(g, SPR_SHROOM, Math.round(S.x + 2), Math.round(S.y - 3), SHROOM_LEG, 0);
+      }
+    }
 
     /* starburst explosions, burning out */
     for (i = 0; i < w.booms.length; i++) {
@@ -1461,60 +1958,33 @@
     }
 
     if (mode === 'hero') {
-      /* ── the arcade HUD, 5×7 font, positioned cleanly above radar band (rTop=13) ── */
-      var blinkOn = (Math.floor(t / 450) % 2) === 0;
-      drawText(g, '1UP', 18, 4, blinkOn ? PC.score : PC.bg);
-      var sc = '' + (w.score % 1000000);
-      while (sc.length < 6) { sc = '0' + sc; }
-      drawText(g, sc, 38, 4, PC.score);
-      var hi = 'HI 045000';
-      drawText(g, hi, Math.round(cols / 2 - textW(hi) / 2), 4, PC.hud);
-      var fpX = cols - textW('FREE PLAY') - 18;
-      drawText(g, 'FREE PLAY', fpX, 4, PC.score);
-      for (var li = 0; li < 3; li++) {
-        drawSpr(g, SPR_LIFE, fpX - 12 - li * 8, 4, LIFE_LEG);
-      }
-
-      /* radar band — the whole planet compressed, blips alive + active scan line */
-      var rTop = 13, rBot = 19;
-      g.fillStyle = PC.radarRim;
-      g.fillRect(0, rTop - 1, cols, 1);
-      g.fillRect(0, rBot, cols, 1);
-      g.fillStyle = PC.radarBg;
-      g.fillRect(0, rTop, cols, rBot - rTop);
-      for (var rx = 0; rx < cols; rx++) {
-        var rtr = terrRow(Math.floor(w.worldX * 3) + rx * 3, rows);
-        var ry = rTop + 1 + Math.min(4, Math.max(0, Math.round((rtr / rows) * 7) - 4));
-        g.fillStyle = PC.radarTerr;
-        g.fillRect(rx, ry, 1, 1);
-      }
-      var sweepX = Math.round(((t * 0.04) % cols));
-      g.fillStyle = 'rgba(0, 240, 255, 0.45)';
-      g.fillRect(sweepX, rTop, 1, rBot - rTop);
-
-      for (i = 0; i < w.landers.length; i++) {
-        var Lr = w.landers[i];
-        var rbx = Math.round((Lr.wx - w.worldX) / 3) % cols;
-        if (rbx < 0) { rbx += cols; }
-        var rby = rTop + 1 + Math.min(4, Math.max(0, Math.round((Lr.y / rows) * 7) - 1));
-        g.fillStyle = PC.blip;
-        g.fillRect(rbx, rby, 1, 1);
-      }
-      for (i = 0; i < w.hums.length; i++) {
-        if (w.hums[i].state !== 'ground') { continue; }
-        var rhx = Math.round((w.hums[i].wx - w.worldX) / 3) % cols;
-        if (rhx < 0) { rhx += cols; }
-        g.fillStyle = PC.hud;
-        g.fillRect(rhx, rBot - 1, 1, 1);
-      }
-      g.fillStyle = PC.ship;
-      g.fillRect(Math.round(S.x / 3), rTop + 2, 2, 1);
+      /* ── attract chrome — the score row of a 1980s title screen ──
+         1P / HIGH SCORE / 2P on two rows of white 5x7, exactly where
+         the bezel glass of the old cabinets carried it. The CREDIT
+         counter lives on the DOM foot row, beside the decal. */
 
       /* banner — START was pressed */
       if (w.banner && t < w.banner.until) {
         var bOn = (w.banner.until - t) > 300 ? true : (Math.floor(t / 160) % 2) === 0;
         if (bOn) {
           var bl1 = w.banner.l1, bl2 = w.banner.l2;
+          /* a stamped notched plate, so the banner owns its pixels
+             instead of fighting the marquee behind it */
+          var bw = Math.max(textW(bl1, 2), textW(bl2)) + 16;
+          var bx0 = Math.round(cols / 2 - bw / 2);
+          var by0 = Math.round(rows * 0.30) - 7;
+          var bh0 = 42;
+          if (w.banner.dim) { g.globalAlpha = 0.82; }
+          g.fillStyle = PC.panelBd;
+          g.fillRect(bx0 + 2, by0, bw - 4, bh0);
+          g.fillRect(bx0, by0 + 2, bw, bh0 - 4);
+          g.fillStyle = PC.panel;
+          g.fillRect(bx0 + 2, by0 + 2, bw - 4, bh0 - 4);
+          g.fillRect(bx0 + 1, by0 + 3, bw - 2, bh0 - 6);
+          g.fillRect(bx0 + 3, by0 + 1, bw - 6, bh0 - 2);
+          g.fillStyle = PC.panelHi;
+          for (var pgx = bx0 + 3; pgx < bx0 + bw - 3; pgx += 3) { g.fillRect(pgx, by0 + 2, 1, 1); }
+          g.globalAlpha = 1;
           drawText(g, bl1, Math.round(cols / 2 - textW(bl1, 2) / 2) + 1, Math.round(rows * 0.30) + 1, PC.goldDk, 2);
           drawText(g, bl1, Math.round(cols / 2 - textW(bl1, 2) / 2), Math.round(rows * 0.30), PC.score, 2);
           drawText(g, bl2, Math.round(cols / 2 - textW(bl2) / 2), Math.round(rows * 0.30) + 20, PC.start, 1);
@@ -1641,19 +2111,79 @@
       /* PRESS START — big, blinking */
       if (el > 2680 && (Math.floor(t / 450) % 2) === 0) {
         var ps1 = 'PRESS START';
-        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2) + 2, Math.round(rows * 0.82) + 2, PC.goldDk, 2);
-        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2), Math.round(rows * 0.82), PC.start, 2);
+        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2) + 2, Math.round(rows * 0.82) + 2, PC.pressDk, 2);
+        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2), Math.round(rows * 0.82), PC.press, 2);
       }
     }
 
-    /* CRT vignette — pre-rendered dither, over everything on the tube */
+    g.restore();
+    /* CRT vignette — pre-rendered dither, over the world but UNDER
+       the glass text: the score row must never be eaten by it */
     g.drawImage(vigCv, 0, 0);
+    if (mode === 'hero') { drawAttractChrome(g, cols, rows, w); }
 
     /* coin surge — the whole tube glitters gold for a beat (dithered) */
     if (w.flash > 0 && mode === 'hero') {
       var lvl = w.flash > 600 ? 2 : (w.flash > 300 ? 1 : 0);
       g.drawImage(flashCvs[lvl], 0, 0);
     }
+  }
+
+  /* the score row of the bezel glass — drawn last, over the vignette,
+     so corner dither never eats the 1P / 2P columns; small tubes get
+     it at 2x because 1px strokes on a 2px grid read as noise */
+  function drawAttractChrome(g, cols, rows, w) {
+    /* micro type on the glass: present, crisp, and out of the
+       marquee's way — half the footprint of the old 5×7 row */
+    var sc = PXG <= 2 ? 2 : 1;
+    var y1 = 2;
+    var y2 = y1 + 7 * sc;
+    var chrome = PC.shell;   /* white glass text, over the vignette */
+    function mW(str) { return (str.length * 4 - 1) * sc; }
+    drawMText(g, '1P', 5, y1, chrome, sc);
+    if (sc === 2) { drawMText(g, '00', 5, y2, chrome, sc); }
+    var hs1 = 'HIGH SCORE';
+    var hs2 = pad10(hiScore);
+    drawMText(g, hs1, Math.round(cols / 2 - mW(hs1) / 2), y1, chrome, sc);
+    drawMText(g, hs2, Math.round(cols / 2 - mW(hs2) / 2), y2, chrome, sc);
+    drawMText(g, '2P', cols - 5 - mW('2P'), y1, chrome, sc);
+    /* the special charge: four pips on the glass, a READY blink when
+       full, and a draining cyan bar while the lasers burn */
+    if (w) {
+      var ky = rows - 6 * sc;
+      var laserOn = w.t < (w.laserUntil || 0);
+      drawMText(g, 'SPEC', 5, ky, chrome, sc);
+      var x0 = 5 + mW('SPEC') + 4 * sc;
+      var seg2 = laserOn
+        ? Math.ceil(((w.laserUntil - w.t) / 30000) * 4)
+        : Math.min(4, w.kills || 0);
+      for (var sp2 = 0; sp2 < 4; sp2++) {
+        g.fillStyle = sp2 < seg2 ? (laserOn ? PC.bulletGlow : PC.gold) : PC.slate;
+        g.fillRect(x0 + sp2 * 5 * sc, ky, 3 * sc, 5 * sc);
+      }
+      if (!laserOn && (w.kills || 0) >= 4 && (Math.floor(w.t / 300) % 2) === 0) {
+        drawMText(g, 'READY', x0 + 24 * sc, ky, PC.gold, sc);
+      }
+    }
+    if (sc === 1) {
+      /* wide tubes carry the live run score and the empty 2P slot */
+      drawMText(g, pad10(w ? w.score : 0), 5, y2, chrome, sc);
+      drawMText(g, '0000000000', cols - 5 - mW('0000000000'), y2, chrome, sc);
+    } else {
+      drawMText(g, '00', cols - 5 - mW('00'), y2, chrome, sc);
+    }
+  }
+
+  /* #fwdebug opens a service hatch: the death/continue/portal loop
+     is testable without winning a fight against a lander */
+  if (typeof location !== 'undefined' && /fwdebug/.test(location.hash || '')) {
+    window.__fw = {
+      world: function () { return world; },
+      kill: function () { killShip(null); },
+      coin: function () { if (coinBtn) { coinBtn.click(); } },
+      charge: function (n) { if (world) { world.kills = n; paintPBtns(); } },
+      special: function () { useSpecial(); }
+    };
   }
 
   if (hero && cv) {
@@ -1681,8 +2211,84 @@
   var decalEl = $('#crtDecal');
   var cueCv = $('.cue-cv');
 
+  /* the credit ledger — a coin is a kept promise, not a flash:
+     it persists across visits, START spends it, and the sky keeps
+     one gold star per credit as a receipt */
+  var credits = Math.max(0, Math.min(99, parseInt(store('fw-credits') || '0', 10) || 0));
+  /* the cabinet remembers its best day: every kill and every rescued
+     human feeds the score, and the score feeds this kept high */
+  var hiScore = Math.max(0, parseInt(store('fw-hiscore') || '0', 10) || 0);
+  function bumpHi(w) {
+    if (w.score > hiScore) {
+      hiScore = w.score;
+      store('fw-hiscore', '' + hiScore);
+    }
+  }
+  var playT = 0;        /* ms of paid play left on the cabinet clock */
+  var coinGrace = 0;    /* brief window to pump more coins in */
+  function pad10(n) {
+    n = Math.max(0, Math.min(9999999999, Math.floor(n)));
+    return ('0000000000' + n).slice(-10);
+  }
+  function saveCredits() { store('fw-credits', '' + credits); }
+
+  var keys = { w: false, a: false, s: false, d: false };
+  var KEYMAP = { KeyW: 'w', KeyA: 'a', KeyS: 's', KeyD: 'd' };
+  function manualGun() {
+    var w = world;
+    if (!w || !w.ship || w.portal) { return; }
+    if (w.ship.fireCd <= 0) {
+      w.ship.fireCd = (w.t < (w.laserUntil || 0)) ? 170 : 260;
+      fireShip(true);
+    }
+  }
+  addEventListener('keydown', function (e) {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { return; }
+    if (!heroVisible || !world) { return; }
+    var k = KEYMAP[e.code];
+    if (k) {
+      keys[k] = true;
+      e.preventDefault();
+      syncStick();
+      return;
+    }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      keys.space = true;
+      pbtnState[1] = 2;      /* the FIRE dome sinks with the key */
+      paintPBtns();
+      if (!e.repeat) { manualGun(); }
+      return;
+    }
+    if (e.code === 'Enter') {
+      e.preventDefault();
+      if (!e.repeat) {
+        startState = 2;      /* the START key sinks with the key */
+        paintStart();
+        doStart();
+      }
+    }
+  });
+  addEventListener('keyup', function (e) {
+    var k = KEYMAP[e.code];
+    if (k) { keys[k] = false; syncStick(); return; }
+    if (e.code === 'Space') { keys.space = false; pbtnState[1] = 0; paintPBtns(); return; }
+    if (e.code === 'Enter') { startState = 0; paintStart(); }
+  });
+  addEventListener('blur', function () { keys.w = keys.a = keys.s = keys.d = false; keys.space = false; });
+
   var joyTilt = 0, joyPress = false;
   var startState = 0;   /* 0 idle · 1 hover · 2 press */
+  /* one stick, two hands: the keyboard tilts the same stick the
+     pointer does, so the hardware always tells the truth */
+  function syncStick() {
+    var nt = keys.a ? -3 : (keys.d ? 3 : 0);
+    var np = !!(keys.w || keys.s);
+    if (nt !== joyTilt || np !== joyPress) {
+      joyTilt = nt; joyPress = np;
+      paintJoy();
+    }
+  }
   var pbtnState = [0, 0];
   var coinLed = true, coinAnimT0 = -1, coinCredit = false;
 
@@ -1707,7 +2313,8 @@
     g.fillRect(10, 32, 2, 2); g.fillRect(24, 32, 2, 2);
     /* shaft throat */
     pxOval(g, 17, 26, 6, 3, PC.ink);
-    /* the shaft — sheared columns make a true pixel tilt */
+    /* the shaft — sheared columns make a true pixel tilt, with a
+       rib every third row so the chrome reads as machined */
     var topY = joyPress ? 12 : 11;
     var baseY = 26;
     var k = joyTilt / 3;
@@ -1718,18 +2325,31 @@
       g.fillStyle = PC.shaftHi; g.fillRect(sx, y, 1, 1);
       g.fillStyle = PC.shaft;   g.fillRect(sx + 1, y, 1, 1);
       g.fillStyle = PC.shaftDk; g.fillRect(sx + 2, y, 1, 1);
+      if ((y - topY) % 3 === 1) { g.fillStyle = PC.shaftHi; g.fillRect(sx + 1, y, 1, 1); }
     }
     /* collar at the base, follows the tilt */
     var colX = 17 + Math.round(k * 1.5);
     g.fillStyle = PC.ink;
     g.fillRect(colX - 3, 24, 7, 2);
-    /* the ball-top — 3-tone gold with a white specular */
+    g.fillStyle = PC.metalHi;
+    g.fillRect(colX - 3, 24, 7, 1);
+    /* the ball-top — 3-tone gold, white specular AND a rim-light arc
+       along the bottom, the way lit plastic actually looks */
     var bx = 17 + Math.round(k * 6);
     var by = (joyPress ? 9 : 8);
     pxBall(g, bx, by, 6, { out: PC.goldDk, hi: PC.goldHi, base: PC.gold, dk: PC.goldLo });
     g.fillStyle = PC.white;
     g.fillRect(bx - 2, by - 3, 1, 1);
     if (Math.abs(k) < 0.4) { g.fillRect(bx - 1, by - 4, 1, 1); }
+    g.fillStyle = PC.goldHi;
+    g.fillRect(bx - 3, by + 4, 2, 1); g.fillRect(bx + 2, by + 4, 2, 1);
+    g.fillRect(bx - 1, by + 5, 3, 1);
+    /* the dust cover flexes against the tilt — rubber, not paint */
+    if (k !== 0) {
+      g.fillStyle = PC.metalDk;
+      g.fillRect(17 - Math.round(k * 3) - 5, 25, 4, 1);
+      g.fillRect(17 - Math.round(k * 3) + 12, 25, 4, 1);
+    }
     joyCv.style.width = (38 * PXG) + 'px';
     joyCv.style.height = (36 * PXG) + 'px';
   }
@@ -1758,12 +2378,27 @@
       var off = state === 2 ? 1 : 2;
       /* hard shadow */
       pxOval(g, 13, 13 + off, 10, 10, 'rgba(0,0,0,.85)');
-      /* the dome */
+      /* a machined bezel ring seats the dome in the panel */
+      var dy = state === 2 ? 1 : 0;
+      pxOval(g, 12, 12 + dy, 11, 11, PC.metalBd);
+      pxOval(g, 12, 12 + dy, 10, 10, PC.metalDk);
+      g.fillStyle = PC.metalHi;
+      g.fillRect(5, 5 + dy, 3, 1); g.fillRect(17, 5 + dy, 3, 1);
+      g.fillRect(5, 18 + dy, 3, 1); g.fillRect(17, 18 + dy, 3, 1);
+      /* the dome — the special button wears violet plastic */
       var tones = red
         ? { out: PC.redOut, hi: PC.redHi, base: PC.red, dk: PC.redDk }
-        : { out: PC.shellOut, hi: '#ffffff', base: PC.shell, dk: PC.shellDk };
-      var dy = state === 2 ? 1 : 0;
+        : { out: '#1b0b33', hi: '#d9b8ff', base: '#7a4fd0', dk: '#37206b' };
       pxBall(g, 11, 11 + dy, 9, tones);
+      /* cross specular — glossy plastic, one hard highlight */
+      g.fillStyle = tones.hi;
+      g.fillRect(7, 7 + dy, 2, 1); g.fillRect(8, 6 + dy, 1, 2);
+      /* pressed: light spills from under the bezel */
+      if (state === 2) {
+        g.fillStyle = red ? PC.red : '#b78cff';
+        g.fillRect(3, 21, 4, 1); g.fillRect(19, 21, 4, 1);
+        g.fillRect(11, 23, 3, 1);
+      }
       /* halo when hovered */
       if (state === 1) {
         g.fillStyle = PC.goldHi;
@@ -1772,9 +2407,43 @@
         g.fillRect(4, 5 + dy, 1, 1); g.fillRect(17, 5 + dy, 1, 1);
         g.fillRect(4, 17 + dy, 1, 1); g.fillRect(17, 17 + dy, 1, 1);
       }
-      /* micro-font label */
-      var label = red ? 'FIRE' : 'JUMP';
-      drawMText(g, label, 11 - Math.round(mTextW(label) / 2), 9 + dy, red ? PC.redOut : PC.shellOut);
+      if (red) {
+        drawMText(g, 'FIRE', 11 - Math.round(mTextW('FIRE') / 2), 9 + dy, PC.redOut);
+      } else {
+        /* the gift itself is the icon; the bezel carries the charge */
+        drawSpr(g, SPR_SHROOM, 10, 6 + dy, SHROOM_LEG, 0);
+        var w0 = world;
+        var laserOn = w0 && w0.t < (w0.laserUntil || 0);
+        var seg = laserOn
+          ? Math.ceil(((w0.laserUntil - w0.t) / 30000) * 4)
+          : Math.min(4, w0 ? (w0.kills || 0) : 0);
+        for (var q = 0; q < 4; q++) {
+          g.fillStyle = q < seg ? (laserOn ? PC.bulletGlow : PC.gold) : PC.metalDk;
+          g.fillRect(7 + q * 4, 20 + dy, 2, 2);
+        }
+        /* charged: a two-phase pixel halo — cardinal rays one beat,
+           diagonal sparks the next. drawn pixels, not css bloom */
+        var ready = w0 && (w0.kills || 0) >= 4 && !laserOn && !w0.shipDead;
+        if (ready || laserOn) {
+          var ph2 = Math.floor(performance.now() / 200) % 2;
+          var gc = laserOn ? PC.bulletGlow : PC.goldHi;
+          var gc2 = laserOn ? PC.bullet : PC.gold;
+          g.fillStyle = ph2 ? gc : gc2;
+          g.fillRect(12, dy, 2, 2); g.fillRect(12, 22 + dy, 2, 2);
+          g.fillRect(0, 11 + dy, 2, 2); g.fillRect(24, 11 + dy, 2, 2);
+          if (ph2) {
+            g.fillStyle = gc;
+            g.fillRect(3, 3 + dy, 1, 1); g.fillRect(21, 3 + dy, 1, 1);
+            g.fillRect(3, 19 + dy, 1, 1); g.fillRect(21, 19 + dy, 1, 1);
+          } else {
+            g.fillStyle = gc2;
+            g.fillRect(5, 1 + dy, 1, 1); g.fillRect(19, 1 + dy, 1, 1);
+            g.fillRect(1, 8 + dy, 1, 1); g.fillRect(23, 8 + dy, 1, 1);
+            g.fillRect(1, 15 + dy, 1, 1); g.fillRect(23, 15 + dy, 1, 1);
+            g.fillRect(5, 23 + dy, 1, 1); g.fillRect(19, 23 + dy, 1, 1);
+          }
+        }
+      }
       cvs.style.width = (26 * PXG) + 'px';
       cvs.style.height = (26 * PXG) + 'px';
     });
@@ -1800,6 +2469,21 @@
     g.fillRect(3, 20, 22, 3);
     g.fillStyle = PC.metalHi;
     for (var gx = 5; gx < 23; gx += 3) { g.fillRect(gx, 2, 1, 1); }
+    /* brushed-metal rows across the plate */
+    g.fillStyle = PC.metalHi;
+    g.fillRect(5, 5, 6, 1); g.fillRect(15, 9, 6, 1); g.fillRect(6, 14, 5, 1);
+    g.fillRect(14, 19, 7, 1); g.fillRect(5, 21, 4, 1);
+    /* door screws in the corners */
+    g.fillStyle = PC.ink;
+    g.fillRect(4, 3, 1, 1); g.fillRect(21, 3, 1, 1);
+    g.fillRect(4, 20, 1, 1); g.fillRect(21, 20, 1, 1);
+    g.fillStyle = PC.metalHi;
+    g.fillRect(4, 3, 1, 1);
+    /* the LED breathes a one-pixel halo when lit */
+    if (coinLed) {
+      g.fillStyle = 'rgba(255, 215, 106, 0.35)';
+      g.fillRect(18, 3, 4, 2); g.fillRect(19, 2, 2, 4);
+    }
     /* two slot cuts with a gold glint */
     var sx;
     for (sx = 0; sx < 2; sx++) {
@@ -1837,12 +2521,23 @@
     coinCredit = on;
     if (coinLabel) { coinLabel.dataset.credit = on ? '1' : ''; }
     paintCoinLabel();
+    paintCredit();
   }
 
   function paintCoinLabel() {
     if (!coinLabel) { return; }
-    var text = coinCredit ? 'CREDIT 1' : 'INSERT COIN';
-    var color = coinCredit ? PC.gold : PC.slateHi;
+    var text, color;
+    if (coinCredit) { text = 'THANK YOU'; color = PC.gold; }
+    else if (world && world.shipDead) { text = 'INSERT COIN'; color = PC.gold; }
+    else if (playT > 0) {
+      var sec2 = Math.ceil(playT / 1000);
+      text = 'TIME ' + (sec2 < 10 ? '0' + sec2 : '' + sec2);
+      color = PC.gold;
+    } else {
+      var nn = credits < 10 ? '0' + credits : '' + credits;
+      text = credits > 0 ? 'CREDIT ' + nn : 'INSERT COIN';
+      color = credits > 0 ? PC.gold : PC.slateHi;
+    }
     var W = textW(text) + 1;
     var H = 9;
     var mount = coinLabel.querySelector('canvas') || doc.createElement('canvas');
@@ -1857,10 +2552,43 @@
     if (!mount.parentNode) { coinLabel.textContent = ''; coinLabel.appendChild(mount); }
   }
 
+  /* the CREDIT counter — bottom-right of the glass, like the reference
+     attract screen; goes live (00 → 01) while a coin is in the door */
+  var creditLabel = $('#creditLabel');
+  function paintCredit() {
+    if (!creditLabel) { return; }
+    var text, color;
+    if (playT > 0) {
+      var sec = Math.ceil(playT / 1000);
+      text = 'TIME ' + (sec < 10 ? '0' + sec : '' + sec);
+      color = PC.gold;
+    } else {
+      var nn = credits < 10 ? '0' + credits : '' + credits;
+      text = 'CREDIT ' + nn;
+      color = credits > 0 || coinCredit ? PC.gold : PC.shell;
+    }
+    var W = textW(text) + 1;
+    var H = 9;
+    var mount = creditLabel.querySelector('canvas') || doc.createElement('canvas');
+    mount.width = W; mount.height = H;
+    var g = mount.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, W, H);
+    drawText(g, text, 1, 1, color);
+    mount.className = 'pxcv';
+    mount.style.width = (W * PXT) + 'px';
+    mount.style.height = (H * PXT) + 'px';
+    if (!mount.parentNode) { creditLabel.textContent = ''; creditLabel.appendChild(mount); }
+  }
+
   function paintDecal() {
     if (!decalEl) { return; }
     var text = decalEl.dataset.text || deccalText(decalEl);
     decalEl.dataset.text = text;
+    /* narrow tubes: the short decal leaves the right corner of the
+       foot row free for the CREDIT counter */
+    if (html.clientWidth < 380) { text = 'MMR-84'; }
+    else if (html.clientWidth < 520) { text = 'MMR-84 · 4 WORLDS'; }
     var W = textW(text) + 1;
     var mount = decalEl.querySelector('canvas') || doc.createElement('canvas');
     mount.width = W; mount.height = 9;
@@ -1875,24 +2603,36 @@
   }
   function deccalText(el) { return (el.textContent || '').trim(); }
 
-  /* the cue: PRESS [↓] START in bitmap font + a pixel arrow */
+  /* the cue: the attract screen's heartbeat — a big blinking peach
+     PRESS START with a hard drop shadow, and under it the steady white
+     INSERT COIN TO CONTINUE, straight off the 1980s bezel glass */
+  var cueSubCv = $('.cue-sub');
   function paintCue() {
     if (!cueCv) { return; }
     var g = cueCv.getContext('2d');
     g.imageSmoothingEnabled = false;
-    var pre = 'PRESS ', post = ' START';
-    var W = textW(pre) + 5 + textW(post) + 2;
-    cueCv.width = W; cueCv.height = 9;
-    g.clearRect(0, 0, W, 9);
-    var x = 1;
-    drawText(g, 'PRESS', x, 1, PC.gold); x += textW('PRESS') + 4;
-    /* pixel arrow, gold with a dark under-shadow */
-    drawSpr(g, SPR_ARROW, x + 1, 3, { '1': PC.goldDk });
-    drawSpr(g, SPR_ARROW, x, 2, { '1': PC.gold });
-    x += 5 + 4;
-    drawText(g, 'START', x, 1, PC.gold);
+    /* 3x only on tall tubes: the marquee must never squeeze the deck */
+    var sc = (PXG >= 4 && html.clientHeight >= 1040) ? 3 : 2;
+    var str = 'PRESS START';
+    var W = textW(str, sc) + sc + 2;
+    var H = 7 * sc + sc + 2;
+    cueCv.width = W; cueCv.height = H;
+    g.clearRect(0, 0, W, H);
+    drawText(g, str, 1 + sc, 1 + sc, PC.pressDk, sc);
+    drawText(g, str, 1, 1, PC.press, sc);
     cueCv.style.width = (W * PXG) + 'px';
-    cueCv.style.height = (9 * PXG) + 'px';
+    cueCv.style.height = (H * PXG) + 'px';
+    if (!cueSubCv) { return; }
+    var sg = cueSubCv.getContext('2d');
+    sg.imageSmoothingEnabled = false;
+    var sub = 'INSERT COIN TO CONTINUE';
+    var SW = mTextW(sub) + 2;
+    var SH = 7;
+    cueSubCv.width = SW; cueSubCv.height = SH;
+    sg.clearRect(0, 0, SW, SH);
+    drawMText(sg, sub, 1, 1, PC.shell);
+    cueSubCv.style.width = (SW * PXG) + 'px';
+    cueSubCv.style.height = (SH * PXG) + 'px';
   }
 
   function buildControls() {
@@ -1902,6 +2642,7 @@
     paintPBtns();
     paintCoin();
     paintCoinLabel();
+    paintCredit();
     paintDecal();
     paintCue();
   }
@@ -2205,15 +2946,33 @@
     };
     startBtn.addEventListener('pointerup', releaseStart);
     startBtn.addEventListener('pointerleave', releaseStart);
-    startBtn.addEventListener('click', function () {
+    startBtn.addEventListener('click', doStart);
+    function doStart() {
+      /* a wreck waits for the DOOR, not the keyboard: START never
+         spends, never continues — it only opens world one */
+      if (world && world.shipDead) {
+        var w0b = $('.w01');
+        if (w0b && w0b.scrollIntoView) {
+          w0b.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
+        }
+        return;
+      }
+      /* a kept coin is spent on the way in; without one, entry is
+         still free — the cabinet just remembers who tipped it */
+      var spent = credits > 0;
+      if (spent) { credits -= 1; saveCredits(); paintCredit(); }
       if (world) {
-        world.banner = { l1: 'WORLD 01', l2: 'GET READY!', until: performance.now() + 1600 };
+        world.banner = {
+          l1: 'WORLD 01',
+          l2: spent ? 'GOOD LUCK!' : 'FREE PLAY!',
+          until: performance.now() + 1600
+        };
       }
       var w1 = $('.w01');
       if (w1 && w1.scrollIntoView) {
         w1.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
       }
-    });
+    }
   }
 
   var coinReset = null;
@@ -2222,13 +2981,44 @@
       coinAnimT0 = performance.now();
       coinLed = true;
       paintCoin();
+      credits = Math.min(99, credits + 1);
+      saveCredits();
+      /* the policy: every coin buys thirty seconds, the grace window
+         lets a handful of coins buy a handful of minutes, and then
+         the slot vanishes until the clock burns out */
+      playT = Math.min(999000, playT + 30000);
+      coinGrace = 2600;
+      html.classList.remove('coin-hidden');
+      paintCredit();
+      paintCoinLabel();
       setCoinCredit(true);
       clearTimeout(coinReset);
       coinReset = setTimeout(function () {
         setCoinCredit(false);
       }, 1900);
-      /* the whole tube surges gold for a beat — dithered, 1981-style */
-      if (world) { world.flash = 900; }
+      /* the world answers the coin: the tube surges gold, the little
+         people throw their arms up, the ship rolls, and one permanent
+         gold star joins the sky — a receipt you can see from space */
+      if (world) {
+        world.flash = 900;
+        if (world.shipDead) {
+          /* the continue: a gate opens and she steps back out of it */
+          world.shipDead = false;
+          world.ds1 = world.ds2 = world.ds3 = 0;
+          world.portal = { t0: world.t };
+          world.banner = { l1: 'WORLD 01', l2: 'GOOD LUCK!', until: performance.now() + 1700 };
+        } else {
+          world.cheerUntil = world.t + 2200;
+          world.ship.flipUntil = world.t + 700;
+          world.banner = { l1: 'THANK YOU', l2: 'PLAYER 1', until: performance.now() + 1700 };
+        }
+        world.stars.push({
+          x: Math.random() * world.cols,
+          y: Math.floor(Math.random() * Math.max(8, Math.round(world.rows * 0.5))),
+          l: 3, tw: Math.random() * 6.28, gold: true, red: false
+        });
+      }
+      paintCredit();
       blip(988, 70);
       setTimeout(function () { blip(1319, 110); }, 90);
     });
@@ -2256,11 +3046,11 @@
       pbtnState[idx] = 2;
       paintPBtns();
       if (b.classList.contains('pbtn-red')) {
-        fireShip(true);   /* FIRE actually fires */
+        fireShip(true);   /* her own blip — the very same one SPACE pulls */
       } else {
-        hopShip();        /* JUMP hops the ship */
+        useSpecial();     /* the violet dome calls the plumber */
+        blip(740, 60);
       }
-      blip(740, 60);
       setTimeout(function () {
         pbtnState[idx] = 0;
         paintPBtns();
@@ -2271,6 +3061,9 @@
   /* ── master animation loop ──────────────────────────── */
   var lastT = 0;
   var ledLast = 0;
+  var bannerWas = false;
+  var dimWas = false;
+  var pipLast = 0;
   var joyWigglePhase = 0, joyWiggleLast = 0;
   var JOY_WIGGLE = [0, 0, 1, 2, 1, 0, 0, -1, -2, -1, 0, 0, 0, 0, 0, 0];
   var coinRepaintLast = 0;
@@ -2321,7 +3114,22 @@
     if (fieldOn && !reduced.matches && world && (heroVisible || bootActive)) {
       stepWorld(dt);
     }
+    /* while a banner stamp is up, the attract copy yields the glass —
+       the cabinet never talks over itself */
+    var bannerOn = !!(world && world.banner && t < world.banner.until && !world.banner.keepText);
+    if (bannerOn !== bannerWas) {
+      bannerWas = bannerOn;
+      html.classList.toggle('banner-on', bannerOn);
+    }
+    /* a dimming stamp: the introduction recedes behind the plate —
+       present, legible at the edges, never glyph-on-glyph */
+    var dimOn = !!(world && world.banner && world.banner.dim && t < world.banner.until);
+    if (dimOn !== dimWas) {
+      dimWas = dimOn;
+      html.classList.toggle('gameover-dim', dimOn);
+    }
     if (world && heroVisible && fx) { renderWorld(fx, 'hero', t); }
+    if (t - pipLast > 200) { pipLast = t; if (world) { paintPBtns(); } }
     if (world && bootActive && bfx) { renderWorld(bfx, 'boot', t); }
   }
   requestAnimationFrame(loop);
