@@ -847,6 +847,37 @@
     'W....W'
   ];
   var HUM_LEG = { S: PC.press, B: PC.hum, P: PC.slateHi, W: PC.hum };
+  /* the guest: a small plumber in a red cap, bearing a gift */
+  var SPR_MARIO = [
+    '..RRRR..',
+    '.RRRRRR.',
+    '.HHFHFF.',
+    '.FFFFF..',
+    '.RBBBR..',
+    '.RBBBR..',
+    '..B..B..',
+    '.HH..HH.'
+  ];
+  var SPR_MARIO2 = [
+    '..RRRR..',
+    '.RRRRRR.',
+    '.HHFHFF.',
+    '.FFFFF..',
+    '.RBBBR..',
+    '.RBBBR..',
+    '..BB....',
+    '.HH.HH..'
+  ];
+  var MARIO_LEG = { R: '#e43b3b', F: PC.press, H: '#5b3213', B: '#3a6ea5' };
+  var SPR_SHROOM = [
+    '.RRRR.',
+    'RWRRWR',
+    'RRWWRR',
+    '.WWWW.',
+    '.WWWW.',
+    '..WW..'
+  ];
+  var SHROOM_LEG = { R: '#e43b3b', W: '#f4e6c8' };
   var SPR_HUMF = [
     'B.SS.B',
     'B.SS.B',
@@ -1071,7 +1102,8 @@
       banner: old ? old.banner : null,
       bombCd: 2600, humCd: 4000,
       rings: [], scorch: [], shake: 0,
-      shipDead: false, shipDeadAt: 0, portal: null
+      shipDead: false, shipDeadAt: 0, portal: null,
+      kills: 0, laserUntil: 0, mario: null
     };
     for (var i = 0; i < 9; i++) {
       world.hums.push({
@@ -1127,11 +1159,26 @@
       var H = w.hums[j];
       if (H.gone || H.state !== 'ground') { continue; }
       var hx = H.wx - w.worldX;
-      if (Math.abs(hx + 2 - sx) < 7 && Math.abs(H.y + 4 - sy) < 8) {
+      if (Math.abs(hx + 2 - sx) < 10 && Math.abs(H.y + 4 - sy) < 11) {
         H.gone = true;
         boomAt(Math.round(hx + 2), Math.round(H.y + 3), 6);
       }
     }
+  }
+
+  /* four kills charge the special; the button calls the plumber,
+     the plumber brings the mushroom, the mushroom brings lasers */
+  function useSpecial() {
+    var w = world;
+    if (!w || w.shipDead || w.portal || w.mario) { return; }
+    if ((w.kills || 0) < 4 || w.t < (w.laserUntil || 0)) { return; }
+    w.kills = 0;
+    w.mario = { t0: w.t, x: -10, y: Math.round(w.rows * 0.42), toss: 0, give: 0 };
+    pbtnState[0] = 2;
+    paintPBtns();
+    setTimeout(function () { pbtnState[0] = 0; paintPBtns(); }, 240);
+    blip(660, 90);
+    setTimeout(function () { blip(880, 90); }, 110);
   }
 
   /* the wreck: enhanced visuals — shock rings, shake, staged fires,
@@ -1148,7 +1195,7 @@
     boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 34);
     w.rings.push({ x: S.x + 4, y: S.y + 5, r: 2, life: 620, max: 620 });
     w.rings.push({ x: S.x + 4, y: S.y + 5, r: 1, life: 430, max: 430 });
-    w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15 };
+    w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15, keepText: true };
     playT = 0; coinGrace = 0;
     html.classList.remove('coin-hidden');
     paintCredit(); paintCoinLabel();
@@ -1182,7 +1229,10 @@
         var tt = Math.max(0.12, Math.abs(best.wx - w.worldX - S.x) / 92);
         vy = Math.max(-14, Math.min(14, (best.y + 3 - sy) / tt));
       }
-      w.bullets.push({ x: noseX, y: sy, vx: vx, vy: vy, dir: dir, gone: false });
+      w.bullets.push({
+        x: noseX, y: sy, vx: vx, vy: vy, dir: dir, gone: false,
+        laser: w.t < (w.laserUntil || 0)
+      });
       if (user) { blip(1244, 60, 622); }
     }
   }
@@ -1294,7 +1344,7 @@
         }
         w.bombs.push({
           x: thrower.wx - w.worldX, y: thrower.y + 7,
-          vx: 0, vy: 7, txw: tgtH ? tgtH.wx : null, gone: false
+          vx: 0, vy: 7, tgt: tgtH || null, gone: false
         });
       }
     }
@@ -1304,6 +1354,22 @@
       if (bo.txw != null) {
         var txs = bo.txw - w.worldX;
         bo.vx += Math.max(-6, Math.min(6, (txs - bo.x) * 0.55)) * ds * 3;
+      }
+      /* the aim: re-pick if the mark dies or flees, steer harder */
+      if (bo.tgt && (bo.tgt.gone || bo.tgt.state !== 'ground')) { bo.tgt = null; }
+      if (!bo.tgt) {
+        var nb2 = null, nd2 = 1e9;
+        for (j = 0; j < w.hums.length; j++) {
+          var Hg = w.hums[j];
+          if (Hg.gone || Hg.state !== 'ground') { continue; }
+          var dg2 = Math.abs(Hg.wx - (bo.x + w.worldX));
+          if (dg2 < nd2) { nd2 = dg2; nb2 = Hg; }
+        }
+        bo.tgt = nb2;
+      }
+      if (bo.tgt) {
+        var txs2 = bo.tgt.wx - w.worldX;
+        bo.vx += Math.max(-9, Math.min(9, (txs2 - bo.x) * 1.1)) * ds * 3;
       }
       bo.x += bo.vx * ds;
       bo.y += bo.vy * ds;
@@ -1337,6 +1403,26 @@
       if (stg > 430 && !w.ds2) { w.ds2 = 1; boomAt(Math.round(S.x + 6), Math.round(S.y + 7), 8); }
       if (stg > 720 && !w.ds3) { w.ds3 = 1; boomAt(Math.round(S.x + 1), Math.round(S.y + 2), 6); }
     }
+    if (w.mario) {
+      var M = w.mario;
+      if (!M.give) {
+        if (M.x < S.x - 10) {
+          M.x += 34 * ds;
+        } else if (!M.toss) {
+          M.toss = w.t;
+        }
+        if (M.toss && (w.t - M.toss) >= 600) {
+          M.give = w.t;
+          w.laserUntil = w.t + 30000;
+          boomAt(Math.round(S.x + 4), Math.round(S.y + 4), 10);
+          w.rings.push({ x: S.x + 4, y: S.y + 5, r: 1, life: 420, max: 420 });
+          blip(1046, 120);
+        }
+      } else {
+        M.y -= 40 * ds;   /* one small hop off-stage, job done */
+      }
+      if (M.y < -12) { w.mario = null; }
+    }
     if (w.portal && w.t - w.portal.t0 >= 1500) {
       w.portal = null;
       boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 10);
@@ -1347,7 +1433,7 @@
     if (keys.s) { mv += 1; }
     if (keys.a) { mh -= 1; }
     if (keys.d) { mh += 1; }
-    if (w.shipDead || w.portal) { mv = 0; mh = 0; }
+    if (w.portal) { mv = 0; mh = 0; }   /* the ghost still flies */
     if (mv !== 0 || mh !== 0) { S.manualUntil = w.t + 2600; }
     if (mh !== 0) { S.face = mh; }
     if (w.t < (S.manualUntil || 0)) {
@@ -1378,10 +1464,15 @@
       S.x += (homeX - S.x) * Math.min(1, ds * 2.2);
     }
     S.fireCd -= dt;
+    /* a held SPACE rides the cooldown: consecutive shots, one hand */
+    if (keys.space && !w.portal && S.fireCd <= 0) {
+      S.fireCd = (w.t < (w.laserUntil || 0)) ? 170 : 260;
+      fireShip(true);
+    }
     /* the auto-gun only fires while the attract pilot is alone; a hand
        on the keys means SPACE is the only trigger */
-    if (!w.shipDead && !w.portal && w.t >= (S.manualUntil || 0) && S.fireCd <= 0) {
-      S.fireCd = 620 + Math.random() * 1100;
+    if (!w.portal && !keys.space && w.t >= (S.manualUntil || 0) && S.fireCd <= 0) {
+      S.fireCd = (w.t < (w.laserUntil || 0)) ? 300 : 620 + Math.random() * 1100;
       fireShip(false);
     }
 
@@ -1396,9 +1487,10 @@
         if (Ld.gone) { continue; }
         var lsx = Ld.wx - w.worldX;
         if (Math.abs(b.x - (lsx + 4)) < 5 && Math.abs(b.y - (Ld.y + 3)) < 4.5) {
-          b.gone = true;
+          if (!b.laser) { b.gone = true; }   /* lasers punch through */
           Ld.gone = true;
           w.score += 150;
+          w.kills = (w.kills || 0) + 1;
           bumpHi(w);
           boomAt(Math.round(lsx + 4), Math.round(Ld.y + 3), 9);
           if (Ld.target && Ld.target.state === 'held') {
@@ -1729,26 +1821,46 @@
       var bx = Math.round(w.bullets[i].x);
       var by = Math.round(w.bullets[i].y);
       var bd = w.bullets[i].dir || 1;
-      g.fillStyle = PC.bulletGlow;
-      g.fillRect(bd > 0 ? bx - 2 : bx - 5, by, 8, 1);
-      g.fillStyle = PC.bullet;
-      g.fillRect(bd > 0 ? bx - 2 : bx - 2, by, 5, 1);
-      g.fillStyle = '#ffffff';
-      g.fillRect(bd > 0 ? bx + 2 : bx - 3, by, 2, 1);
+      if (w.bullets[i].laser) {
+        /* a lance of light: cyan sheath, white core, hot head */
+        g.fillStyle = PC.bulletGlow;
+        g.fillRect(bx - 6, by - 1, 13, 3);
+        g.fillStyle = '#ffffff';
+        g.fillRect(bx - 4, by, 9, 1);
+        g.fillStyle = PC.goldHi;
+        g.fillRect(bd > 0 ? bx + 4 : bx - 6, by, 2, 1);
+      } else {
+        g.fillStyle = PC.bulletGlow;
+        g.fillRect(bd > 0 ? bx - 2 : bx - 5, by, 8, 1);
+        g.fillStyle = PC.bullet;
+        g.fillRect(bd > 0 ? bx - 2 : bx - 2, by, 5, 1);
+        g.fillStyle = '#ffffff';
+        g.fillRect(bd > 0 ? bx + 2 : bx - 3, by, 2, 1);
+      }
     }
 
     /* the ship + dual thruster flames — or her wreck, or her portal */
     var S = w.ship;
     if (w.shipDead) {
-      /* smoke columns crawl out of the crash while the fires cool */
-      var smk = Math.floor(t / 130) % 6;
-      g.fillStyle = PC.slate;
-      g.fillRect(Math.round(S.x + 4) + (smk % 2), Math.round(S.y + 3) - smk, 1, 1);
-      g.fillStyle = PC.slateHi;
-      g.fillRect(Math.round(S.x + 5) - (smk % 2), Math.round(S.y + 4) - Math.floor(smk / 2), 1, 1);
-      if ((Math.floor(t / 220) % 3) === 0) {
-        g.fillStyle = PC.starRed;
-        g.fillRect(Math.round(S.x + 3) + (smk % 3), Math.round(S.y + 6), 1, 1);
+      /* the ghost: hull gone, but her engines still leak fire —
+         smoke for the first beat, then just the thruster tongues */
+      var stg2 = t - (w.shipDeadAt || 0);
+      if (stg2 < 720) {
+        var smk = Math.floor(t / 130) % 6;
+        g.fillStyle = PC.slate;
+        g.fillRect(Math.round(S.x + 4) + (smk % 2), Math.round(S.y + 3) - smk, 1, 1);
+        g.fillStyle = PC.slateHi;
+        g.fillRect(Math.round(S.x + 5) - (smk % 2), Math.round(S.y + 4) - Math.floor(smk / 2), 1, 1);
+      } else {
+        var gfl = (Math.floor(t / 100) % 2) === 0;
+        var gface = (S.face || 1) < 0;
+        var gfx = gface ? Math.round(S.x) + sprW(SPR_SHIP) : Math.round(S.x) - 1;
+        g.fillStyle = PC.thr;
+        g.fillRect(gfx, Math.round(S.y + S.hopY) + 3, gfl ? 3 : 2, 1);
+        g.fillRect(gfx, Math.round(S.y + S.hopY) + 7, gfl ? 3 : 2, 1);
+        g.fillStyle = PC.thrLo;
+        g.fillRect(gfx + (gface ? 3 : -2), Math.round(S.y + S.hopY) + 3, 2, 1);
+        g.fillRect(gfx + (gface ? 3 : -2), Math.round(S.y + S.hopY) + 7, 2, 1);
       }
     } else if (w.portal) {
       /* the gate: dithered beam, a spinning ring, and the hull
@@ -1785,6 +1897,20 @@
       g.fillStyle = PC.thrLo;
       g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
       g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
+    }
+    if (w.mario) {
+      /* the guest walks in, tosses the gift, hops off-stage */
+      var M2 = w.mario;
+      var mx2 = Math.round(M2.x), my2 = Math.round(M2.y);
+      drawSpr(g, (Math.floor(t / 160) % 2) ? SPR_MARIO2 : SPR_MARIO, mx2, my2, MARIO_LEG, 0);
+      if (M2.toss && !M2.give) {
+        var ft2 = Math.min(1, (t - M2.toss) / 600);
+        var shx = mx2 + 6 + (S.x + 4 - (mx2 + 6)) * ft2;
+        var shy = M2.y - 2 - Math.sin(ft2 * Math.PI) * 8;
+        drawSpr(g, SPR_SHROOM, Math.round(shx), Math.round(shy), SHROOM_LEG, 0);
+      } else if (M2.toss && M2.give && t - M2.give < 500) {
+        drawSpr(g, SPR_SHROOM, Math.round(S.x + 2), Math.round(S.y - 3), SHROOM_LEG, 0);
+      }
     }
 
     /* starburst explosions, burning out */
@@ -1995,6 +2121,24 @@
     drawMText(g, hs1, Math.round(cols / 2 - mW(hs1) / 2), y1, chrome, sc);
     drawMText(g, hs2, Math.round(cols / 2 - mW(hs2) / 2), y2, chrome, sc);
     drawMText(g, '2P', cols - 5 - mW('2P'), y1, chrome, sc);
+    /* the special charge: four pips on the glass, a READY blink when
+       full, and a draining cyan bar while the lasers burn */
+    if (w) {
+      var ky = rows - 6 * sc;
+      var laserOn = w.t < (w.laserUntil || 0);
+      drawMText(g, 'SPEC', 5, ky, chrome, sc);
+      var x0 = 5 + mW('SPEC') + 4 * sc;
+      var seg2 = laserOn
+        ? Math.ceil(((w.laserUntil - w.t) / 30000) * 4)
+        : Math.min(4, w.kills || 0);
+      for (var sp2 = 0; sp2 < 4; sp2++) {
+        g.fillStyle = sp2 < seg2 ? (laserOn ? PC.bulletGlow : PC.gold) : PC.slate;
+        g.fillRect(x0 + sp2 * 5 * sc, ky, 3 * sc, 5 * sc);
+      }
+      if (!laserOn && (w.kills || 0) >= 4 && (Math.floor(w.t / 300) % 2) === 0) {
+        drawMText(g, 'READY', x0 + 24 * sc, ky, PC.gold, sc);
+      }
+    }
     if (sc === 1) {
       /* wide tubes carry the live run score and the empty 2P slot */
       drawMText(g, pad10(w ? w.score : 0), 5, y2, chrome, sc);
@@ -2010,7 +2154,9 @@
     window.__fw = {
       world: function () { return world; },
       kill: function () { killShip(null); },
-      coin: function () { if (coinBtn) { coinBtn.click(); } }
+      coin: function () { if (coinBtn) { coinBtn.click(); } },
+      charge: function (n) { if (world) { world.kills = n; paintPBtns(); } },
+      special: function () { useSpecial(); }
     };
   }
 
@@ -2064,9 +2210,9 @@
   var KEYMAP = { KeyW: 'w', KeyA: 'a', KeyS: 's', KeyD: 'd' };
   function manualGun() {
     var w = world;
-    if (!w || !w.ship) { return; }
+    if (!w || !w.ship || w.portal) { return; }
     if (w.ship.fireCd <= 0) {
-      w.ship.fireCd = 260;
+      w.ship.fireCd = (w.t < (w.laserUntil || 0)) ? 170 : 260;
       fireShip(true);
     }
   }
@@ -2082,6 +2228,7 @@
     }
     if (e.code === 'Space') {
       e.preventDefault();
+      keys.space = true;
       pbtnState[1] = 2;      /* the FIRE dome sinks with the key */
       paintPBtns();
       if (!e.repeat) { manualGun(); }
@@ -2099,10 +2246,10 @@
   addEventListener('keyup', function (e) {
     var k = KEYMAP[e.code];
     if (k) { keys[k] = false; syncStick(); return; }
-    if (e.code === 'Space') { pbtnState[1] = 0; paintPBtns(); return; }
+    if (e.code === 'Space') { keys.space = false; pbtnState[1] = 0; paintPBtns(); return; }
     if (e.code === 'Enter') { startState = 0; paintStart(); }
   });
-  addEventListener('blur', function () { keys.w = keys.a = keys.s = keys.d = false; });
+  addEventListener('blur', function () { keys.w = keys.a = keys.s = keys.d = false; keys.space = false; });
 
   var joyTilt = 0, joyPress = false;
   var startState = 0;   /* 0 idle · 1 hover · 2 press */
@@ -2212,17 +2359,17 @@
       g.fillStyle = PC.metalHi;
       g.fillRect(5, 5 + dy, 3, 1); g.fillRect(17, 5 + dy, 3, 1);
       g.fillRect(5, 18 + dy, 3, 1); g.fillRect(17, 18 + dy, 3, 1);
-      /* the dome */
+      /* the dome — the special button wears violet plastic */
       var tones = red
         ? { out: PC.redOut, hi: PC.redHi, base: PC.red, dk: PC.redDk }
-        : { out: PC.shellOut, hi: '#ffffff', base: PC.shell, dk: PC.shellDk };
+        : { out: '#1b0b33', hi: '#d9b8ff', base: '#7a4fd0', dk: '#37206b' };
       pxBall(g, 11, 11 + dy, 9, tones);
       /* cross specular — glossy plastic, one hard highlight */
       g.fillStyle = tones.hi;
       g.fillRect(7, 7 + dy, 2, 1); g.fillRect(8, 6 + dy, 1, 2);
       /* pressed: light spills from under the bezel */
       if (state === 2) {
-        g.fillStyle = red ? PC.red : PC.shell;
+        g.fillStyle = red ? PC.red : '#b78cff';
         g.fillRect(3, 21, 4, 1); g.fillRect(19, 21, 4, 1);
         g.fillRect(11, 23, 3, 1);
       }
@@ -2234,9 +2381,21 @@
         g.fillRect(4, 5 + dy, 1, 1); g.fillRect(17, 5 + dy, 1, 1);
         g.fillRect(4, 17 + dy, 1, 1); g.fillRect(17, 17 + dy, 1, 1);
       }
-      /* micro-font label */
-      var label = red ? 'FIRE' : 'JUMP';
-      drawMText(g, label, 11 - Math.round(mTextW(label) / 2), 9 + dy, red ? PC.redOut : PC.shellOut);
+      if (red) {
+        drawMText(g, 'FIRE', 11 - Math.round(mTextW('FIRE') / 2), 9 + dy, PC.redOut);
+      } else {
+        /* the gift itself is the icon; the bezel carries the charge */
+        drawSpr(g, SPR_SHROOM, 10, 6 + dy, SHROOM_LEG, 0);
+        var w0 = world;
+        var laserOn = w0 && w0.t < (w0.laserUntil || 0);
+        var seg = laserOn
+          ? Math.ceil(((w0.laserUntil - w0.t) / 30000) * 4)
+          : Math.min(4, w0 ? (w0.kills || 0) : 0);
+        for (var q = 0; q < 4; q++) {
+          g.fillStyle = q < seg ? (laserOn ? PC.bulletGlow : PC.gold) : PC.metalDk;
+          g.fillRect(7 + q * 4, 20 + dy, 2, 2);
+        }
+      }
       cvs.style.width = (26 * PXG) + 'px';
       cvs.style.height = (26 * PXG) + 'px';
     });
@@ -2741,6 +2900,15 @@
     startBtn.addEventListener('pointerleave', releaseStart);
     startBtn.addEventListener('click', doStart);
     function doStart() {
+      /* a wreck waits for the DOOR, not the keyboard: START never
+         spends, never continues — it only opens world one */
+      if (world && world.shipDead) {
+        var w0b = $('.w01');
+        if (w0b && w0b.scrollIntoView) {
+          w0b.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
+        }
+        return;
+      }
       /* a kept coin is spent on the way in; without one, entry is
          still free — the cabinet just remembers who tipped it */
       var spent = credits > 0;
@@ -2832,7 +3000,7 @@
       if (b.classList.contains('pbtn-red')) {
         fireShip(true);   /* FIRE actually fires */
       } else {
-        hopShip();        /* JUMP hops the ship */
+        useSpecial();     /* the violet dome calls the plumber */
       }
       blip(740, 60);
       setTimeout(function () {
@@ -2846,6 +3014,7 @@
   var lastT = 0;
   var ledLast = 0;
   var bannerWas = false;
+  var pipLast = 0;
   var joyWigglePhase = 0, joyWiggleLast = 0;
   var JOY_WIGGLE = [0, 0, 1, 2, 1, 0, 0, -1, -2, -1, 0, 0, 0, 0, 0, 0];
   var coinRepaintLast = 0;
@@ -2898,12 +3067,13 @@
     }
     /* while a banner stamp is up, the attract copy yields the glass —
        the cabinet never talks over itself */
-    var bannerOn = !!(world && world.banner && t < world.banner.until);
+    var bannerOn = !!(world && world.banner && t < world.banner.until && !world.banner.keepText);
     if (bannerOn !== bannerWas) {
       bannerWas = bannerOn;
       html.classList.toggle('banner-on', bannerOn);
     }
     if (world && heroVisible && fx) { renderWorld(fx, 'hero', t); }
+    if (t - pipLast > 400) { pipLast = t; if (world) { paintPBtns(); } }
     if (world && bootActive && bfx) { renderWorld(bfx, 'boot', t); }
   }
   requestAnimationFrame(loop);

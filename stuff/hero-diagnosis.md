@@ -221,3 +221,23 @@ in Persian, on a living cabinet.
    label and its caption leave the bezel (`html.coin-hidden`) and the bezel
    reads `TIME NN`. At zero the door wakes. A wreck ends the clock early —
    the continue is a fresh coin.
+
+### §9 · Fourth work order — bigger grief, a plumber, a ghost
+
+1. **Bombs** — blast radius 7/8 → 10/11; the aim re-picks its mark if the
+   first one dies or is carried off, and steers ~2× harder.
+2. **The special** — the JUMP dome is now violet plastic with a mushroom
+   icon and four charge pips on its bezel; four kills fill them (mirrored as
+   a SPEC pip bar on the glass with a READY blink). At full charge the button
+   calls the plumber: he walks in from the tube edge, tosses the mushroom
+   into the hull, hops off-stage — and for thirty seconds the gun throws
+   piercing laser lances (cyan sheath, white core, gold head; 170 ms cadence).
+   While they burn, the pips drain cyan.
+3. **The ghost** — death hides the hull but her thrusters keep leaking fire,
+   and the ghost keeps flying and shooting until a coin re-materialises her.
+4. **Held SPACE** rides the cooldown: consecutive shots from one press.
+5. **MMR-84** is gone from the bezel decal.
+6. **GAME OVER stamps over the introduction, never instead of it** — banners
+   carry `keepText`, and `html.banner-on` ignores them.
+7. **START is not a coin slot** — while a wreck waits, doStart only scrolls;
+   the door takes coins, not keys (verified: credits untouched).
