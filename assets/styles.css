@@ -293,11 +293,13 @@ html.has-cursor .cursor { display: block; }
 /* while the boot screen owns the tube, the title screen waits dark; when
    the channel flips it steps in — copy, cue, deck, coin row, decal */
 html.booting .hero-inner,
+html.booting .pstart,
 html.booting .hero-cue,
 html.booting .hero-deck,
 html.booting .coin-row,
 html.booting .crt-decal { opacity: 0; }
 html.awake .hero-inner { animation: fadeinstep 420ms steps(3) 140ms forwards; }
+html.awake .pstart { animation: fadeinstep 420ms steps(4) 260ms forwards; }
 html.awake .hero-cue { animation: fadeinstep 380ms steps(3) 340ms forwards; }
 html.awake .hero-deck { animation: fadeinstep 420ms steps(4) 260ms forwards; }
 html.awake .coin-row { animation: fadeinstep 420ms steps(4) 400ms forwards; }
@@ -313,10 +315,13 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   flex: 0 1 auto;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
+  text-align: center;
   max-width: 44rem;
   margin-inline: auto;
-  margin-top: clamp(0.6rem, 1.8vh, 1.2rem);
+  /* clears the 1P / HIGH SCORE / 2P header painted on the tube */
+  margin-top: clamp(2.6rem, 6.5vh, 3.8rem);
   width: 100%;
 }
 /* the pixel canvases carry their own heights; the gaps below just keep
@@ -327,7 +332,7 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
 .hero-para { max-width: 40rem; color: #b9b9c6; font-size: clamp(.8rem, 1.1vw, .92rem); line-height: 1.6; }
 
 @media (max-height: 850px) {
-  .hero-inner, .hero-deck, .coin-row {
+  .hero-inner, .pstart, .hero-deck, .coin-row {
     transform: scale(0.85);
     transform-origin: center top;
   }
@@ -340,13 +345,13 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
-  margin-top: clamp(2px, 0.6vh, 6px);
+  margin-top: clamp(6px, 1.6vh, 16px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
-.cue-cv { animation: cueblink 1.15s steps(2) infinite; }
+.cue-cv { animation: cueblink 1.6s steps(2) infinite; }
 @keyframes cueblink { 50% { opacity: 0; } }
 .cue-fa,
 .coin-fa,
@@ -375,18 +380,25 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   direction: ltr;
 }
 .joy { position: relative; flex: none; }
+/* the big blinking PRESS START — the title screen's centerpiece and the
+   start button in one; the pixel canvas is painted by JS */
 .pstart {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 2px 6px;
+  margin-top: clamp(10px, 2.6vh, 26px);
   background: none;
   border: none;
   font-family: inherit;
   cursor: pointer;
   min-height: 38px;
 }
+.pstart:active { transform: translateY(2px); }
 .pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); }
 .panel-btns {
   display: flex;
@@ -935,18 +947,12 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   .hero { padding: 1rem .8rem 4.2rem; }
   .hero-name { font-size: clamp(1.9rem, 8vw, 2.6rem); }
   .hero-para { font-size: .92rem; }
+  .hero-inner { margin-top: 2.2rem; }
   .hero-deck {
     flex-wrap: wrap;
     row-gap: 1rem;
     gap: 1.6rem;
     margin-top: 1rem;
-  }
-  .pstart {
-    order: 5;
-    flex: 1 1 100%;
-    flex-direction: row;
-    justify-content: center;
-    gap: .9rem;
   }
   .panel-btns { padding-bottom: 10px; }
   .coin-row { gap: .7rem 1rem; }
@@ -971,6 +977,7 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   .hud.party .hud-world,
   .scanlines::after { animation: none; }
   html.booting .hero-inner,
+  html.booting .pstart,
   html.booting .hero-cue,
   html.booting .hero-deck,
   html.booting .coin-row,

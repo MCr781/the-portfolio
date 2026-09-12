@@ -8,8 +8,11 @@ at runtime with Canvas + JavaScript + CSS.
 CONTENTS
 --------
 index.html              The hub: pixel-art BIOS boot screen + arcade hero
-                        (Defender-style night-flight world, joystick, START,
-                        JUMP/FIRE, coin door) + the four world gateways
+                        (attract title screen — 1P/HIGH SCORE/2P header,
+                        blinking PRESS START, INSERT COIN TO CONTINUE,
+                        CREDIT — over a dimmed Defender-style night-flight
+                        demo; joystick, JUMP/FIRE, coin door) + the four
+                        world gateways
 assets/styles.css       All styling (fonts embedded via assets/fonts)
 assets/main.js          Game engine, pixel renderers, interactions
 assets/fonts/           Estedad (Persian) + Space Mono (woff2)
