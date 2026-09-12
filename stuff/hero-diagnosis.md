@@ -241,3 +241,23 @@ in Persian, on a living cabinet.
    carry `keepText`, and `html.banner-on` ignores them.
 7. **START is not a coin slot** — while a wreck waits, doStart only scrolls;
    the door takes coins, not keys (verified: credits untouched).
+
+### §10 · Fifth work order — glow, ghost, grace
+
+1. **Charged glow, drawn not css** — at four kills the violet dome grows a
+   two-phase pixel halo (cardinal rays one beat, diagonal sparks the next;
+   cyan while the lasers burn); the dome repaint cadence dropped to 200 ms
+   so the halo blinks.
+2. **Ghost engines, louder** — the invisible hull now leaks long thruster
+   tongues with white-hot tips and a heat pixel between them from the first
+   beat after the wreck; the ghost flies and shoots until the portal.
+3. **One gun, one sound** — the FIRE dome no longer stacks its own click on
+   top of the shot blip; SPACE and the dome pull the very same `fireShip`
+   blip. The violet dome keeps its physical tick (it is a different verb).
+4. **GAME OVER without glyph-on-glyph** — the stamp's plate fills at 82%
+   alpha and `html.gameover-dim` recedes the marquee to 34% (animation
+   cancelled — the awake fade outranks opacity in the cascade). The
+   introduction stays present, at the edges and as a ghost behind the plate.
+5. **Grace out of the gate** — three seconds of invincibility after the
+   portal: the hull blinks at 110 ms and a walking ring of cyan sparks
+   circles her; landers pass through.

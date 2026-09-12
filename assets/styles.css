@@ -312,6 +312,10 @@ html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
    opacity in the cascade) */
 html.banner-on .hero-inner,
 html.banner-on .hero-cue { visibility: hidden; }
+/* GAME OVER: the marquee recedes to a third of itself — present at
+   the edges, ghosted behind the plate, never glyph-on-glyph */
+html.gameover-dim .hero-inner,
+html.gameover-dim .hero-cue { animation: none; opacity: .34; }
 @keyframes fadeinstep {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }

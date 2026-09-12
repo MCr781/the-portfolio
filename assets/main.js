@@ -1195,7 +1195,7 @@
     boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 34);
     w.rings.push({ x: S.x + 4, y: S.y + 5, r: 2, life: 620, max: 620 });
     w.rings.push({ x: S.x + 4, y: S.y + 5, r: 1, life: 430, max: 430 });
-    w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15, keepText: true };
+    w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15, keepText: true, dim: true };
     playT = 0; coinGrace = 0;
     html.classList.remove('coin-hidden');
     paintCredit(); paintCoinLabel();
@@ -1283,7 +1283,7 @@
       L.wx += L.drift * ds;
       if (L.wx - w.worldX < -8) { L.gone = true; continue; }
       var lsx0 = L.wx - w.worldX;
-      if (!w.shipDead && !w.portal &&
+      if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0) &&
           Math.abs(lsx0 + 4 - (w.ship.x + 4)) < 6 &&
           Math.abs(L.y + 3 - (w.ship.y + w.ship.hopY + 5)) < 6) {
         killShip(L);
@@ -1425,6 +1425,7 @@
     }
     if (w.portal && w.t - w.portal.t0 >= 1500) {
       w.portal = null;
+      w.invUntil = w.t + 3000;   /* three seconds of grace, blinking */
       boomAt(Math.round(S.x + 4), Math.round(S.y + 5), 10);
       w.rings.push({ x: S.x + 4, y: S.y + 5, r: 2, life: 420, max: 420 });
     }
@@ -1852,15 +1853,24 @@
         g.fillStyle = PC.slateHi;
         g.fillRect(Math.round(S.x + 5) - (smk % 2), Math.round(S.y + 4) - Math.floor(smk / 2), 1, 1);
       } else {
-        var gfl = (Math.floor(t / 100) % 2) === 0;
+        /* invisible hull, very visible engines: long tongues, hot
+           tips, and a heat pixel between them — the ghost leaks fire */
+        var gfl = (Math.floor(t / 90) % 2) === 0;
         var gface = (S.face || 1) < 0;
         var gfx = gface ? Math.round(S.x) + sprW(SPR_SHIP) : Math.round(S.x) - 1;
+        var gy = Math.round(S.y + S.hopY);
+        var tl = gfl ? 4 : 3;
         g.fillStyle = PC.thr;
-        g.fillRect(gfx, Math.round(S.y + S.hopY) + 3, gfl ? 3 : 2, 1);
-        g.fillRect(gfx, Math.round(S.y + S.hopY) + 7, gfl ? 3 : 2, 1);
+        g.fillRect(gface ? gfx - tl + 3 : gfx, gy + 3, tl, 1);
+        g.fillRect(gface ? gfx - tl + 3 : gfx, gy + 7, tl, 1);
         g.fillStyle = PC.thrLo;
-        g.fillRect(gfx + (gface ? 3 : -2), Math.round(S.y + S.hopY) + 3, 2, 1);
-        g.fillRect(gfx + (gface ? 3 : -2), Math.round(S.y + S.hopY) + 7, 2, 1);
+        g.fillRect(gface ? gfx + 3 : gfx - 2, gy + 3, 2, 1);
+        g.fillRect(gface ? gfx + 3 : gfx - 2, gy + 7, 2, 1);
+        g.fillStyle = gfl ? PC.goldHi : PC.thr;
+        g.fillRect(gface ? gfx - tl + 2 : gfx + tl - 1, gy + 3, 1, 1);
+        g.fillRect(gface ? gfx - tl + 2 : gfx + tl - 1, gy + 7, 1, 1);
+        g.fillStyle = PC.thrLo;
+        g.fillRect(Math.round(S.x) + 3, gy + 5, gfl ? 2 : 1, 1);
       }
     } else if (w.portal) {
       /* the gate: dithered beam, a spinning ring, and the hull
@@ -1888,15 +1898,29 @@
       var flip = ((S.face || 1) < 0 ? 1 : 0) ^ (t < (S.flipUntil || 0) ? 1 : 0);
       var shipX = Math.round(S.x);
       var shipY = Math.round(S.y + S.hopY);
-      drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
-      var flameX = flip ? shipX + sprW(SPR_SHIP) : shipX - 1;
-      var fPulse = (Math.floor(t / 100) % 2) === 0;
-      g.fillStyle = PC.thr;
-      g.fillRect(flameX, shipY + 3, fPulse ? 3 : 2, 1);
-      g.fillRect(flameX, shipY + 7, fPulse ? 3 : 2, 1);
-      g.fillStyle = PC.thrLo;
-      g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
-      g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
+      var inv = t < (w.invUntil || 0);
+      if (inv) {
+        /* a walking shield ring of cyan sparks around her */
+        g.fillStyle = (Math.floor(t / 120) % 2) ? PC.bulletGlow : PC.white;
+        for (var ik = 0; ik < 10; ik++) {
+          var ia = ik / 10 * 6.28 + t * 0.006;
+          g.fillRect(shipX + 4 + Math.round(Math.cos(ia) * 8),
+                     shipY + 5 + Math.round(Math.sin(ia) * 7), 1, 1);
+        }
+      }
+      if (!inv || (Math.floor(t / 110) % 2) === 0) {
+        drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
+      }
+      if (!inv || (Math.floor(t / 110) % 2) === 0) {
+        var flameX = flip ? shipX + sprW(SPR_SHIP) : shipX - 1;
+        var fPulse = (Math.floor(t / 100) % 2) === 0;
+        g.fillStyle = PC.thr;
+        g.fillRect(flameX, shipY + 3, fPulse ? 3 : 2, 1);
+        g.fillRect(flameX, shipY + 7, fPulse ? 3 : 2, 1);
+        g.fillStyle = PC.thrLo;
+        g.fillRect(flameX + (flip ? 3 : -2), shipY + 3, 2, 1);
+        g.fillRect(flameX + (flip ? 3 : -2), shipY + 7, 2, 1);
+      }
     }
     if (w.mario) {
       /* the guest walks in, tosses the gift, hops off-stage */
@@ -1950,6 +1974,7 @@
           var bx0 = Math.round(cols / 2 - bw / 2);
           var by0 = Math.round(rows * 0.30) - 7;
           var bh0 = 42;
+          if (w.banner.dim) { g.globalAlpha = 0.82; }
           g.fillStyle = PC.panelBd;
           g.fillRect(bx0 + 2, by0, bw - 4, bh0);
           g.fillRect(bx0, by0 + 2, bw, bh0 - 4);
@@ -1959,6 +1984,7 @@
           g.fillRect(bx0 + 3, by0 + 1, bw - 6, bh0 - 2);
           g.fillStyle = PC.panelHi;
           for (var pgx = bx0 + 3; pgx < bx0 + bw - 3; pgx += 3) { g.fillRect(pgx, by0 + 2, 1, 1); }
+          g.globalAlpha = 1;
           drawText(g, bl1, Math.round(cols / 2 - textW(bl1, 2) / 2) + 1, Math.round(rows * 0.30) + 1, PC.goldDk, 2);
           drawText(g, bl1, Math.round(cols / 2 - textW(bl1, 2) / 2), Math.round(rows * 0.30), PC.score, 2);
           drawText(g, bl2, Math.round(cols / 2 - textW(bl2) / 2), Math.round(rows * 0.30) + 20, PC.start, 1);
@@ -2394,6 +2420,28 @@
         for (var q = 0; q < 4; q++) {
           g.fillStyle = q < seg ? (laserOn ? PC.bulletGlow : PC.gold) : PC.metalDk;
           g.fillRect(7 + q * 4, 20 + dy, 2, 2);
+        }
+        /* charged: a two-phase pixel halo — cardinal rays one beat,
+           diagonal sparks the next. drawn pixels, not css bloom */
+        var ready = w0 && (w0.kills || 0) >= 4 && !laserOn && !w0.shipDead;
+        if (ready || laserOn) {
+          var ph2 = Math.floor(performance.now() / 200) % 2;
+          var gc = laserOn ? PC.bulletGlow : PC.goldHi;
+          var gc2 = laserOn ? PC.bullet : PC.gold;
+          g.fillStyle = ph2 ? gc : gc2;
+          g.fillRect(12, dy, 2, 2); g.fillRect(12, 22 + dy, 2, 2);
+          g.fillRect(0, 11 + dy, 2, 2); g.fillRect(24, 11 + dy, 2, 2);
+          if (ph2) {
+            g.fillStyle = gc;
+            g.fillRect(3, 3 + dy, 1, 1); g.fillRect(21, 3 + dy, 1, 1);
+            g.fillRect(3, 19 + dy, 1, 1); g.fillRect(21, 19 + dy, 1, 1);
+          } else {
+            g.fillStyle = gc2;
+            g.fillRect(5, 1 + dy, 1, 1); g.fillRect(19, 1 + dy, 1, 1);
+            g.fillRect(1, 8 + dy, 1, 1); g.fillRect(23, 8 + dy, 1, 1);
+            g.fillRect(1, 15 + dy, 1, 1); g.fillRect(23, 15 + dy, 1, 1);
+            g.fillRect(5, 23 + dy, 1, 1); g.fillRect(19, 23 + dy, 1, 1);
+          }
         }
       }
       cvs.style.width = (26 * PXG) + 'px';
@@ -2998,11 +3046,11 @@
       pbtnState[idx] = 2;
       paintPBtns();
       if (b.classList.contains('pbtn-red')) {
-        fireShip(true);   /* FIRE actually fires */
+        fireShip(true);   /* her own blip — the very same one SPACE pulls */
       } else {
         useSpecial();     /* the violet dome calls the plumber */
+        blip(740, 60);
       }
-      blip(740, 60);
       setTimeout(function () {
         pbtnState[idx] = 0;
         paintPBtns();
@@ -3014,6 +3062,7 @@
   var lastT = 0;
   var ledLast = 0;
   var bannerWas = false;
+  var dimWas = false;
   var pipLast = 0;
   var joyWigglePhase = 0, joyWiggleLast = 0;
   var JOY_WIGGLE = [0, 0, 1, 2, 1, 0, 0, -1, -2, -1, 0, 0, 0, 0, 0, 0];
@@ -3072,8 +3121,15 @@
       bannerWas = bannerOn;
       html.classList.toggle('banner-on', bannerOn);
     }
+    /* a dimming stamp: the introduction recedes behind the plate —
+       present, legible at the edges, never glyph-on-glyph */
+    var dimOn = !!(world && world.banner && world.banner.dim && t < world.banner.until);
+    if (dimOn !== dimWas) {
+      dimWas = dimOn;
+      html.classList.toggle('gameover-dim', dimOn);
+    }
     if (world && heroVisible && fx) { renderWorld(fx, 'hero', t); }
-    if (t - pipLast > 400) { pipLast = t; if (world) { paintPBtns(); } }
+    if (t - pipLast > 200) { pipLast = t; if (world) { paintPBtns(); } }
     if (world && bootActive && bfx) { renderWorld(bfx, 'boot', t); }
   }
   requestAnimationFrame(loop);
