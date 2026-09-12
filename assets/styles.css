@@ -397,6 +397,8 @@ html.banner-on .hero-cue { visibility: hidden; }
   min-height: 38px;
 }
 .pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); }
+.joy-fa { margin: .4rem 0 0; text-align: center; }
+.pstart { overflow: visible; }
 .panel-btns {
   display: flex;
   gap: clamp(.5rem, 1.4vw, 1rem);

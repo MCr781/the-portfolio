@@ -519,19 +519,23 @@
 
   function faWrap(text, src, weight, maxW) {
     faSctx.font = faFontStr(src, weight);
-    var words = text.split(' ');
     var lines = [];
-    var cur = '';
-    for (var i = 0; i < words.length; i++) {
-      var test = cur ? cur + ' ' + words[i] : words[i];
-      if (faSctx.measureText(test).width <= maxW || !cur) {
-        cur = test;
-      } else {
-        lines.push(cur);
-        cur = words[i];
+    /* a hard break in the source is a hard break on the tube */
+    var paras = text.split('\n');
+    for (var p = 0; p < paras.length; p++) {
+      var words = paras[p].split(' ');
+      var cur = '';
+      for (var i = 0; i < words.length; i++) {
+        var test = cur ? cur + ' ' + words[i] : words[i];
+        if (faSctx.measureText(test).width <= maxW || !cur) {
+          cur = test;
+        } else {
+          lines.push(cur);
+          cur = words[i];
+        }
       }
+      if (cur) { lines.push(cur); }
     }
-    if (cur) { lines.push(cur); }
     return lines;
   }
 
@@ -631,7 +635,8 @@
     statement: { src: 11, weight: 900, color: '#e9e9f2', grid: 'half', align: 'center', centerLines: true },
     para:      { src: 8,  weight: 700, color: PC.textSub, grid: 'half', align: 'center', centerLines: true },
     cuefa:     { src: 9,  weight: 700, color: PC.cueFa, grid: 'half', align: 'center' },
-    pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center' },
+    pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
+    joyfa:     { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
     bootfa:    { src: 8,  weight: 800, color: PC.slateHi, align: 'center' },
     bootskip:  { src: 10, weight: 700, color: PC.slate,   grid: 'half', align: 'center' }
@@ -639,7 +644,7 @@
 
   /* narrow screens: the same pixel twin, set a touch smaller so the
      title screen keeps its rhythm on a phone tube */
-  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, bootfa: 7, bootskip: 9 };
+  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, joyfa: 8, bootfa: 7, bootskip: 9 };
 
   function accentOf(el) {
     var w = el.closest('[data-world]');
@@ -653,7 +658,13 @@
     if (!conf) { return; }
     var host = span.parentElement;
     if (!host) { return; }
-    var text = span.textContent.replace(/[ \t\r\n]+/g, ' ').trim();
+    var raw = span.innerHTML != null ? span.innerHTML : (span.textContent || '');
+    var text = raw
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/[ \t\r]+/g, ' ')
+      .replace(/ *\n */g, '\n')
+      .trim();
     if (!text) { return; }
     var narrow = html.clientWidth < 560;
     if (narrow && PX_MOBILE[kind]) {
@@ -667,7 +678,7 @@
       src: conf.src,
       weight: conf.weight,
       color: conf.color === null ? accentOf(span) : (conf.color || PC.text),
-      maxW: conf.chip ? maxW - 4 : maxW,
+      maxW: conf.nowrap ? 400 : (conf.chip ? maxW - 4 : maxW),
       centerLines: conf.centerLines
     };
     var out = pxTextCanvas(text, opts);
@@ -695,18 +706,30 @@
       mg.drawImage(out, pad, pad);
     } else {
       /* canvas spans the host; text aligns to the start edge (RTL right)
-         or centers — the canvas itself never breaks the column rhythm */
-      mount.width = maxW;
+         or centers — the canvas itself never breaks the column rhythm.
+         nowrap captions (key legends) size to their text instead, so a
+         two-word label never stacks into two lines */
+      var cw = conf.nowrap ? out.width : maxW;
+      mount.width = cw;
       mount.height = out.height;
       var g2 = mount.getContext('2d');
       g2.imageSmoothingEnabled = false;
-      var dx = conf.align === 'center'
-        ? Math.round((maxW - out.width) / 2)
-        : Math.max(0, maxW - out.width);
+      var dx = conf.nowrap ? 0
+        : (conf.align === 'center'
+          ? Math.round((maxW - out.width) / 2)
+          : Math.max(0, maxW - out.width));
       g2.drawImage(out, dx, 0);
     }
     mount.className = 'pxcv px-mounted';
     if (conf.align === 'center') { mount.style.marginInline = 'auto'; }
+    if (conf.nowrap) {
+      /* wider than its host? hang out both sides, still centered */
+      var cssW = mount.width * (conf.grid === 'half' ? PXT : (conf.grid || PXG));
+      if (cssW > hostW) {
+        mount.style.marginInline = '0';
+        mount.style.marginLeft = Math.round((hostW - cssW) / 2) + 'px';
+      }
+    }
     mount.style.width = (mount.width * grid) + 'px';
     mount.style.height = (mount.height * grid) + 'px';
     var old = host.querySelector('.px-mounted');
@@ -792,7 +815,7 @@
     '.BBBB.',
     '..PP..',
     '..P.P.',
-    '..P.P.'
+    '..W.W.'
   ];
   var SPR_HUM2 = [
     '..SS..',
@@ -802,9 +825,9 @@
     '.BBBB.',
     '..PP..',
     '.P..P.',
-    'P....P'
+    'W....W'
   ];
-  var HUM_LEG = { S: PC.press, B: PC.hum, P: PC.slate };
+  var HUM_LEG = { S: PC.press, B: PC.hum, P: PC.slateHi, W: PC.hum };
   var SPR_HUMF = [
     'B.SS.B',
     'B.SS.B',
@@ -813,7 +836,7 @@
     '..BB..',
     '..PP..',
     '..P.P.',
-    '..P.P.'
+    '..W.W.'
   ];
 
   var POST = [
@@ -1024,7 +1047,7 @@
         ty: Math.round(rows * 0.60), tyCd: 0,
         hopY: 0, hopV: 0, flipUntil: 0, fireCd: 900
       },
-      score: old ? old.score : 1250,
+      score: old ? old.score : 0,
       flash: old ? old.flash : 0,
       banner: old ? old.banner : null,
       bombCd: 2600, humCd: 4000
@@ -1076,9 +1099,9 @@
     var w = world;
     if (!w) { return; }
     var S = w.ship;
-    /* the bolt leaves the pointy head — whichever end that is */
-    var flip = w.t < (S.flipUntil || 0);
-    var dir = flip ? -1 : 1;
+    /* the bolt leaves the pointy head — whichever way she's facing */
+    var dir = S.face || 1;
+    var flip = dir < 0;
     var sy = Math.round(S.y + S.hopY) + 5;
     var noseX = flip ? S.x - 2 : S.x + sprW(SPR_SHIP) + 1;
     var best = null, bestD = 1e9;
@@ -1232,24 +1255,47 @@
       }
     }
 
-    /* ship — wander its lane, hop physics, auto-fire at landers ahead */
+    /* ship — hands on the stick? then the attract pilot stands down:
+       WASD flies, the wander resumes a beat after the keys go quiet */
     var S = w.ship;
-    S.tyCd -= dt;
-    if (S.tyCd <= 0) {
-      S.tyCd = 1500 + Math.random() * 1500;
-      S.ty = w.rows * (0.56 + Math.random() * 0.10);
+    var mv = 0, mh = 0;
+    if (keys.w) { mv -= 1; }
+    if (keys.s) { mv += 1; }
+    if (keys.a) { mh -= 1; }
+    if (keys.d) { mh += 1; }
+    if (mv !== 0 || mh !== 0) { S.manualUntil = w.t + 2600; }
+    if (mh !== 0) { S.face = mh; }
+    if (w.t < (S.manualUntil || 0)) {
+      S.x += mh * 70 * ds;
+      S.y += mv * 46 * ds;
+      if (S.x < 1) { S.x = 1; }
+      if (S.x > w.cols - 10) { S.x = w.cols - 10; }
+      if (S.y < w.rows * 0.16) { S.y = w.rows * 0.16; }
+      var floorY = terrRow(Math.round(S.x + 4), w.rows) - 12;
+      if (S.y > floorY) { S.y = floorY; }
+    } else {
+      S.face = 1;
+      S.tyCd -= dt;
+      if (S.tyCd <= 0) {
+        S.tyCd = 1500 + Math.random() * 1500;
+        S.ty = w.rows * (0.56 + Math.random() * 0.10);
+      }
+      S.y += (S.ty - S.y) * Math.min(1, ds * 1.6);
     }
-    S.y += (S.ty - S.y) * Math.min(1, ds * 1.6);
     if (S.hopV !== 0 || S.hopY !== 0) {
       S.hopY += S.hopV * ds;
       S.hopV += 105 * ds;
       if (S.hopY >= 0) { S.hopY = 0; S.hopV = 0; }
       if (S.hopY < -w.rows * 0.14) { S.hopY = -w.rows * 0.14; S.hopV = Math.max(S.hopV, 0); }
     }
-    var homeX = w.cols * 0.3 + Math.sin(w.t * 0.00037) * w.cols * 0.05;
-    S.x += (homeX - S.x) * Math.min(1, ds * 2.2);
+    if (w.t >= (S.manualUntil || 0)) {
+      var homeX = w.cols * 0.3 + Math.sin(w.t * 0.00037) * w.cols * 0.05;
+      S.x += (homeX - S.x) * Math.min(1, ds * 2.2);
+    }
     S.fireCd -= dt;
-    if (S.fireCd <= 0) {
+    /* the auto-gun only fires while the attract pilot is alone; a hand
+       on the keys means SPACE is the only trigger */
+    if (w.t >= (S.manualUntil || 0) && S.fireCd <= 0) {
       S.fireCd = 620 + Math.random() * 1100;
       fireShip(false);
     }
@@ -1268,6 +1314,7 @@
           b.gone = true;
           Ld.gone = true;
           w.score += 150;
+          bumpHi(w);
           boomAt(Math.round(lsx + 4), Math.round(Ld.y + 3), 9);
           if (Ld.target && Ld.target.state === 'held') {
             Ld.target.state = 'fall';
@@ -1297,6 +1344,8 @@
           H.state = 'ground';
           H.vy = 0;
           H.cheerUntil = w.t + 1600;   /* saved: arms up, one happy hop */
+          w.score += 250;
+          bumpHi(w);
           boomAt(Math.round(H.wx - w.worldX), Math.round(gY2 + 3), 3);
         }
       }
@@ -1554,7 +1603,8 @@
 
     /* the ship + dual thruster flames */
     var S = w.ship;
-    var flip = t < (S.flipUntil || 0) ? 1 : 0;
+    /* facing mirrors the hull; a victory roll flips it once more */
+    var flip = ((S.face || 1) < 0 ? 1 : 0) ^ (t < (S.flipUntil || 0) ? 1 : 0);
     var shipX = Math.round(S.x);
     var shipY = Math.round(S.y + S.hopY);
     drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
@@ -1747,7 +1797,7 @@
     /* CRT vignette — pre-rendered dither, over the world but UNDER
        the glass text: the score row must never be eaten by it */
     g.drawImage(vigCv, 0, 0);
-    if (mode === 'hero') { drawAttractChrome(g, cols, rows); }
+    if (mode === 'hero') { drawAttractChrome(g, cols, rows, w); }
 
     /* coin surge — the whole tube glitters gold for a beat (dithered) */
     if (w.flash > 0 && mode === 'hero') {
@@ -1759,19 +1809,24 @@
   /* the score row of the bezel glass — drawn last, over the vignette,
      so corner dither never eats the 1P / 2P columns; small tubes get
      it at 2x because 1px strokes on a 2px grid read as noise */
-  function drawAttractChrome(g, cols, rows) {
+  function drawAttractChrome(g, cols, rows, w) {
     var sc = PXG <= 2 ? 2 : 1;
     var y1 = sc === 2 ? 2 : 3;
     var y2 = y1 + 8 * sc;
     var chrome = PC.shell;   /* white glass text, over the vignette */
     drawText(g, '1P', 6, y1, chrome, sc);
-    drawText(g, '00', 6, y2, chrome, sc);
+    if (sc === 2) { drawText(g, '00', 6, y2, chrome, sc); }
     var hs1 = 'HIGH SCORE';
-    var hs2 = '1234567890';
+    var hs2 = pad10(hiScore);
     drawText(g, hs1, Math.round(cols / 2 - textW(hs1, sc) / 2), y1, chrome, sc);
     drawText(g, hs2, Math.round(cols / 2 - textW(hs2, sc) / 2), y2, chrome, sc);
-    drawText(g, '2P', cols - 6 - textW('2P', sc), y1, chrome, sc);
-    drawText(g, '00', cols - 6 - textW('00', sc), y2, chrome, sc);
+    if (sc === 1) {
+      /* wide tubes carry the live run score and the empty 2P slot */
+      drawText(g, pad10(w ? w.score : 0), 6, y2, chrome, sc);
+      drawText(g, '0000000000', cols - 6 - textW('0000000000', sc), y2, chrome, sc);
+    } else {
+      drawText(g, '00', cols - 6 - textW('00', sc), y2, chrome, sc);
+    }
   }
 
   if (hero && cv) {
@@ -1803,7 +1858,46 @@
      it persists across visits, START spends it, and the sky keeps
      one gold star per credit as a receipt */
   var credits = Math.max(0, Math.min(99, parseInt(store('fw-credits') || '0', 10) || 0));
+  /* the cabinet remembers its best day: every kill and every rescued
+     human feeds the score, and the score feeds this kept high */
+  var hiScore = Math.max(0, parseInt(store('fw-hiscore') || '0', 10) || 0);
+  function bumpHi(w) {
+    if (w.score > hiScore) {
+      hiScore = w.score;
+      store('fw-hiscore', '' + hiScore);
+    }
+  }
+  function pad10(n) {
+    n = Math.max(0, Math.min(9999999999, Math.floor(n)));
+    return ('0000000000' + n).slice(-10);
+  }
   function saveCredits() { store('fw-credits', '' + credits); }
+
+  var keys = { w: false, a: false, s: false, d: false };
+  var KEYMAP = { KeyW: 'w', KeyA: 'a', KeyS: 's', KeyD: 'd' };
+  function manualGun() {
+    var w = world;
+    if (!w || !w.ship) { return; }
+    if (w.ship.fireCd <= 0) {
+      w.ship.fireCd = 260;
+      fireShip(true);
+    }
+  }
+  addEventListener('keydown', function (e) {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { return; }
+    if (!heroVisible || !world) { return; }
+    var k = KEYMAP[e.code];
+    if (k) { keys[k] = true; e.preventDefault(); return; }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (!e.repeat) { manualGun(); }
+    }
+  });
+  addEventListener('keyup', function (e) {
+    var k = KEYMAP[e.code];
+    if (k) { keys[k] = false; }
+  });
+  addEventListener('blur', function () { keys.w = keys.a = keys.s = keys.d = false; });
 
   var joyTilt = 0, joyPress = false;
   var startState = 0;   /* 0 idle · 1 hover · 2 press */

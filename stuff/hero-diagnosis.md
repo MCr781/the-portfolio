@@ -173,3 +173,24 @@ in Persian, on a living cabinet.
    are human-shaped.
 6. **Humanoids** — new 6×8 sprites (head, shoulders, arms, legs, walk stride,
    arms-up cheer/fall frames) with skin/shirt/pants legs.
+
+### §7 · Second work order (six points, eyes-on verified)
+
+1. **Legs that read** — humanoids got light pants (`slateHi`) and white boots on a
+   new `W` legend slot; the stride and cheer frames match.
+2. **Hands on the stick** — WASD flies the ship (clamped to sky and terrain),
+   SPACE is the gun; while a hand is on the keys the attract pilot stands down
+   (no wander, no auto-fire) and resumes ~2.6 s after the keys go quiet. Facing
+   mirrors the hull and the nose bolt follows it. The legend `WASD · SPACE` is
+   px-captioned under the joystick (`data-px="joyfa"`, nowrap).
+3. **شروع بازی on one line** — px captions can take `nowrap`: the canvas sizes to
+   its text and hangs out of the host centered, instead of wrapping two words
+   into two lines.
+4. **Scroll hint removed** — the Persian cue-fa line is gone from the hero cue.
+5. **High score is real** — kills (+150) and rescued humans (+250) feed
+   `world.score`; the best run persists in `localStorage['fw-hiscore']` and the
+   bezel glass shows it (pad10) center, live run score left, empty 2P slot right
+   on wide tubes; narrow tubes keep the compact row.
+6. **Para line break** — `<br>` in a [data-px] source survives pxify (innerHTML
+   → `\n`) and `faWrap` treats it as a hard break; the em-dash after «خیریه»
+   is gone, the line ends there.
