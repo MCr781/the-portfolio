@@ -1296,6 +1296,7 @@
           H.y = gY2;
           H.state = 'ground';
           H.vy = 0;
+          H.cheerUntil = w.t + 1600;   /* saved: arms up, one happy hop */
           boomAt(Math.round(H.wx - w.worldX), Math.round(gY2 + 3), 3);
         }
       }
@@ -1512,12 +1513,13 @@
       var hx = Math.round(H.wx - w.worldX);
       if (hx < -4 || hx > cols + 4) { continue; }
       var hSpr;
-      if (H.state === 'held' || H.state === 'fall' || (cheering && H.state === 'ground')) {
+      var selfCheer = t < (H.cheerUntil || 0);
+      if (H.state === 'held' || H.state === 'fall' || ((cheering || selfCheer) && H.state === 'ground')) {
         hSpr = SPR_HUMF;   /* arms up: carried off, falling, or thanking */
       } else {
         hSpr = ((Math.floor(w.t / 420) + i) % 2) ? SPR_HUM : SPR_HUM2;
       }
-      var hy = Math.round(H.y) - (cheering && H.state === 'ground' ? 1 : 0);
+      var hy = Math.round(H.y) - (((cheering || selfCheer) && H.state === 'ground') ? 1 : 0);
       drawSpr(g, hSpr, hx, hy, HUM_LEG);
     }
 
@@ -1543,11 +1545,11 @@
       var by = Math.round(w.bullets[i].y);
       var bd = w.bullets[i].dir || 1;
       g.fillStyle = PC.bulletGlow;
-      g.fillRect(bd > 0 ? bx - 1 : bx - 3, by, 5, 1);
+      g.fillRect(bd > 0 ? bx - 2 : bx - 5, by, 8, 1);
       g.fillStyle = PC.bullet;
-      g.fillRect(bd > 0 ? bx - 2 : bx - 1, by, 3, 1);
+      g.fillRect(bd > 0 ? bx - 2 : bx - 2, by, 5, 1);
       g.fillStyle = '#ffffff';
-      g.fillRect(bd > 0 ? bx : bx - 1, by, 1, 1);
+      g.fillRect(bd > 0 ? bx + 2 : bx - 3, by, 2, 1);
     }
 
     /* the ship + dual thruster flames */
@@ -1761,7 +1763,7 @@
     var sc = PXG <= 2 ? 2 : 1;
     var y1 = sc === 2 ? 2 : 3;
     var y2 = y1 + 8 * sc;
-    var chrome = PC.shell;
+    var chrome = PC.shell;   /* white glass text, over the vignette */
     drawText(g, '1P', 6, y1, chrome, sc);
     drawText(g, '00', 6, y2, chrome, sc);
     var hs1 = 'HIGH SCORE';
