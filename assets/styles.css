@@ -307,6 +307,11 @@ html.awake .hero-cue { animation: fadeinstep 380ms steps(3) 340ms forwards; }
 html.awake .hero-deck { animation: fadeinstep 420ms steps(4) 260ms forwards; }
 html.awake .coin-row { animation: fadeinstep 420ms steps(4) 400ms forwards; }
 html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
+/* a banner stamp owns the glass alone: attract copy steps off it
+   (visibility, not opacity — the awake fade-in animation outranks
+   opacity in the cascade) */
+html.banner-on .hero-inner,
+html.banner-on .hero-cue { visibility: hidden; }
 @keyframes fadeinstep {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }

@@ -782,24 +782,39 @@
     '..D.D..D.D..'
   ];
   var LANDER_LEG = { E: PC.lander, C: PC.white, G: PC.landerDk, R: PC.red, D: PC.landerDk };
+  /* little people, not blobs: skin head, shirt, arms, pants legs —
+     stand / mid-stride / arms-up (carried, falling, or cheering) */
   var SPR_HUM = [
-    '.HH.',
-    'HHHH',
-    '.WW.',
-    '.WW.',
-    'W..W',
-    'W..W'
+    '..SS..',
+    '..SS..',
+    '.BBBB.',
+    'B.BB.B',
+    '.BBBB.',
+    '..PP..',
+    '..P.P.',
+    '..P.P.'
   ];
   var SPR_HUM2 = [
-    '.HH.',
-    'HHHH',
-    '.WW.',
-    '.WW.',
-    '.WW.',
-    '.WW.'
+    '..SS..',
+    '..SS..',
+    '.BBBB.',
+    'B.BB.B',
+    '.BBBB.',
+    '..PP..',
+    '.P..P.',
+    'P....P'
   ];
-  var HUM_LEG = { H: PC.gold, W: PC.hum };
-  var SPR_HUMF = ['.HH.', 'HHHH', '.WW.', '.WW.', 'W..W', 'W..W'];
+  var HUM_LEG = { S: PC.press, B: PC.hum, P: PC.slate };
+  var SPR_HUMF = [
+    'B.SS.B',
+    'B.SS.B',
+    '.BBBB.',
+    '..BB..',
+    '..BB..',
+    '..PP..',
+    '..P.P.',
+    '..P.P.'
+  ];
 
   var POST = [
     ['MMR-84 BIOS 4.0', ''],
@@ -1028,7 +1043,9 @@
     var w = world;
     w.landers.push({
       wx: w.worldX + w.cols + 3 + Math.random() * 16,
-      base: w.rows * (0.66 + Math.random() * 0.18),
+      /* cruise the gun lane: high enough to be shot, low enough
+         to menace the people on the deck */
+      base: w.rows * (0.52 + Math.random() * 0.18),
       ph: Math.random() * 6.28,
       drift: -3 - Math.random() * 3,
       state: 'drift', y: 0, gone: false,
@@ -1059,22 +1076,28 @@
     var w = world;
     if (!w) { return; }
     var S = w.ship;
-    var sy = Math.round(S.y + S.hopY) + 2;
-    var best = null;
+    /* the bolt leaves the pointy head — whichever end that is */
+    var flip = w.t < (S.flipUntil || 0);
+    var dir = flip ? -1 : 1;
+    var sy = Math.round(S.y + S.hopY) + 5;
+    var noseX = flip ? S.x - 2 : S.x + sprW(SPR_SHIP) + 1;
+    var best = null, bestD = 1e9;
     for (var k = 0; k < w.landers.length; k++) {
       var L = w.landers[k];
       var lsx = L.wx - w.worldX;
-      if (lsx > S.x + 6 && lsx < w.cols - 2 && Math.abs(L.y - sy) < 15) {
-        if (!best || lsx < best.wx - w.worldX) { best = L; }
+      var ahead = flip ? (lsx < S.x - 6) : (lsx > S.x + 6);
+      if (ahead && lsx > -2 && lsx < w.cols + 2 && Math.abs(L.y + 3 - sy) < 15) {
+        var d = Math.abs(lsx - S.x);
+        if (d < bestD) { bestD = d; best = L; }
       }
     }
     if (best || user) {
-      var vx = 92, vy = 0;
+      var vx = 92 * dir, vy = 0;
       if (best) {
-        var tt = Math.max(0.12, (best.wx - w.worldX - S.x) / vx);
-        vy = Math.max(-14, Math.min(14, (best.y - sy) / tt));
+        var tt = Math.max(0.12, Math.abs(best.wx - w.worldX - S.x) / 92);
+        vy = Math.max(-14, Math.min(14, (best.y + 3 - sy) / tt));
       }
-      w.bullets.push({ x: S.x + 14, y: sy, vx: vx, vy: vy, gone: false });
+      w.bullets.push({ x: noseX, y: sy, vx: vx, vy: vy, dir: dir, gone: false });
       if (user) { blip(1244, 60, 622); }
     }
   }
@@ -1140,7 +1163,7 @@
         if (!tgt || tgt.state !== 'ground') { L.state = 'drift'; L.grabCd = 6000; }
         else {
           L.wx += (tgt.wx > L.wx ? 1 : -1) * Math.min(Math.abs(tgt.wx - L.wx), 7 * ds);
-          var gY = terrRow(Math.round(L.wx), w.rows) - 8;
+          var gY = terrRow(Math.round(L.wx), w.rows) - 10;
           L.y += (gY > L.y ? 1 : -1) * Math.min(Math.abs(gY - L.y), 9 * ds);
           if (Math.abs(gY - L.y) < 1.4 && Math.abs(tgt.wx - L.wx) < 1.4) {
             L.state = 'lift';
@@ -1167,18 +1190,41 @@
       w.bombCd = 2400 + Math.random() * 3200;
       var thrower = w.landers[Math.floor(Math.random() * w.landers.length)];
       if (thrower) {
+        /* pick the nearest person — bombs are aimed at the people */
+        var tgtH = null, td = 1e9;
+        for (j = 0; j < w.hums.length; j++) {
+          if (w.hums[j].state !== 'ground') { continue; }
+          var dd = Math.abs(w.hums[j].wx - thrower.wx);
+          if (dd < td) { td = dd; tgtH = w.hums[j]; }
+        }
         w.bombs.push({
           x: thrower.wx - w.worldX, y: thrower.y + 7,
-          vx: 0, vy: 7, gone: false
+          vx: 0, vy: 7, txw: tgtH ? tgtH.wx : null, gone: false
         });
       }
     }
     for (i = 0; i < w.bombs.length; i++) {
       var bo = w.bombs[i];
       bo.vy += 7 * ds;
-      bo.vx += Math.max(-4.5, Math.min(4.5, (w.ship.x - bo.x) * 0.05)) * ds;
+      if (bo.txw != null) {
+        var txs = bo.txw - w.worldX;
+        bo.vx += Math.max(-6, Math.min(6, (txs - bo.x) * 0.55)) * ds * 3;
+      }
       bo.x += bo.vx * ds;
       bo.y += bo.vy * ds;
+      /* a bomb that reaches a person kills them — the old grief */
+      for (j = 0; j < w.hums.length; j++) {
+        var Hb = w.hums[j];
+        if (Hb.gone || Hb.state !== 'ground') { continue; }
+        var hxs = Hb.wx - w.worldX;
+        if (Math.abs(bo.x - hxs - 2) < 3.5 && Math.abs(bo.y - (Hb.y + 4)) < 5) {
+          Hb.gone = true;
+          bo.gone = true;
+          boomAt(Math.round(hxs + 2), Math.round(Hb.y + 3), 8);
+          break;
+        }
+      }
+      if (bo.gone) { continue; }
       var bR = terrRow(Math.round(bo.x + w.worldX), w.rows);
       if (bo.y >= bR - 1) {
         bo.gone = true;
@@ -1238,14 +1284,14 @@
       var H = w.hums[i];
       if (H.gone) { continue; }
       if (H.state === 'ground') {
-        H.y = terrRow(Math.round(H.wx), w.rows) - 6;
+        H.y = terrRow(Math.round(H.wx), w.rows) - 8;
       } else if (H.state === 'held' && H.held) {
-        H.y = H.held.y + 8;
+        H.y = H.held.y + 7;
         H.wx = H.held.wx;
       } else if (H.state === 'fall') {
         H.vy += 30 * ds;
         H.y += H.vy * ds;
-        var gY2 = terrRow(Math.round(H.wx), w.rows) - 6;
+        var gY2 = terrRow(Math.round(H.wx), w.rows) - 8;
         if (H.y >= gY2) {
           H.y = gY2;
           H.state = 'ground';
@@ -1296,8 +1342,17 @@
     var rx = Math.max(1, r * s);
     pxBall(g, cx, cy, r, { out: PC.goldDk, hi: PC.goldHi, base: PC.gold, dk: PC.goldLo }, rx);
     if (s > 0.6) {
+      /* minted face: reeded rim ticks, an inner ring, a struck star */
       g.fillStyle = PC.goldDk;
       g.fillRect(cx - 1, cy - 2, 2, 4);
+      g.fillRect(cx - Math.round(rx) + 1, cy - 1, 1, 2);
+      g.fillRect(cx + Math.round(rx) - 2, cy - 1, 1, 2);
+      g.fillStyle = PC.goldLo;
+      g.fillRect(cx - 2, cy - 3, 4, 1); g.fillRect(cx - 2, cy + 2, 4, 1);
+      g.fillRect(cx - 3, cy - 2, 1, 4); g.fillRect(cx + 2, cy - 2, 1, 4);
+      g.fillStyle = PC.goldHi;
+      g.fillRect(cx - 1, cy - 1, 1, 1); g.fillRect(cx + 1, cy - 1, 1, 1);
+      g.fillRect(cx, cy, 1, 1);
     }
     if (s > 0.85) {
       g.fillStyle = PC.goldHi;
@@ -1341,8 +1396,20 @@
     /* glint pixels along the top edge */
     g.fillStyle = PC.goldHi;
     for (var gx = x + 3; gx < x + w - 3; gx += 3) { g.fillRect(gx, y + 1, 1, 1); }
-    /* label — 5×7, dead center */
-    drawText(g, label, x + Math.round((w - textW(label)) / 2), y + Math.round((h - 7) / 2) + (state === 2 ? 1 : 0), PC.goldDk);
+    /* side walls — the cap has thickness, it sits IN the panel */
+    g.fillStyle = PC.goldDk;
+    g.fillRect(x + 1, y + h - 1, w - 2, 1);
+    g.fillStyle = PC.out;
+    g.fillRect(x + 2, y + h, w - 4, 2);
+    /* label — 5×7, engraved: light under-shadow then the dark ink */
+    var lx = x + Math.round((w - textW(label)) / 2);
+    var ly = y + Math.round((h - 7) / 2) + (state === 2 ? 1 : 0);
+    drawText(g, label, lx, ly + 1, PC.goldHi);
+    drawText(g, label, lx, ly, PC.goldDk);
+    /* power LED — sleeps dark, wakes red on hover/press */
+    g.fillStyle = state > 0 ? PC.red : PC.redDk;
+    g.fillRect(x + w - 4, y + 3, 2, 2);
+    if (state > 0) { g.fillStyle = PC.redHi; g.fillRect(x + w - 4, y + 3, 1, 1); }
   }
 
   function renderWorld(g, mode, t) {
@@ -1439,12 +1506,19 @@
     }
 
     /* humanoids on the mountains */
+    var cheering = w.cheerUntil && t < w.cheerUntil;
     for (i = 0; i < w.hums.length; i++) {
       var H = w.hums[i];
       var hx = Math.round(H.wx - w.worldX);
       if (hx < -4 || hx > cols + 4) { continue; }
-      var hSpr = ((Math.floor(w.t / 420) + i) % 2) ? SPR_HUM : SPR_HUM2;
-      drawSpr(g, hSpr, hx, Math.round(H.y), H.state === 'fall' ? HUM_LEG : HUM_LEG);
+      var hSpr;
+      if (H.state === 'held' || H.state === 'fall' || (cheering && H.state === 'ground')) {
+        hSpr = SPR_HUMF;   /* arms up: carried off, falling, or thanking */
+      } else {
+        hSpr = ((Math.floor(w.t / 420) + i) % 2) ? SPR_HUM : SPR_HUM2;
+      }
+      var hy = Math.round(H.y) - (cheering && H.state === 'ground' ? 1 : 0);
+      drawSpr(g, hSpr, hx, hy, HUM_LEG);
     }
 
     /* landers, wobbling on two frames */
@@ -1467,12 +1541,13 @@
     for (i = 0; i < w.bullets.length; i++) {
       var bx = Math.round(w.bullets[i].x);
       var by = Math.round(w.bullets[i].y);
+      var bd = w.bullets[i].dir || 1;
       g.fillStyle = PC.bulletGlow;
-      g.fillRect(bx - 1, by, 5, 1);
+      g.fillRect(bd > 0 ? bx - 1 : bx - 3, by, 5, 1);
       g.fillStyle = PC.bullet;
-      g.fillRect(bx, by, 3, 1);
+      g.fillRect(bd > 0 ? bx - 2 : bx - 1, by, 3, 1);
       g.fillStyle = '#ffffff';
-      g.fillRect(bx + 1, by, 1, 1);
+      g.fillRect(bd > 0 ? bx : bx - 1, by, 1, 1);
     }
 
     /* the ship + dual thruster flames */
@@ -1515,21 +1590,27 @@
          1P / HIGH SCORE / 2P on two rows of white 5x7, exactly where
          the bezel glass of the old cabinets carried it. The CREDIT
          counter lives on the DOM foot row, beside the decal. */
-      var chrome = PC.shell;
-      drawText(g, '1P', 6, 3, chrome);
-      drawText(g, '00', 6, 11, chrome);
-      var hs1 = 'HIGH SCORE';
-      var hs2 = '1234567890';
-      drawText(g, hs1, Math.round(cols / 2 - textW(hs1) / 2), 3, chrome);
-      drawText(g, hs2, Math.round(cols / 2 - textW(hs2) / 2), 11, chrome);
-      drawText(g, '2P', cols - 6 - textW('2P'), 3, chrome);
-      drawText(g, '00', cols - 6 - textW('00'), 11, chrome);
 
       /* banner — START was pressed */
       if (w.banner && t < w.banner.until) {
         var bOn = (w.banner.until - t) > 300 ? true : (Math.floor(t / 160) % 2) === 0;
         if (bOn) {
           var bl1 = w.banner.l1, bl2 = w.banner.l2;
+          /* a stamped notched plate, so the banner owns its pixels
+             instead of fighting the marquee behind it */
+          var bw = Math.max(textW(bl1, 2), textW(bl2)) + 16;
+          var bx0 = Math.round(cols / 2 - bw / 2);
+          var by0 = Math.round(rows * 0.30) - 7;
+          var bh0 = 42;
+          g.fillStyle = PC.panelBd;
+          g.fillRect(bx0 + 2, by0, bw - 4, bh0);
+          g.fillRect(bx0, by0 + 2, bw, bh0 - 4);
+          g.fillStyle = PC.panel;
+          g.fillRect(bx0 + 2, by0 + 2, bw - 4, bh0 - 4);
+          g.fillRect(bx0 + 1, by0 + 3, bw - 2, bh0 - 6);
+          g.fillRect(bx0 + 3, by0 + 1, bw - 6, bh0 - 2);
+          g.fillStyle = PC.panelHi;
+          for (var pgx = bx0 + 3; pgx < bx0 + bw - 3; pgx += 3) { g.fillRect(pgx, by0 + 2, 1, 1); }
           drawText(g, bl1, Math.round(cols / 2 - textW(bl1, 2) / 2) + 1, Math.round(rows * 0.30) + 1, PC.goldDk, 2);
           drawText(g, bl1, Math.round(cols / 2 - textW(bl1, 2) / 2), Math.round(rows * 0.30), PC.score, 2);
           drawText(g, bl2, Math.round(cols / 2 - textW(bl2) / 2), Math.round(rows * 0.30) + 20, PC.start, 1);
@@ -1661,14 +1742,34 @@
       }
     }
 
-    /* CRT vignette — pre-rendered dither, over everything on the tube */
+    /* CRT vignette — pre-rendered dither, over the world but UNDER
+       the glass text: the score row must never be eaten by it */
     g.drawImage(vigCv, 0, 0);
+    if (mode === 'hero') { drawAttractChrome(g, cols, rows); }
 
     /* coin surge — the whole tube glitters gold for a beat (dithered) */
     if (w.flash > 0 && mode === 'hero') {
       var lvl = w.flash > 600 ? 2 : (w.flash > 300 ? 1 : 0);
       g.drawImage(flashCvs[lvl], 0, 0);
     }
+  }
+
+  /* the score row of the bezel glass — drawn last, over the vignette,
+     so corner dither never eats the 1P / 2P columns; small tubes get
+     it at 2x because 1px strokes on a 2px grid read as noise */
+  function drawAttractChrome(g, cols, rows) {
+    var sc = PXG <= 2 ? 2 : 1;
+    var y1 = sc === 2 ? 2 : 3;
+    var y2 = y1 + 8 * sc;
+    var chrome = PC.shell;
+    drawText(g, '1P', 6, y1, chrome, sc);
+    drawText(g, '00', 6, y2, chrome, sc);
+    var hs1 = 'HIGH SCORE';
+    var hs2 = '1234567890';
+    drawText(g, hs1, Math.round(cols / 2 - textW(hs1, sc) / 2), y1, chrome, sc);
+    drawText(g, hs2, Math.round(cols / 2 - textW(hs2, sc) / 2), y2, chrome, sc);
+    drawText(g, '2P', cols - 6 - textW('2P', sc), y1, chrome, sc);
+    drawText(g, '00', cols - 6 - textW('00', sc), y2, chrome, sc);
   }
 
   if (hero && cv) {
@@ -1696,6 +1797,12 @@
   var decalEl = $('#crtDecal');
   var cueCv = $('.cue-cv');
 
+  /* the credit ledger — a coin is a kept promise, not a flash:
+     it persists across visits, START spends it, and the sky keeps
+     one gold star per credit as a receipt */
+  var credits = Math.max(0, Math.min(99, parseInt(store('fw-credits') || '0', 10) || 0));
+  function saveCredits() { store('fw-credits', '' + credits); }
+
   var joyTilt = 0, joyPress = false;
   var startState = 0;   /* 0 idle · 1 hover · 2 press */
   var pbtnState = [0, 0];
@@ -1722,7 +1829,8 @@
     g.fillRect(10, 32, 2, 2); g.fillRect(24, 32, 2, 2);
     /* shaft throat */
     pxOval(g, 17, 26, 6, 3, PC.ink);
-    /* the shaft — sheared columns make a true pixel tilt */
+    /* the shaft — sheared columns make a true pixel tilt, with a
+       rib every third row so the chrome reads as machined */
     var topY = joyPress ? 12 : 11;
     var baseY = 26;
     var k = joyTilt / 3;
@@ -1733,18 +1841,31 @@
       g.fillStyle = PC.shaftHi; g.fillRect(sx, y, 1, 1);
       g.fillStyle = PC.shaft;   g.fillRect(sx + 1, y, 1, 1);
       g.fillStyle = PC.shaftDk; g.fillRect(sx + 2, y, 1, 1);
+      if ((y - topY) % 3 === 1) { g.fillStyle = PC.shaftHi; g.fillRect(sx + 1, y, 1, 1); }
     }
     /* collar at the base, follows the tilt */
     var colX = 17 + Math.round(k * 1.5);
     g.fillStyle = PC.ink;
     g.fillRect(colX - 3, 24, 7, 2);
-    /* the ball-top — 3-tone gold with a white specular */
+    g.fillStyle = PC.metalHi;
+    g.fillRect(colX - 3, 24, 7, 1);
+    /* the ball-top — 3-tone gold, white specular AND a rim-light arc
+       along the bottom, the way lit plastic actually looks */
     var bx = 17 + Math.round(k * 6);
     var by = (joyPress ? 9 : 8);
     pxBall(g, bx, by, 6, { out: PC.goldDk, hi: PC.goldHi, base: PC.gold, dk: PC.goldLo });
     g.fillStyle = PC.white;
     g.fillRect(bx - 2, by - 3, 1, 1);
     if (Math.abs(k) < 0.4) { g.fillRect(bx - 1, by - 4, 1, 1); }
+    g.fillStyle = PC.goldHi;
+    g.fillRect(bx - 3, by + 4, 2, 1); g.fillRect(bx + 2, by + 4, 2, 1);
+    g.fillRect(bx - 1, by + 5, 3, 1);
+    /* the dust cover flexes against the tilt — rubber, not paint */
+    if (k !== 0) {
+      g.fillStyle = PC.metalDk;
+      g.fillRect(17 - Math.round(k * 3) - 5, 25, 4, 1);
+      g.fillRect(17 - Math.round(k * 3) + 12, 25, 4, 1);
+    }
     joyCv.style.width = (38 * PXG) + 'px';
     joyCv.style.height = (36 * PXG) + 'px';
   }
@@ -1773,12 +1894,27 @@
       var off = state === 2 ? 1 : 2;
       /* hard shadow */
       pxOval(g, 13, 13 + off, 10, 10, 'rgba(0,0,0,.85)');
+      /* a machined bezel ring seats the dome in the panel */
+      var dy = state === 2 ? 1 : 0;
+      pxOval(g, 12, 12 + dy, 11, 11, PC.metalBd);
+      pxOval(g, 12, 12 + dy, 10, 10, PC.metalDk);
+      g.fillStyle = PC.metalHi;
+      g.fillRect(5, 5 + dy, 3, 1); g.fillRect(17, 5 + dy, 3, 1);
+      g.fillRect(5, 18 + dy, 3, 1); g.fillRect(17, 18 + dy, 3, 1);
       /* the dome */
       var tones = red
         ? { out: PC.redOut, hi: PC.redHi, base: PC.red, dk: PC.redDk }
         : { out: PC.shellOut, hi: '#ffffff', base: PC.shell, dk: PC.shellDk };
-      var dy = state === 2 ? 1 : 0;
       pxBall(g, 11, 11 + dy, 9, tones);
+      /* cross specular — glossy plastic, one hard highlight */
+      g.fillStyle = tones.hi;
+      g.fillRect(7, 7 + dy, 2, 1); g.fillRect(8, 6 + dy, 1, 2);
+      /* pressed: light spills from under the bezel */
+      if (state === 2) {
+        g.fillStyle = red ? PC.red : PC.shell;
+        g.fillRect(3, 21, 4, 1); g.fillRect(19, 21, 4, 1);
+        g.fillRect(11, 23, 3, 1);
+      }
       /* halo when hovered */
       if (state === 1) {
         g.fillStyle = PC.goldHi;
@@ -1815,6 +1951,21 @@
     g.fillRect(3, 20, 22, 3);
     g.fillStyle = PC.metalHi;
     for (var gx = 5; gx < 23; gx += 3) { g.fillRect(gx, 2, 1, 1); }
+    /* brushed-metal rows across the plate */
+    g.fillStyle = PC.metalHi;
+    g.fillRect(5, 5, 6, 1); g.fillRect(15, 9, 6, 1); g.fillRect(6, 14, 5, 1);
+    g.fillRect(14, 19, 7, 1); g.fillRect(5, 21, 4, 1);
+    /* door screws in the corners */
+    g.fillStyle = PC.ink;
+    g.fillRect(4, 3, 1, 1); g.fillRect(21, 3, 1, 1);
+    g.fillRect(4, 20, 1, 1); g.fillRect(21, 20, 1, 1);
+    g.fillStyle = PC.metalHi;
+    g.fillRect(4, 3, 1, 1);
+    /* the LED breathes a one-pixel halo when lit */
+    if (coinLed) {
+      g.fillStyle = 'rgba(255, 215, 106, 0.35)';
+      g.fillRect(18, 3, 4, 2); g.fillRect(19, 2, 2, 4);
+    }
     /* two slot cuts with a gold glint */
     var sx;
     for (sx = 0; sx < 2; sx++) {
@@ -1857,8 +2008,9 @@
 
   function paintCoinLabel() {
     if (!coinLabel) { return; }
-    var text = coinCredit ? 'CREDIT 1' : 'INSERT COIN';
-    var color = coinCredit ? PC.gold : PC.slateHi;
+    var nn = credits < 10 ? '0' + credits : '' + credits;
+    var text = coinCredit ? 'THANK YOU' : (credits > 0 ? 'CREDIT ' + nn : 'INSERT COIN');
+    var color = coinCredit || credits > 0 ? PC.gold : PC.slateHi;
     var W = textW(text) + 1;
     var H = 9;
     var mount = coinLabel.querySelector('canvas') || doc.createElement('canvas');
@@ -1878,8 +2030,9 @@
   var creditLabel = $('#creditLabel');
   function paintCredit() {
     if (!creditLabel) { return; }
-    var text = coinCredit ? 'CREDIT 01' : 'CREDIT 00';
-    var color = coinCredit ? PC.gold : PC.shell;
+    var nn = credits < 10 ? '0' + credits : '' + credits;
+    var text = 'CREDIT ' + nn;
+    var color = credits > 0 || coinCredit ? PC.gold : PC.shell;
     var W = textW(text) + 1;
     var H = 9;
     var mount = creditLabel.querySelector('canvas') || doc.createElement('canvas');
@@ -2260,8 +2413,16 @@
     startBtn.addEventListener('pointerup', releaseStart);
     startBtn.addEventListener('pointerleave', releaseStart);
     startBtn.addEventListener('click', function () {
+      /* a kept coin is spent on the way in; without one, entry is
+         still free — the cabinet just remembers who tipped it */
+      var spent = credits > 0;
+      if (spent) { credits -= 1; saveCredits(); paintCredit(); }
       if (world) {
-        world.banner = { l1: 'WORLD 01', l2: 'GET READY!', until: performance.now() + 1600 };
+        world.banner = {
+          l1: 'WORLD 01',
+          l2: spent ? 'GOOD LUCK!' : 'FREE PLAY!',
+          until: performance.now() + 1600
+        };
       }
       var w1 = $('.w01');
       if (w1 && w1.scrollIntoView) {
@@ -2276,13 +2437,28 @@
       coinAnimT0 = performance.now();
       coinLed = true;
       paintCoin();
+      credits = Math.min(99, credits + 1);
+      saveCredits();
       setCoinCredit(true);
       clearTimeout(coinReset);
       coinReset = setTimeout(function () {
         setCoinCredit(false);
       }, 1900);
-      /* the whole tube surges gold for a beat — dithered, 1981-style */
-      if (world) { world.flash = 900; }
+      /* the world answers the coin: the tube surges gold, the little
+         people throw their arms up, the ship rolls, and one permanent
+         gold star joins the sky — a receipt you can see from space */
+      if (world) {
+        world.flash = 900;
+        world.cheerUntil = world.t + 2200;
+        world.ship.flipUntil = world.t + 700;
+        world.banner = { l1: 'THANK YOU', l2: 'PLAYER 1', until: performance.now() + 1700 };
+        world.stars.push({
+          x: Math.random() * world.cols,
+          y: Math.floor(Math.random() * Math.max(8, Math.round(world.rows * 0.5))),
+          l: 3, tw: Math.random() * 6.28, gold: true, red: false
+        });
+      }
+      paintCredit();
       blip(988, 70);
       setTimeout(function () { blip(1319, 110); }, 90);
     });
@@ -2325,6 +2501,7 @@
   /* ── master animation loop ──────────────────────────── */
   var lastT = 0;
   var ledLast = 0;
+  var bannerWas = false;
   var joyWigglePhase = 0, joyWiggleLast = 0;
   var JOY_WIGGLE = [0, 0, 1, 2, 1, 0, 0, -1, -2, -1, 0, 0, 0, 0, 0, 0];
   var coinRepaintLast = 0;
@@ -2374,6 +2551,13 @@
     }
     if (fieldOn && !reduced.matches && world && (heroVisible || bootActive)) {
       stepWorld(dt);
+    }
+    /* while a banner stamp is up, the attract copy yields the glass —
+       the cabinet never talks over itself */
+    var bannerOn = !!(world && world.banner && t < world.banner.until);
+    if (bannerOn !== bannerWas) {
+      bannerWas = bannerOn;
+      html.classList.toggle('banner-on', bannerOn);
     }
     if (world && heroVisible && fx) { renderWorld(fx, 'hero', t); }
     if (world && bootActive && bfx) { renderWorld(bfx, 'boot', t); }

@@ -146,3 +146,30 @@ blink hard-cuts; INSERT COIN TO CONTINUE steady; deck + coin door + decal +
 CREDIT all above the HUD strip; starfield speckle matches the reference ink;
 demo world whispers at the horizon. Composition = the press-start.jpg feeling,
 in Persian, on a living cabinet.
+
+### §6 · Work order pass (six points, eyes-on verified)
+
+1. **Chrome legibility** — the 1P/2P + HIGH SCORE row now draws *after* the
+   vignette (`drawAttractChrome`), and at PXG≤2 it renders at scale 2 (a 32-game-px
+   band ≈64 css), so corner dither and 1-px-on-2-px-grid mush can no longer eat it.
+2. **Hardware craft** — joystick ball gets a rim-light arc + ribbed shaft +
+   two-tier screwed base; START key gets side walls, an engraved (shadow-then-ink)
+   label and a power LED; JUMP/FIRE domes sit in machined bezel rings with a cross
+   specular and press spill-light; the coin door gets brushed rows, corner screws
+   and an LED halo; the coin sprite gets reeded rim ticks, an inner ring and a
+   struck star.
+3. **The coin means something** — credits are a ledger kept in localStorage
+   (`fw-credits`). Inserting a coin: gold surge, THANK YOU / PLAYER 1 stamp on a
+   notched plate, the little people cheer (arms-up frame + hop), the ship rolls,
+   one permanent gold star joins the sky, and the bezel + door read CREDIT NN.
+   START spends a credit (GOOD LUCK!) or plays free (FREE PLAY!). While any banner
+   stamp is up the attract copy steps off the glass (`html.banner-on`, visibility
+   — the awake fade animation outranks opacity in the cascade).
+4. **Nose-fired bolts** — bullets spawn at the pointy head (direction-aware) and
+   render head-first.
+5. **Landers** — cruise band raised to rows 0.52–0.70 so they share the ship's gun
+   lane; bombs home onto the nearest ground humanoid and kill on contact; the
+   descend → grab → lift steal pipeline now visibly reads because the humanoids
+   are human-shaped.
+6. **Humanoids** — new 6×8 sprites (head, shoulders, arms, legs, walk stride,
+   arms-up cheer/fall frames) with skin/shirt/pants legs.
