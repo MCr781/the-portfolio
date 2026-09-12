@@ -37,12 +37,16 @@ per breakpoint (vertical budgets listed in §2).
 5. **Vertical squeeze from the new marquee** — 3× PRESS START (104 css px) + taller
    cue would overflow 900 px tubes. Statement moved to the half-grid (144 → 38 css px,
    and it now reads like the reference subline), and 3× cue is gated to
-   `PXG ≥ 4 && clientHeight ≥ 940`.
+   `PXG ≥ 4 && clientHeight ≥ 1040`.
 6. **Top-chrome clearance** — the canvas score row occupies css y 12–72 (PXG 4);
    `.hero` padding-top raised to `clamp(4rem, 8.5vh, 5.2rem)` and both responsive
    overrides patched (3.6rem / 3.4rem) so the centered chip never touches it.
 
-## 2. Findings — open (ranked)
+## 2. Findings — open at write-time (ranked)
+> _W1 and W2 were **resolved** in the visual-audit pass that followed — see
+> §5 V4–V6: the scale hack is removed and the tube no longer clips. Kept
+> here for the record._
+
 ### W1 · `transform: scale(0.85)` breaks the pixel grid — medium
 `@media (max-height: 850px)` scales `.hero-inner/.hero-deck/.coin-row` by 0.85.
 Non-integer scaling of `image-rendering: pixelated` canvases produces uneven
@@ -87,7 +91,7 @@ accruing it. Deliberately left as-is: the reference screen shows zeros.
   fillRect storm (~6–8 k rect/frame at PXG 3–4) — pre-renderable to an offscreen
   strip if a future profile demands it.
 - **Units**: `100svh` (correct for iOS chrome), integer grid multiples everywhere
-  except W1, RTL page with deliberate LTR hardware islands (`direction: ltr` deck,
+  (W1 resolved: no fractional scaling anywhere), RTL page with deliberate LTR hardware islands (`direction: ltr` deck,
   `dir="ltr"` glass text).
 - **Resize**: single debounced handler rebuilds world + controls + pixel twins +
   cue + credit + decal; `faCache` invalidated. No leak path found.
@@ -97,3 +101,48 @@ accruing it. Deliberately left as-is: the reference screen shows zeros.
 2. WebP/AVIF the cartridge JPGs; delete or use the three orphan images (W3).
 3. Wire `1P` to the demo score after first coin (W5) — attract → “game played”.
 4. Pre-rendered terrain strip if mobile profiling ever complains (§3 perf).
+
+---
+
+## 5. VISUAL AUDIT — looking at the hero with real eyes
+Method: no sandbox browser existed, so one was built — `@sparticuz/chromium`
+(Lambda build, npm-tarballled binary) + three stub NSS/NSPR shared libs
+(symbol-versioned, malloc-family made real; plain HTTP never touches NSS) +
+puppeteer-core. Screenshots at 1280×1000 / 1280×800 / 1440×900 / 1024×768 /
+1366×768 / 390×844 with DOM-rect probes (`hero_*` children vs `.hud` vs
+viewport). Shots live in `.verify/shots/` (outside the repo).
+
+### What the eyes caught (all fixed)
+- **V1 · muddy brown PRESS START.** `steps(2)` on a 1↔0 keyframe pair yields
+  quarter-frames at 50 % opacity — the peach ink dimmed to brown half the
+  cycle. Now `step-end`: hard on/off like real attract glass; off-frame keeps
+  the white subline, exactly like the cabinet.
+- **V2 · hanging second lines.** RTL `fillText` right-aligns inside the pixel
+  canvas, so centered blocks carried right-ragged short lines (name line 2,
+  statement line 2, chip). `centerLines` in `pxTextCanvas` centers each line
+  by its own measure; the marquee now stacks symmetric.
+- **V3 · ship flying through the paragraph.** The demo lane wandered
+  0.30–0.54 of the tube — straight through the title block. Lane moved to
+  0.56–0.66 (horizon patrol); the ship now passes *behind* deck hardware,
+  which reads as cabinet depth, not collision.
+- **V4 · the fixed world-HUD ate the foot row.** `.hud` is a fixed ~60 px
+  strip; the hero's old 8–13 px bottom padding parked decal + CREDIT +
+  coin door *underneath* it on every desktop tube (pre-existing bug, invisible
+  without eyes). Hero bottom padding is now `clamp(4.2rem, 7vh, 5rem)` and
+  probes confirm foot-bottom < hud-top at all six sizes.
+- **V5 · phone foot collision.** At 390 px the centered decal and the right
+  CREDIT overlapped by ~32 px. Decal (ornament, `aria-hidden`) hides ≤ 560 px;
+  CREDIT goes static + auto-margin and owns the corner.
+- **V6 · below-the-fold clipping at 768/800.** The `scale(0.85)` media (W1)
+  shrank *visual* boxes but not *layout* boxes — flex overflow pushed coin
+  door + foot off-tube while leaving phantom gaps. The scale hack is **gone**;
+  short tubes step the whole art down one grid (`calcGrids` gh band 860) and
+  `.hero` is `min-height: 100svh` (grows a hair instead of clipping). Measured:
+  hero-bottom == viewport-height and zero scroll at all six tubes.
+
+### Verified by eye after fixes
+tall/desk/wide/mid/lap/phone: score row clears the chip; marquee symmetric;
+blink hard-cuts; INSERT COIN TO CONTINUE steady; deck + coin door + decal +
+CREDIT all above the HUD strip; starfield speckle matches the reference ink;
+demo world whispers at the horizon. Composition = the press-start.jpg feeling,
+in Persian, on a living cabinet.

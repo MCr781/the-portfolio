@@ -115,7 +115,9 @@
     var h = html.clientHeight || 800;
     /* Adjust grid multipliers to keep elements readable (min 3 on desktop) */
     var gw = w < 560 ? 2 : (w < 1024 ? 3 : 4);
-    var gh = h < 700 ? 2 : (h < 900 ? 3 : 4);
+    /* short tubes step the whole art down a grid instead of letting
+       css scale it fractionally (which would break the pixel grid) */
+    var gh = h < 860 ? 2 : (h < 960 ? 3 : 4);
     PXG = Math.max(2, Math.min(gw, gh));
     PXT = 2;
   }
@@ -574,16 +576,23 @@
     faSctx.direction = 'rtl';
     faSctx.textAlign = 'right';
     faSctx.textBaseline = 'top';
-    var i;
+    var i, lx;
+    /* marquee lines center one by one: RTL fillText right-aligns inside
+       the block, which leaves short lines hanging to the right edge */
+    function lineX(line, extra) {
+      if (!opts.centerLines) { return w - 1 + extra; }
+      var m = faSctx.measureText(line).width;
+      return Math.round((w - m) / 2) + m - 1 + extra;
+    }
     if (sh) {
       faSctx.fillStyle = opts.shadow;
       for (i = 0; i < lines.length; i++) {
-        faSctx.fillText(lines[i], w, i * lineH + 2);
+        faSctx.fillText(lines[i], lineX(lines[i], 1), i * lineH + 2);
       }
     }
     faSctx.fillStyle = opts.color || PC.text;
     for (i = 0; i < lines.length; i++) {
-      faSctx.fillText(lines[i], w - 1, i * lineH + 1);
+      faSctx.fillText(lines[i], lineX(lines[i], 0), i * lineH + 1);
     }
     var img = faSctx.getImageData(0, 0, sw, h);
     quantizeAlpha(img);
@@ -617,10 +626,10 @@
   /* mounts the pixel twin of a [data-px] element's text */
   var PX_CONF = {
     /* attract-screen marquee: every title line centers on the tube */
-    chip:      { src: 9,  weight: 800, color: null, grid: null, chip: true, align: 'center' },
-    name:      { src: 16, weight: 900, color: PC.press, shadow: PC.pressDk, align: 'center' },
-    statement: { src: 11, weight: 900, color: '#e9e9f2', grid: 'half', align: 'center' },
-    para:      { src: 10, weight: 700, color: PC.textSub, grid: 'half', align: 'center' },
+    chip:      { src: 7,  weight: 800, color: null, grid: null, chip: true, align: 'center', centerLines: true },
+    name:      { src: 16, weight: 900, color: PC.press, shadow: PC.pressDk, align: 'center', centerLines: true },
+    statement: { src: 11, weight: 900, color: '#e9e9f2', grid: 'half', align: 'center', centerLines: true },
+    para:      { src: 8,  weight: 700, color: PC.textSub, grid: 'half', align: 'center', centerLines: true },
     cuefa:     { src: 9,  weight: 700, color: PC.cueFa, grid: 'half', align: 'center' },
     pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center' },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
@@ -630,7 +639,7 @@
 
   /* narrow screens: the same pixel twin, set a touch smaller so the
      title screen keeps its rhythm on a phone tube */
-  var PX_MOBILE = { chip: 7, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, bootfa: 7, bootskip: 9 };
+  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, bootfa: 7, bootskip: 9 };
 
   function accentOf(el) {
     var w = el.closest('[data-world]');
@@ -648,7 +657,7 @@
     if (!text) { return; }
     var narrow = html.clientWidth < 560;
     if (narrow && PX_MOBILE[kind]) {
-      conf = { src: PX_MOBILE[kind], weight: conf.weight, color: conf.color, grid: conf.grid, chip: conf.chip, align: conf.align };
+      conf = { src: PX_MOBILE[kind], weight: conf.weight, color: conf.color, grid: conf.grid, chip: conf.chip, align: conf.align, centerLines: conf.centerLines };
     }
     var hostW = Math.floor(host.getBoundingClientRect().width);
     if (hostW < 24) { hostW = Math.floor(Math.min(html.clientWidth - 24, 46 * 16)); }
@@ -658,7 +667,8 @@
       src: conf.src,
       weight: conf.weight,
       color: conf.color === null ? accentOf(span) : (conf.color || PC.text),
-      maxW: conf.chip ? maxW - 10 : maxW
+      maxW: conf.chip ? maxW - 4 : maxW,
+      centerLines: conf.centerLines
     };
     var out = pxTextCanvas(text, opts);
     var mount = doc.createElement('canvas');
@@ -993,8 +1003,10 @@
       stars: makeStars(cols, rows),
       landers: [], bullets: [], bombs: [], booms: [], hums: [],
       ship: {
-        x: Math.round(cols * 0.3), y: Math.round(rows * 0.42),
-        ty: Math.round(rows * 0.42), tyCd: 0,
+        /* the demo lane patrols the horizon ridge, well below the
+           title block — the ship must never fly through the marquee */
+        x: Math.round(cols * 0.3), y: Math.round(rows * 0.60),
+        ty: Math.round(rows * 0.60), tyCd: 0,
         hopY: 0, hopV: 0, flipUntil: 0, fireCd: 900
       },
       score: old ? old.score : 1250,
@@ -1179,7 +1191,7 @@
     S.tyCd -= dt;
     if (S.tyCd <= 0) {
       S.tyCd = 1500 + Math.random() * 1500;
-      S.ty = w.rows * (0.30 + Math.random() * 0.24);
+      S.ty = w.rows * (0.56 + Math.random() * 0.10);
     }
     S.y += (S.ty - S.y) * Math.min(1, ds * 1.6);
     if (S.hopV !== 0 || S.hopY !== 0) {
@@ -1913,7 +1925,7 @@
     var g = cueCv.getContext('2d');
     g.imageSmoothingEnabled = false;
     /* 3x only on tall tubes: the marquee must never squeeze the deck */
-    var sc = (PXG >= 4 && html.clientHeight >= 940) ? 3 : 2;
+    var sc = (PXG >= 4 && html.clientHeight >= 1040) ? 3 : 2;
     var str = 'PRESS START';
     var W = textW(str, sc) + sc + 2;
     var H = 7 * sc + sc + 2;
