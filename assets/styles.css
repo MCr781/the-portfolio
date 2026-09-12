@@ -276,7 +276,9 @@ html.has-cursor .cursor { display: block; }
   align-items: center;
   justify-content: space-between;
   background: #05050a;
-  padding: clamp(1.6rem, 3.2vh, 2.4rem) clamp(1rem, 3vw, 2rem) clamp(0.5rem, 1vh, 0.8rem);
+  /* the top band stays clear: the attract-mode score row (1P / HIGH
+     SCORE / 2P) is painted on the tube glass above the title block */
+  padding: clamp(4rem, 8.5vh, 5.2rem) clamp(1rem, 3vw, 2rem) clamp(0.5rem, 1vh, 0.8rem);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -296,12 +298,12 @@ html.booting .hero-inner,
 html.booting .hero-cue,
 html.booting .hero-deck,
 html.booting .coin-row,
-html.booting .crt-decal { opacity: 0; }
+html.booting .hero-foot { opacity: 0; }
 html.awake .hero-inner { animation: fadeinstep 420ms steps(3) 140ms forwards; }
 html.awake .hero-cue { animation: fadeinstep 380ms steps(3) 340ms forwards; }
 html.awake .hero-deck { animation: fadeinstep 420ms steps(4) 260ms forwards; }
 html.awake .coin-row { animation: fadeinstep 420ms steps(4) 400ms forwards; }
-html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
+html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
 @keyframes fadeinstep {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
@@ -313,7 +315,9 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   flex: 0 1 auto;
   display: flex;
   flex-direction: column;
+  align-items: center;      /* attract screens are centered marquees */
   justify-content: center;
+  text-align: center;
   max-width: 44rem;
   margin-inline: auto;
   margin-top: clamp(0.6rem, 1.8vh, 1.2rem);
@@ -322,9 +326,9 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
 /* the pixel canvases carry their own heights; the gaps below just keep
    the title-card rhythm (kept in whole pixels on purpose) */
 .hero-role { margin-bottom: clamp(8px, 1.5vh, 14px); }
-.hero-name { margin-bottom: clamp(12px, 2vh, 20px); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; line-height: 1.14; color: var(--shell-text); text-wrap: balance; }
-.hero-statement { margin-bottom: clamp(12px, 2vh, 20px); font-size: clamp(0.92rem, 1.5vw, 1.18rem); font-weight: 800; line-height: 1.4; color: var(--c-accent); max-width: 42rem; }
-.hero-para { max-width: 40rem; color: #b9b9c6; font-size: clamp(.8rem, 1.1vw, .92rem); line-height: 1.6; }
+.hero-name { margin-bottom: clamp(12px, 2vh, 20px); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; line-height: 1.14; color: #f09e6c; text-wrap: balance; }
+.hero-statement { margin-bottom: clamp(12px, 2vh, 20px); font-size: clamp(0.92rem, 1.5vw, 1.18rem); font-weight: 800; line-height: 1.4; color: #e9e9f2; max-width: 42rem; }
+.hero-para { max-width: 40rem; margin-inline: auto; color: #b9b9c6; font-size: clamp(.8rem, 1.1vw, .92rem); line-height: 1.6; }
 
 @media (max-height: 850px) {
   .hero-inner, .hero-deck, .coin-row {
@@ -348,6 +352,7 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
 }
 .cue-cv { animation: cueblink 1.15s steps(2) infinite; }
 @keyframes cueblink { 50% { opacity: 0; } }
+.cue-sub { display: block; margin-inline: auto; }
 .cue-fa,
 .coin-fa,
 .pstart-fa,
@@ -420,13 +425,20 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   min-height: 38px;
 }
 .coin-fa { font-size: .74rem; color: var(--shell-muted); }
-.crt-decal {
+/* ── hero foot · decal centered, CREDIT on the right glass ── */
+.hero-foot {
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
   margin-top: clamp(2px, 0.5vh, 4px);
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
+.crt-decal { position: relative; }
+.credit { position: absolute; right: 0; bottom: 0; }
 .crt-decal canvas,
+.credit canvas,
 .coin-label canvas { display: block; margin-inline: auto; }
 
 /* ── marquee seam ───────────────────────────────────── */
@@ -913,14 +925,14 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
    so no per-control size overrides are needed anymore: the deck scales
    by grid, not by css clamps. Only rhythm + copy fallbacks adapt. */
 @media (max-height: 960px) and (min-width: 861px) {
-  .hero { padding: .9rem clamp(1.1rem, 3vw, 2rem) 4.5rem; }
+  .hero { padding: 3.6rem clamp(1.1rem, 3vw, 2rem) 4.5rem; }
   .hero-name { font-size: clamp(2.1rem, 4.8vw, 3rem); }
   .hero-statement { font-size: clamp(1rem, 1.9vw, 1.3rem); }
   .hero-para { font-size: .95rem; }
   .hero-role { margin-bottom: 8px; }
   .hero-deck { gap: clamp(1.4rem, 4.5vw, 3.2rem); margin-top: .9rem; }
   .coin-row { margin-top: .7rem; }
-  .crt-decal { margin-top: .5rem; }
+  .hero-foot { margin-top: .5rem; }
 }
 @media (max-width: 860px) {
   .world-inner {
@@ -932,7 +944,7 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   .world:nth-of-type(even) .world-art { order: 0; }
   .cartridge { width: min(15rem, 68vw); }
   .hud-world { display: none; }
-  .hero { padding: 1rem .8rem 4.2rem; }
+  .hero { padding: 3.4rem .8rem 4.2rem; }
   .hero-name { font-size: clamp(1.9rem, 8vw, 2.6rem); }
   .hero-para { font-size: .92rem; }
   .hero-deck {
@@ -974,7 +986,7 @@ html.awake .crt-decal { animation: fadeinstep 320ms steps(3) 480ms forwards; }
   html.booting .hero-cue,
   html.booting .hero-deck,
   html.booting .coin-row,
-  html.booting .crt-decal { opacity: 1; }
+  html.booting .hero-foot { opacity: 1; }
   .toast.show { animation: none; }
   body,
   .btn-gate,

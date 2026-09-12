@@ -292,6 +292,10 @@
     bg: '#05050a',
     sky: ['#040410', '#09081e', '#100c30', '#191244', '#241859', '#331f72'],
     star1: '#3f3f63', star2: '#8a8ab4', star3: '#d8d8f2', starG: '#ffd76a', starCyan: '#6ae3ff',
+    starRed: '#c8524a',
+    /* attract-mode title screen: the peach PRESS START ink of a 1980s
+       bezel glass, its hard drop shadow, and the near-black tube back */
+    press: '#f09e6c', pressDk: '#4a1d0c', attractBg: '#0b0b0f',
     moon: '#e8e8f8', moonDk: '#9a9ab8', moonRing: 'rgba(216, 216, 242, 0.25)',
     far: '#0d0b1a', mid: '#181230', midEdge: '#2b1f48',
     terr: '#281e44', terrLite: '#3a2e62', terrDim: '#16102b',
@@ -304,8 +308,7 @@
     hum: '#f0f0f8', humSh: '#9292a8',
     bullet: '#00f0ff', bulletGlow: '#0077ff', thr: '#ffc837', thrLo: '#ff6b35',
     boom: ['#ffffff', '#ffe600', '#ff6b35', '#d90429'],
-    score: '#ffd76a', hud: '#9a9ab8',
-    radarBg: '#0b1326', radarRim: '#254456', radarTerr: '#386178', blip: '#ff007f',
+    score: '#ffd76a',
     post: '#a0a0b8', ok: '#50e3c2', coin: '#ffd76a', start: '#ffffff',
     panel: '#0e0c24', panelBd: '#433c63', panelHi: '#564e7a',
     ink: '#03030a', out: '#241c0f',
@@ -560,52 +563,64 @@
     var w = Math.max(4, Math.min(maxW, Math.ceil(Math.max.apply(null, lines.map(function (l) {
       return faSctx.measureText(l).width;
     })) + 2)));
-    var h = lines.length * lineH + 2;
-    faScratch.width = w;
+    /* optional hard drop shadow: one game pixel down-right, drawn
+       first so the quantizer crisps both inks together */
+    var sh = opts.shadow ? 1 : 0;
+    var sw = w + sh;
+    var h = lines.length * lineH + 2 + sh;
+    faScratch.width = sw;
     faScratch.height = h;
     faSctx.font = faFontStr(src, weight);
     faSctx.direction = 'rtl';
     faSctx.textAlign = 'right';
     faSctx.textBaseline = 'top';
+    var i;
+    if (sh) {
+      faSctx.fillStyle = opts.shadow;
+      for (i = 0; i < lines.length; i++) {
+        faSctx.fillText(lines[i], w, i * lineH + 2);
+      }
+    }
     faSctx.fillStyle = opts.color || PC.text;
-    for (var i = 0; i < lines.length; i++) {
+    for (i = 0; i < lines.length; i++) {
       faSctx.fillText(lines[i], w - 1, i * lineH + 1);
     }
-    var img = faSctx.getImageData(0, 0, w, h);
+    var img = faSctx.getImageData(0, 0, sw, h);
     quantizeAlpha(img);
     faSctx.putImageData(img, 0, 0);
     /* trim empty top/bottom rows so layouts stay tight */
     var y0 = 0, y1 = h - 1, row, x, has;
     for (row = 0; row < h; row++) {
       has = false;
-      for (x = 0; x < w; x += 1) {
-        if (img.data[(row * w + x) * 4 + 3]) { has = true; break; }
+      for (x = 0; x < sw; x += 1) {
+        if (img.data[(row * sw + x) * 4 + 3]) { has = true; break; }
       }
       if (has) { y0 = row; break; }
     }
     for (row = h - 1; row >= 0; row--) {
       has = false;
-      for (x = 0; x < w; x += 1) {
-        if (img.data[(row * w + x) * 4 + 3]) { has = true; break; }
+      for (x = 0; x < sw; x += 1) {
+        if (img.data[(row * sw + x) * 4 + 3]) { has = true; break; }
       }
       if (has) { y1 = row; break; }
     }
     var th = Math.max(1, y1 - y0 + 1);
     var out = doc.createElement('canvas');
-    out.width = w;
+    out.width = sw;
     out.height = th;
     var og = out.getContext('2d');
     og.imageSmoothingEnabled = false;
-    og.drawImage(faScratch, 0, y0, w, th, 0, 0, w, th);
+    og.drawImage(faScratch, 0, y0, sw, th, 0, 0, sw, th);
     return out;
   }
 
   /* mounts the pixel twin of a [data-px] element's text */
   var PX_CONF = {
-    chip:      { src: 9,  weight: 800, color: null, grid: null, chip: true, align: 'start' },
-    name:      { src: 16, weight: 900, color: PC.text,  align: 'start' },
-    statement: { src: 11, weight: 900, color: PC.gold,  align: 'start' },
-    para:      { src: 10, weight: 700, color: PC.textSub, grid: 'half', align: 'start' },
+    /* attract-screen marquee: every title line centers on the tube */
+    chip:      { src: 9,  weight: 800, color: null, grid: null, chip: true, align: 'center' },
+    name:      { src: 16, weight: 900, color: PC.press, shadow: PC.pressDk, align: 'center' },
+    statement: { src: 11, weight: 900, color: '#e9e9f2', grid: 'half', align: 'center' },
+    para:      { src: 10, weight: 700, color: PC.textSub, grid: 'half', align: 'center' },
     cuefa:     { src: 9,  weight: 700, color: PC.cueFa, grid: 'half', align: 'center' },
     pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center' },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
@@ -696,6 +711,7 @@
     paintCue();
     paintDecal();
     paintCoinLabel();
+    paintCredit();
   }
 
   /* ── the pixel world · a night-flight attract game ──── */
@@ -707,7 +723,7 @@
      (boot canvas dimmed under the title card, hero canvas with the full
      HUD), so the channel flip hands over a game already in motion. */
 
-  var skyCv = null, vigCv = null, dimCv = null, flashCvs = [];
+  var skyCv = null, vigCv = null, dimCv = null, attractCv = null, flashCvs = [];
   var cloudSprs = [];
 
   function terrRow(wx, rows) {
@@ -774,15 +790,6 @@
   ];
   var HUM_LEG = { H: PC.gold, W: PC.hum };
   var SPR_HUMF = ['.HH.', 'HHHH', '.WW.', '.WW.', 'W..W', 'W..W'];
-  var SPR_LIFE = [
-    '..GG..',
-    '.GGGG.',
-    'SGGCCG',
-    '.GGGG.',
-    '..GG..'
-  ];
-  var LIFE_LEG = { G: PC.gold, S: PC.shipSh, C: PC.cock };
-  var SPR_ARROW = ['01110', '00100', '00100', '00100', '00100'];
 
   var POST = [
     ['MMR-84 BIOS 4.0', ''],
@@ -802,7 +809,8 @@
         y: Math.floor(Math.random() * Math.max(8, Math.round(rows * 0.68))),
         l: 1 + Math.floor(Math.random() * 3),
         tw: Math.random() * 6.28,
-        gold: Math.random() < 0.1
+        gold: Math.random() < 0.1,
+        red: Math.random() < 0.12
       });
     }
     return out;
@@ -862,6 +870,17 @@
     g.fillRect(mcx - mr - 3, mcy - mr, 1, 1);
     g.fillRect(mcx + mr + 3, mcy - 2, 1, 1);
     g.fillRect(mcx - mr - 1, mcy + mr + 2, 1, 1);
+    return c;
+  }
+
+  /* pre-rendered attract sky: one flat near-black tube. The title
+     screen wants clean glass — all of its depth comes from stars. */
+  function buildAttractSky(cols, rows) {
+    var c = doc.createElement('canvas');
+    c.width = cols; c.height = rows;
+    var g = c.getContext('2d');
+    g.fillStyle = PC.attractBg;
+    g.fillRect(0, 0, cols, rows);
     return c;
   }
 
@@ -951,6 +970,7 @@
       bfx = bootCv.getContext('2d');
     }
     skyCv = buildSky(cols, rows);
+    attractCv = buildAttractSky(cols, rows);
     vigCv = buildVig(cols, rows);
     dimCv = buildDim(cols, rows);
     flashCvs = [
@@ -1320,30 +1340,46 @@
     var i;
     g.imageSmoothingEnabled = false;
 
-    /* sky — pre-rendered dithered bands + moon */
-    g.drawImage(skyCv, 0, 0);
+    /* sky — attract mode keeps clean near-black glass like a title
+       screen; boot mode keeps the dithered dusk bands + moon */
+    g.drawImage(mode === 'hero' && attractCv ? attractCv : skyCv, 0, 0);
 
-    /* starfield — three parallax depths, the odd star glints gold */
+    /* starfield — three parallax depths; odd stars glint gold or red,
+       the speckled-glass look of an old attract screen. The title
+       screen keeps only a sparse twelfth of them: bezel glass is
+       speckled, not snowed. */
     for (i = 0; i < w.stars.length; i++) {
+      if (mode === 'hero' && (i % 12) !== 0) { continue; }
       var st = w.stars[i];
       var bright = st.l === 1 ? PC.star1 : (st.l === 2 ? PC.star2 : PC.star3);
       if (st.gold) { bright = PC.starG; }
+      else if (st.red) { bright = PC.starRed; }
       if (st.l === 3 && Math.sin(t * 0.004 + st.tw) < -0.55) { continue; }
       g.fillStyle = bright;
       g.fillRect(Math.round(st.x), st.y, 1, 1);
     }
 
-    /* drifting dithered clouds */
-    for (i = 0; i < cloudSprs.length; i++) {
-      var cl = cloudSprs[i];
-      g.drawImage(cl.cv, Math.round(cl.x), cl.y);
+    /* drifting dithered clouds — boot sky only; the attract screen
+       keeps its glass clean */
+    if (mode !== 'hero') {
+      for (i = 0; i < cloudSprs.length; i++) {
+        var cl = cloudSprs[i];
+        g.drawImage(cl.cv, Math.round(cl.x), cl.y);
+      }
     }
+
+    /* attract mode tones: the demo world sinks to near-black so the
+       title card owns the glass; boot mode keeps the dusk palette */
+    var heroMode = mode === 'hero';
+    var TONE = heroMode
+      ? { hi: '#241c3c', lite: '#1c1632', base: '#161129', dim: '#0d0a19', glint: PC.goldLo, gThr: 0.982 }
+      : { hi: PC.terrHi, lite: PC.terrLite, base: PC.terr, dim: PC.terrDim, glint: PC.terrGlint, gThr: 0.965 };
 
     /* far mountains — slow silhouette ridge */
     var fx0 = Math.floor(w.worldX * 0.22);
     for (var sx = 0; sx < cols; sx++) {
       var ftr = farRow(fx0 + sx, rows);
-      g.fillStyle = PC.far;
+      g.fillStyle = heroMode ? '#0e0d17' : PC.far;
       g.fillRect(sx, ftr, 1, rows - ftr);
     }
 
@@ -1351,10 +1387,10 @@
     var mx0 = Math.floor(w.worldX * 0.45);
     for (sx = 0; sx < cols; sx++) {
       var mtr = midRow(mx0 + sx, rows);
-      g.fillStyle = PC.mid;
+      g.fillStyle = heroMode ? '#131024' : PC.mid;
       g.fillRect(sx, mtr, 1, rows - mtr);
       if (hash01(mx0 + sx) > 0.5) {
-        g.fillStyle = PC.midEdge;
+        g.fillStyle = heroMode ? '#1c1832' : PC.midEdge;
         g.fillRect(sx, mtr, 1, 1);
       }
     }
@@ -1365,26 +1401,28 @@
       var wx = wx0 + sx;
       var tr = terrRow(wx, rows);
       var hv = hash01(wx);
-      if (hv > 0.965) {
-        g.fillStyle = PC.terrGlint;
+      if (hv > TONE.gThr) {
+        g.fillStyle = TONE.glint;
         g.fillRect(sx, tr - 1, 1, 1);
       }
-      g.fillStyle = hv > 0.68 ? PC.terrHi : (hv > 0.42 ? PC.terrLite : PC.terr);
+      /* attract mode dims the gold phosphor: the demo world stays a
+         whisper under the title card, not a headline */
+      g.fillStyle = hv > 0.68 ? TONE.hi : (hv > 0.42 ? TONE.lite : TONE.base);
       g.fillRect(sx, tr, 1, 1);
       if (hash01(wx * 7 + 3) > 0.45) {
-        g.fillStyle = PC.terrDim;
+        g.fillStyle = TONE.dim;
         g.fillRect(sx, tr + 1, 1, 1);
       }
       /* face → dithered fade into deep ground */
-      g.fillStyle = PC.terr;
+      g.fillStyle = TONE.base;
       g.fillRect(sx, tr + 2, 1, 6);
       for (var dRow = 0; dRow < 4; dRow++) {
         var yy = tr + 8 + dRow;
         if (yy >= rows) { break; }
-        if (bayerAt(sx, yy) > dRow / 4) { g.fillStyle = PC.terr; } else { g.fillStyle = PC.terrDim; }
+        if (bayerAt(sx, yy) > dRow / 4) { g.fillStyle = TONE.base; } else { g.fillStyle = TONE.dim; }
         g.fillRect(sx, yy, 1, 1);
       }
-      g.fillStyle = PC.terrDim;
+      g.fillStyle = TONE.dim;
       if (tr + 12 < rows) { g.fillRect(sx, tr + 12, 1, rows - tr - 12); }
     }
 
@@ -1461,54 +1499,19 @@
     }
 
     if (mode === 'hero') {
-      /* ── the arcade HUD, 5×7 font, positioned cleanly above radar band (rTop=13) ── */
-      var blinkOn = (Math.floor(t / 450) % 2) === 0;
-      drawText(g, '1UP', 18, 4, blinkOn ? PC.score : PC.bg);
-      var sc = '' + (w.score % 1000000);
-      while (sc.length < 6) { sc = '0' + sc; }
-      drawText(g, sc, 38, 4, PC.score);
-      var hi = 'HI 045000';
-      drawText(g, hi, Math.round(cols / 2 - textW(hi) / 2), 4, PC.hud);
-      var fpX = cols - textW('FREE PLAY') - 18;
-      drawText(g, 'FREE PLAY', fpX, 4, PC.score);
-      for (var li = 0; li < 3; li++) {
-        drawSpr(g, SPR_LIFE, fpX - 12 - li * 8, 4, LIFE_LEG);
-      }
-
-      /* radar band — the whole planet compressed, blips alive + active scan line */
-      var rTop = 13, rBot = 19;
-      g.fillStyle = PC.radarRim;
-      g.fillRect(0, rTop - 1, cols, 1);
-      g.fillRect(0, rBot, cols, 1);
-      g.fillStyle = PC.radarBg;
-      g.fillRect(0, rTop, cols, rBot - rTop);
-      for (var rx = 0; rx < cols; rx++) {
-        var rtr = terrRow(Math.floor(w.worldX * 3) + rx * 3, rows);
-        var ry = rTop + 1 + Math.min(4, Math.max(0, Math.round((rtr / rows) * 7) - 4));
-        g.fillStyle = PC.radarTerr;
-        g.fillRect(rx, ry, 1, 1);
-      }
-      var sweepX = Math.round(((t * 0.04) % cols));
-      g.fillStyle = 'rgba(0, 240, 255, 0.45)';
-      g.fillRect(sweepX, rTop, 1, rBot - rTop);
-
-      for (i = 0; i < w.landers.length; i++) {
-        var Lr = w.landers[i];
-        var rbx = Math.round((Lr.wx - w.worldX) / 3) % cols;
-        if (rbx < 0) { rbx += cols; }
-        var rby = rTop + 1 + Math.min(4, Math.max(0, Math.round((Lr.y / rows) * 7) - 1));
-        g.fillStyle = PC.blip;
-        g.fillRect(rbx, rby, 1, 1);
-      }
-      for (i = 0; i < w.hums.length; i++) {
-        if (w.hums[i].state !== 'ground') { continue; }
-        var rhx = Math.round((w.hums[i].wx - w.worldX) / 3) % cols;
-        if (rhx < 0) { rhx += cols; }
-        g.fillStyle = PC.hud;
-        g.fillRect(rhx, rBot - 1, 1, 1);
-      }
-      g.fillStyle = PC.ship;
-      g.fillRect(Math.round(S.x / 3), rTop + 2, 2, 1);
+      /* ── attract chrome — the score row of a 1980s title screen ──
+         1P / HIGH SCORE / 2P on two rows of white 5x7, exactly where
+         the bezel glass of the old cabinets carried it. The CREDIT
+         counter lives on the DOM foot row, beside the decal. */
+      var chrome = PC.shell;
+      drawText(g, '1P', 6, 3, chrome);
+      drawText(g, '00', 6, 11, chrome);
+      var hs1 = 'HIGH SCORE';
+      var hs2 = '1234567890';
+      drawText(g, hs1, Math.round(cols / 2 - textW(hs1) / 2), 3, chrome);
+      drawText(g, hs2, Math.round(cols / 2 - textW(hs2) / 2), 11, chrome);
+      drawText(g, '2P', cols - 6 - textW('2P'), 3, chrome);
+      drawText(g, '00', cols - 6 - textW('00'), 11, chrome);
 
       /* banner — START was pressed */
       if (w.banner && t < w.banner.until) {
@@ -1641,8 +1644,8 @@
       /* PRESS START — big, blinking */
       if (el > 2680 && (Math.floor(t / 450) % 2) === 0) {
         var ps1 = 'PRESS START';
-        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2) + 2, Math.round(rows * 0.82) + 2, PC.goldDk, 2);
-        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2), Math.round(rows * 0.82), PC.start, 2);
+        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2) + 2, Math.round(rows * 0.82) + 2, PC.pressDk, 2);
+        drawText(g, ps1, Math.round(cols / 2 - textW(ps1, 2) / 2), Math.round(rows * 0.82), PC.press, 2);
       }
     }
 
@@ -1837,6 +1840,7 @@
     coinCredit = on;
     if (coinLabel) { coinLabel.dataset.credit = on ? '1' : ''; }
     paintCoinLabel();
+    paintCredit();
   }
 
   function paintCoinLabel() {
@@ -1857,10 +1861,35 @@
     if (!mount.parentNode) { coinLabel.textContent = ''; coinLabel.appendChild(mount); }
   }
 
+  /* the CREDIT counter — bottom-right of the glass, like the reference
+     attract screen; goes live (00 → 01) while a coin is in the door */
+  var creditLabel = $('#creditLabel');
+  function paintCredit() {
+    if (!creditLabel) { return; }
+    var text = coinCredit ? 'CREDIT 01' : 'CREDIT 00';
+    var color = coinCredit ? PC.gold : PC.shell;
+    var W = textW(text) + 1;
+    var H = 9;
+    var mount = creditLabel.querySelector('canvas') || doc.createElement('canvas');
+    mount.width = W; mount.height = H;
+    var g = mount.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, W, H);
+    drawText(g, text, 1, 1, color);
+    mount.className = 'pxcv';
+    mount.style.width = (W * PXT) + 'px';
+    mount.style.height = (H * PXT) + 'px';
+    if (!mount.parentNode) { creditLabel.textContent = ''; creditLabel.appendChild(mount); }
+  }
+
   function paintDecal() {
     if (!decalEl) { return; }
     var text = decalEl.dataset.text || deccalText(decalEl);
     decalEl.dataset.text = text;
+    /* narrow tubes: the short decal leaves the right corner of the
+       foot row free for the CREDIT counter */
+    if (html.clientWidth < 380) { text = 'MMR-84'; }
+    else if (html.clientWidth < 520) { text = 'MMR-84 · 4 WORLDS'; }
     var W = textW(text) + 1;
     var mount = decalEl.querySelector('canvas') || doc.createElement('canvas');
     mount.width = W; mount.height = 9;
@@ -1875,24 +1904,36 @@
   }
   function deccalText(el) { return (el.textContent || '').trim(); }
 
-  /* the cue: PRESS [↓] START in bitmap font + a pixel arrow */
+  /* the cue: the attract screen's heartbeat — a big blinking peach
+     PRESS START with a hard drop shadow, and under it the steady white
+     INSERT COIN TO CONTINUE, straight off the 1980s bezel glass */
+  var cueSubCv = $('.cue-sub');
   function paintCue() {
     if (!cueCv) { return; }
     var g = cueCv.getContext('2d');
     g.imageSmoothingEnabled = false;
-    var pre = 'PRESS ', post = ' START';
-    var W = textW(pre) + 5 + textW(post) + 2;
-    cueCv.width = W; cueCv.height = 9;
-    g.clearRect(0, 0, W, 9);
-    var x = 1;
-    drawText(g, 'PRESS', x, 1, PC.gold); x += textW('PRESS') + 4;
-    /* pixel arrow, gold with a dark under-shadow */
-    drawSpr(g, SPR_ARROW, x + 1, 3, { '1': PC.goldDk });
-    drawSpr(g, SPR_ARROW, x, 2, { '1': PC.gold });
-    x += 5 + 4;
-    drawText(g, 'START', x, 1, PC.gold);
+    /* 3x only on tall tubes: the marquee must never squeeze the deck */
+    var sc = (PXG >= 4 && html.clientHeight >= 940) ? 3 : 2;
+    var str = 'PRESS START';
+    var W = textW(str, sc) + sc + 2;
+    var H = 7 * sc + sc + 2;
+    cueCv.width = W; cueCv.height = H;
+    g.clearRect(0, 0, W, H);
+    drawText(g, str, 1 + sc, 1 + sc, PC.pressDk, sc);
+    drawText(g, str, 1, 1, PC.press, sc);
     cueCv.style.width = (W * PXG) + 'px';
-    cueCv.style.height = (9 * PXG) + 'px';
+    cueCv.style.height = (H * PXG) + 'px';
+    if (!cueSubCv) { return; }
+    var sg = cueSubCv.getContext('2d');
+    sg.imageSmoothingEnabled = false;
+    var sub = 'INSERT COIN TO CONTINUE';
+    var SW = mTextW(sub) + 2;
+    var SH = 7;
+    cueSubCv.width = SW; cueSubCv.height = SH;
+    sg.clearRect(0, 0, SW, SH);
+    drawMText(sg, sub, 1, 1, PC.shell);
+    cueSubCv.style.width = (SW * PXG) + 'px';
+    cueSubCv.style.height = (SH * PXG) + 'px';
   }
 
   function buildControls() {
@@ -1902,6 +1943,7 @@
     paintPBtns();
     paintCoin();
     paintCoinLabel();
+    paintCredit();
     paintDecal();
     paintCue();
   }
