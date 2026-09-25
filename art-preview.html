@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>art-preview — the portfolio tube</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #05050a; color: #d8d8f2;
+    font: 13px/1.45 'Courier New', monospace;
+    padding: 24px;
+  }
+  h1 { font-size: 18px; letter-spacing: 2px; color: #00f0ff; text-transform: uppercase; margin: 0 0 4px; }
+  .sub { color: #8a8ab4; margin-bottom: 18px; }
+  .toolbar { display: flex; gap: 18px; align-items: center; margin: 0 0 14px; flex-wrap: wrap; }
+  .toolbar label { user-select: none; cursor: pointer; }
+  .toolbar button {
+    background: #161622; color: #ffd76a; border: 1px solid #433c63;
+    padding: 4px 10px; font: 12px 'Courier New', monospace; cursor: pointer;
+  }
+  .toolbar button:hover { background: #241c0f; }
+  .fam { border: 1px solid #241c0f; background: #0b0b0f; margin: 0 0 22px; padding: 14px 16px; }
+  .famhead { display:flex; align-items:baseline; gap:14px; margin-bottom: 10px; flex-wrap: wrap; }
+  .famhead b { color: #fff; font-size: 15px; }
+  .famhead .meta { color:#8a8ab4; }
+  .cols { display: flex; gap: 34px; flex-wrap: wrap; }
+  .col { min-width: 120px; }
+  .collabel { color:#8a8ab4; margin-bottom: 6px; font-size: 11px; letter-spacing: 1px; }
+  .collabel.cand { color:#ffd76a; }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  .stage { background: #040410; padding: 12px; display: inline-block; }
+  .stage.grid { background-image:
+      linear-gradient(45deg, #141428 25%, transparent 25%, transparent 75%, #141428 75%),
+      linear-gradient(45deg, #141428 25%, transparent 25%, transparent 75%, #141428 75%);
+      background-size: 24px 24px; background-position: 0 0, 12px 12px; }
+  .stats { margin-top: 8px; color: #6aa8a0; font-size: 11px; }
+  .stats .warn { color: #ff2a6d; }
+  .legend { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #241c0f;
+          background: #0e0c24; padding: 1px 6px; font-size: 11px; }
+  .sw { width: 10px; height: 10px; display: inline-block; }
+  .key { color:#8a8ab4; }
+</style>
+</head>
+<body>
+  <h1>art-preview</h1>
+  <div class="sub">live sprites from <b>assets/main.js</b> vs candidates — same palette, real colors. animated frames are flagged for parity.</div>
+  <div class="toolbar">
+    <label><input type="checkbox" id="tbg"> checkered backdrop (read outlines)</label>
+    <label><input type="checkbox" id="tsil"> silhouette</label>
+    <button id="bzoomIn">+</button><button id="bzoomOut">&minus;</button>
+    <span id="zlbl" class="meta"></span>
+  </div>
+  <div id="root"></div>
+<script>
+const DATA = {"pc":{"bg":"#05050a","sky":["#040410","#09081e","#100c30","#191244","#241859","#331f72"],"star1":"#3f3f63","star2":"#8a8ab4","star3":"#d8d8f2","starG":"#ffd76a","starCyan":"#6ae3ff","starRed":"#c8524a","press":"#f09e6c","pressDk":"#4a1d0c","attractBg":"#0b0b0f","moon":"#e8e8f8","moonDk":"#9a9ab8","moonRing":"rgba(216, 216, 242, 0.25)","far":"#0d0b1a","mid":"#181230","midEdge":"#2b1f48","terr":"#281e44","terrLite":"#3a2e62","terrDim":"#16102b","terrHi":"#ffc83b","terrGlint":"#fff9d6","ship":"#ffffff","shipSh":"#a4a4b8","cock":"#00f0ff","gold":"#ffd76a","goldHi":"#fff4cc","goldLo":"#9e791e","goldDk":"#2b1e0a","goldFace":"#ffdf6d","goldDeep":"#ab8420","lander":"#42e66c","landerDk":"#1e8538","white":"#ffffff","bomb":"#ff3366","hum":"#f0f0f8","humSh":"#9292a8","bullet":"#00f0ff","bulletGlow":"#0077ff","thr":"#ffc837","thrLo":"#ff6b35","boom":["#ffffff","#ffe600","#ff6b35","#d90429"],"score":"#ffd76a","post":"#a0a0b8","ok":"#50e3c2","coin":"#ffd76a","start":"#ffffff","panel":"#0e0c24","panelBd":"#433c63","panelHi":"#564e7a","ink":"#03030a","out":"#241c0f","shell":"#ffffff","shellDk":"#9292a8","shellOut":"#161622","red":"#ff2a6d","redHi":"#ff85a2","redDk":"#990033","redOut":"#380010","metal":"#2c2c38","metalHi":"#444456","metalDk":"#161620","metalBd":"#3c3c4c","shaft":"#525266","shaftHi":"#787890","shaftDk":"#2e2e3a","slate":"#5c5c6b","slateHi":"#9494a8","cueFa":"#9494a8","text":"#ffffff","textSub":"#b9b9c6"},"fam":[{"name":"SPR_HUM","leg":"HUM_LEG","scale":1,"note":"humanoid frame A","rows":["..SS..","..SS..",".BBBB.","B.BB.B",".BBBB.","..PP..","..P.P.","..W.W."],"legend":{"S":"#f09e6c","B":"#f0f0f8","P":"#9494a8","W":"#f0f0f8"},"cand":null},{"name":"SPR_HUM2","leg":"HUM_LEG","scale":1,"note":"humanoid frame B","rows":["..SS..","..SS..",".BBBB.","B.BB.B",".BBBB.","..PP..",".P..P.","W....W"],"legend":{"S":"#f09e6c","B":"#f0f0f8","P":"#9494a8","W":"#f0f0f8"},"cand":null},{"name":"SPR_LANDER","leg":"LANDER_LEG","scale":1,"note":"lander frame A","rows":["....EEEE....","..EEEEEEEE..",".EEWWWWWWEE.","EEWWRWWRWWEE","EGGGGGGGGGGE",".EGGGGGGGGE.","..G..GG...G."],"legend":{"E":"#42e66c","W":"#ffffff","G":"#1e8538","R":"#ff2a6d"},"cand":{"rows":["....EEEE....","..EEWWWWEE..",".EWWWWWWWWE.","EERRRWWRRREE","EGGGGGGGGGGE",".EGGGGGGGGE.","..G..GG...G."],"legend":{"E":"#42e66c","W":"#ffffff","R":"#ff2a6d","G":"#1e8538"},"scale":1}},{"name":"SPR_LANDER2","leg":"LANDER_LEG","scale":1,"note":"lander frame B","rows":["....EEEE....","..EEEEEEEE..",".EEWWWWWWEE.","EEWWRWWRWWEE","EGGGGGGGGGGE",".EGGGGGGGGE.","..G...GG..G."],"legend":{"E":"#42e66c","W":"#ffffff","G":"#1e8538","R":"#ff2a6d"},"cand":{"rows":["....EEEE....","..EEWWWWEE..",".EWWWWWWWWE.","EERRRWWRRREE","EGGGGGGGGGGE",".EGGGGGGGGE.","..G...GG..G."],"legend":{"E":"#42e66c","W":"#ffffff","R":"#ff2a6d","G":"#1e8538"},"scale":1}},{"name":"SPR_LANDER_T","leg":"LANDER_LEG_T","scale":1,"note":"tractor frame A","rows":[".....PPPP.....","...PPPPPPPP...","..PPWWWWWWPP..",".PPWWWWWWWWPP.","PPPPPPPPPPPPPP","PPVPPPPPPPPVPP",".PDDDDDDDDDDP.","..PDD.EEE.DDP.",".....EEEE....."],"legend":{"P":"#ff5aa8","W":"#ffffff","V":"#22110a","D":"#7a1f4d","E":"#c06ee8"},"cand":{"rows":[".....PWWP.....","...PPWWWWPP...","..PPWWWWWWPP..",".PPWWWWWWWWPP.","PPWWWWWWWWWWPP","PPVWWWWWWWWVPP",".PDDDDDDDDDDP.","..PDD.EEE.DDP.",".....EEEE....."],"legend":{"P":"#ff5aa8","W":"#ffffff","V":"#22110a","D":"#7a1f4d","E":"#c06ee8"},"scale":1}},{"name":"SPR_LANDER_T2","leg":"LANDER_LEG_T","scale":1,"note":"tractor frame B","rows":[".....PPPP.....","...PPPPPPPP...","..PPWWWWWWPP..",".PPWWWWWWWWPP.","PPPPPPPPPPPPPP","PPVPPPPPPPPVPP",".PDDDDDDDDDDP.","..PD..EEE..DP.",".....EEEE....."],"legend":{"P":"#ff5aa8","W":"#ffffff","V":"#22110a","D":"#7a1f4d","E":"#c06ee8"},"cand":{"rows":[".....PWWP.....","...PPWWWWPP...","..PPWWWWWWPP..",".PPWWWWWWWWPP.","PPWWWWWWWWWWPP","PPVWWWWWWWWVPP",".PDDDDDDDDDDP.","..PD..EEE..DP.",".....EEEE....."],"legend":{"P":"#ff5aa8","W":"#ffffff","V":"#22110a","D":"#7a1f4d","E":"#c06ee8"},"scale":1}},{"name":"SPR_MARIO","leg":"MARIO_LEG","scale":2,"note":"plumber frame A","rows":["....RRRRR...","..RRRRRRRRR.","..RRRRRRRRR.","..HHFFFFFE..",".HHFFFFFFEE.",".HHFFMMMMM..","...FFMMMF...","..RRBBBBRR..",".RRRBBBBRRR.",".RRBYBBYBRR.","..BBBBBBBB..","..BBB..BBB..","..BBB..BBB..","..HHH..HHH..",".HHHH..HHHH."],"legend":{"R":"#e43b3b","F":"#ffcf9e","H":"#5b3213","B":"#2f6fd0","M":"#4a2a12","Y":"#ffd76a","E":"#22110a"},"cand":{"rows":["....RRRRR...","..RRRRRRRRR.","..RRRRRRRRR.","..HHFFFFFE..",".HHFFFFFFEE.",".HHFFMMMMM..","...FFMMMF...","..RRBBBBRR..",".RRRBBBBRRR.",".RRBYBBYBRR.","..BBBBBBBB..","..BBB..BBB..","..BBB..BBB..","..HHH..HHH..",".HHHH..HHHH."],"legend":{"R":"#e43b3b","F":"#ffcf9e","H":"#5b3213","B":"#2f6fd0","M":"#4a2a12","Y":"#ffd76a","E":"#22110a"},"scale":2}},{"name":"SPR_MARIO2","leg":"MARIO_LEG","scale":2,"note":"plumber frame B","rows":["....RRRRR...","..RRRRRRRRR.","..RRRRRRRRR.","..HHFFFFFE..",".HHFFFFFFEE.",".HHFFMMMMM..","...FFMMMF...","..RRBBBBRR..",".RRRBBBBRRR.",".RRBYBBYBRR.","..BBBBBBBB..","...BBBBBB...","..BBB..BB...","..HHH..HHH..",".HHH....HHHH"],"legend":{"R":"#e43b3b","F":"#ffcf9e","H":"#5b3213","B":"#2f6fd0","M":"#4a2a12","Y":"#ffd76a","E":"#22110a"},"cand":{"rows":["....RRRRR...","..RRRRRRRRR.","..RRRRRRRRR.","..HHFFFFFE..",".HHFFFFFFEE.",".HHFFMMMMM..","...FFMMMF...","..RRBBBBRR..",".RRRBBBBRRR.",".RRBYBBYBRR.","..BBBBBBBB..","...BBBBBB...","..BBB..BB...","..HHH..HHH..",".HHH....HHHH"],"legend":{"R":"#e43b3b","F":"#ffcf9e","H":"#5b3213","B":"#2f6fd0","M":"#4a2a12","Y":"#ffd76a","E":"#22110a"},"scale":2}},{"name":"SPR_MOTHER","leg":"MOTHER_LEG","scale":2,"note":"mothership","rows":["......DDDDDDDDDDDD......","....DDTTTTTTTTTTTTDD....","..GGTTTTTTTTTTTTTTTTGG..",".TTTWTTTTTRRRRRRTTTWTTT.","TTWTTTTTTTRRRRRRTTTTWTTT","TDDTTTTTTTDDDDTTTTTTTDDT",".TTTTTTTT.DDDD.TTTTTTTT.","EETTTTTTTT.DDDD.TTTTTTEE",".E........DDDD........E."],"legend":{"D":"#14655c","T":"#2fbfae","W":"#ffffff","R":"#ff2a6d","G":"#ffd76a","E":"#ff8a3d"},"cand":{"rows":["......WWTTTTTTTTWW......","....WTTTTTTTTTTTTTTW....","..GTTTTTTTTTTTTTTTTTTG..",".TTTWTTTTTRRRRRRTTTWTTT.","TTWTTTTTTTRRRRRRTTTTWTTT","TDDTTTTTTTDDDDTTTTTTTDDT",".TTTTTTTTGGGGGGGGTTTTTT.","EETTTTTTTT.DDDD.TTTTTTEE",".E........DDDD........E."],"legend":{"D":"#14655c","T":"#2fbfae","W":"#ffffff","R":"#ff2a6d","G":"#ffd76a","E":"#ff8a3d"},"scale":2}},{"name":"SPR_MUTANT","leg":"MUT_LEG","scale":1,"note":"mutant frame A","rows":[".W........W.","WRD.RRRR.DRW","DRRRRRRRRRRD","DRWWRRRRWWRD","DRRRRRRRRRRD",".DRRRRRRRRD.","..DR.DD.RD..",".D..D..D..D.","D...D..D...D"],"legend":{"R":"#ff2a6d","D":"#990033","W":"#ffffff"},"cand":{"rows":[".WW......WW.","WDRRRRRRRRDW","DRRRRRRRRRRD","DRWWRRRRWWRD","DDRRRRRRRRDD",".DRRRRRRRRD.","..DR.DD.RD..",".D..D..D..D.","D...D..D...D"],"legend":{"R":"#ff2a6d","D":"#990033","W":"#ffffff"},"scale":1}},{"name":"SPR_MUTANT2","leg":"MUT_LEG","scale":1,"note":"mutant frame B","rows":[".W........W.","WRD.RRRR.DRW","DRRRRRRRRRRD","DRWWRRRRWWRD","DRRRRRRRRRRD",".DRRRRRRRRD.","..DD.RR.DD..","D..D....D..D","..DD....DD.."],"legend":{"R":"#ff2a6d","D":"#990033","W":"#ffffff"},"cand":{"rows":[".WW......WW.","WDRRRRRRRRDW","DRRRRRRRRRRD","DWWRRRRWWRRD","DRRRRRRRRRRD",".DRRRRRRRRD.","..DR.DD.RD..",".D..D..D..D.","D...D..D...D"],"legend":{"R":"#ff2a6d","D":"#990033","W":"#ffffff"},"scale":1}},{"name":"SPR_SHIP","leg":"SHIP_LEG","scale":1,"note":"player hull","rows":["........DWWCCD......",".....DWWWWCCCCWWD...","...DWWWWWWCCCCWWWD..","DWWSSSSWWWWWWWWWWWWD","GWWWWWWWWWWWWWWWWGGG","GWWWWWWWWWWWWWWWWGGD",".DWWWSSWWWWWWWWWWD..","..DDWWWWWWWWWWWDD...",".DGGDDDDDDDDDDDDDD..","...gg..........gg..."],"legend":{"W":"#ffffff","S":"#a4a4b8","C":"#00f0ff","G":"#ffd76a","g":"#c99b3f","D":"#454560"},"cand":{"rows":["......DWWWWWD.......",".....DWWWWWWWWD.....","....DWWWWWWWWWWD....","DWWWSSSWWWWWWWWWWWD.","GWWWWWWWWWWWWWWWWGGG","GWWWWWWWWWWWWWWWWGGD",".DWWSSWWWWWWWWWWWWD.","DDWWSSWWWWWWWWWDDD..",".DGGDDDDDDDDDDDDD...","...GG..........GG..."],"legend":{"W":"#ffffff","S":"#a4a4b8","G":"#ffd76a","D":"#454560"},"scale":1}},{"name":"SPR_SHROOM","leg":"SHROOM_LEG","scale":1,"note":"mushroom","rows":["..RRRR..",".RRWWRR.","RRWWRRWW","RRRRRRWW",".WWWWWW.",".WWSWWS.",".WWWWWW.","..WWWW.."],"legend":{"R":"#e43b3b","W":"#f7ecd2","S":"#cfae7e"},"cand":{"rows":["..RRRR..",".RRWWRR.","RRWWRRWW","RRRRRRWW",".WWWWWW.",".WWSWWS.",".WWWWWW.","..WWWW.."],"legend":{"R":"#e43b3b","W":"#f7ecd2","S":"#cfae7e"},"scale":1}}],"candidates":{}};
+let ZOOM = 10;
+const root = document.getElementById('root');
+const tbg = document.getElementById('tbg');
+const tsil = document.getElementById('tsil');
+const zlbl = document.getElementById('zlbl');
+
+function npx(rows){ let n=0; for(const r of rows) for(const ch of r) if(ch!=='.') n++; return n; }
+function pxStr(rows){ return rows.map(r=>r.split('').map(c=>c==='.'?0:1).join('')).join(''); }
+function paint(cvs, rows, legend, grid){
+  const h = rows.length, w = Math.max(...rows.map(r=>r.length));
+  cvs.width = w*ZOOM; cvs.height = h*ZOOM;
+  const g = cvs.getContext('2d');
+  if (grid) g.fillStyle = '#141428';
+  else g.fillStyle = '#040410';
+  g.fillRect(0,0,cvs.width,cvs.height);
+  for(let y=0;y<h;y++){
+    const line = rows[y];
+    for(let x=0;x<line.length;x++){
+      const c = line[x];
+      if(c==='.') continue;
+      let col = tsil.checked ? '#9bd7c8' : legend[c];
+      g.fillStyle = col || '#ff2a6d';
+      g.fillRect(x*ZOOM, y*ZOOM, ZOOM, ZOOM);
+    }
+  }
+}
+function draw(container, meta){
+  container.innerHTML='';
+  const el = document.createElement('canvas');
+  paint(el, meta.rows, meta.legend, tbg.checked);
+  container.appendChild(el);
+}
+function legendChips(legend){
+  const d = document.createElement('div'); d.className='legend';
+  for(const k of Object.keys(legend)){
+    const chip = document.createElement('span'); chip.className='chip';
+    const sw = document.createElement('span'); sw.className='sw'; sw.style.background=legend[k];
+    const kv = document.createElement('span'); kv.className='key'; kv.textContent = k + ' ' + legend[k];
+    chip.appendChild(sw); chip.appendChild(kv); d.appendChild(chip);
+  }
+  return d;
+}
+for(const fam of DATA.fam){
+  const sec = document.createElement('div'); sec.className='fam';
+  const head = document.createElement('div'); head.className='famhead';
+  const b = document.createElement('b'); b.textContent = fam.name;
+  const meta = document.createElement('span'); meta.className='meta';
+  const W = Math.max(...fam.rows.map(r=>r.length)) + (fam.cand ? (', cand ' + Math.max(...fam.cand.rows.map(r=>r.length))) : '');
+  meta.innerHTML = fam.legend ? ('&nbsp;' + (fam.rows[0]?fam.rows.length:'') + '&times;' + (WName(fam)) + ' &middot; in-game ' + fam.scale + '&times; &middot; legacy ' + fam.leg + ' &middot; ' + (fam.note||'')) : (fam.note||'');
+  head.appendChild(b); head.appendChild(meta);
+  sec.appendChild(head);
+  const cols = document.createElement('div'); cols.className='cols';
+  // current
+  const cc = document.createElement('div'); cc.className='col';
+  const cl = document.createElement('div'); cl.className='collabel'; cl.textContent = 'IN GAME';
+  cc.appendChild(cl);
+  const st = document.createElement('div'); st.className='stage'; st.id='st_'+fam.name;
+  cc.appendChild(st);
+  const cs = document.createElement('div'); cs.className='stats';
+  cs.innerHTML = (fam.rows[0]? npx(fam.rows)+' px': '—');
+  cc.appendChild(cs);
+  cols.appendChild(cc);
+  // candidate
+  if(fam.cand){
+    const cc2 = document.createElement('div'); cc2.className='col';
+    const cl2 = document.createElement('div'); cl2.className='collabel cand'; cl2.textContent = 'CANDIDATE';
+    cc2.appendChild(cl2);
+    const st2 = document.createElement('div'); st2.className='stage'; st2.id='st2_'+fam.name;
+    cc2.appendChild(st2);
+    const cs2 = document.createElement('div'); cs2.className='stats';
+    const pd = npx(fam.cand.rows) - (fam.rows[0]? npx(fam.rows) : 0);
+    cs2.innerHTML = npx(fam.cand.rows) + ' px' + (pd ? ' <span class="warn">(' + (pd>0?'+':'') + pd + ')</span>' : '');
+    cc2.appendChild(cs2);
+    cols.appendChild(cc2);
+  }
+  sec.appendChild(cols);
+  const chips = legendChips(fam.legend);
+  sec.appendChild(chips);
+  root.appendChild(sec);
+  draw(document.getElementById('st_'+fam.name), {rows:fam.rows, legend:fam.legend});
+  if(fam.cand) draw(document.getElementById('st2_'+fam.name), {rows:fam.cand.rows, legend:fam.cand.legend});
+}
+function WName(fam){ return Math.max(...fam.rows.map(r=>r.length)); }
+function repaint(){
+  for(const fam of DATA.fam){
+    draw(document.getElementById('st_'+fam.name), {rows:fam.rows, legend:fam.legend});
+    if(fam.cand) draw(document.getElementById('st2_'+fam.name), {rows:fam.cand.rows, legend:fam.cand.legend});
+  }
+  zlbl.textContent = ZOOM + ' px/cell';
+}
+tbg.onchange = repaint; tsil.onchange = repaint;
+document.getElementById('bzoomIn').onclick = ()=>{ ZOOM = Math.min(32, ZOOM+2); repaint(); };
+document.getElementById('bzoomOut').onclick = ()=>{ ZOOM = Math.max(4, ZOOM-2); repaint(); };
+repaint();
+</script>
+</body>
+</html>

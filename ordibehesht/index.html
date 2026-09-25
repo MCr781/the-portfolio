@@ -3,28 +3,281 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>دنیای اردیبهشت — پیش‌نمایش</title>
+<title>دنیای اردیبهشت — دروازه</title>
+<meta name="description" content="طلای اردیبهشت — فروشگاه آنلاین طلا و جواهر + قلک دیجیتال — پیش‌نمایش دروازه">
+<meta name="theme-color" content="#0c0c11">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
+:root{--acc:#d4af37;--acc-hi:#fff4cc;--acc-dk:#8a6d1f;--bg:#0c0c11;--panel:#14120a;}
 *{box-sizing:border-box}
-body{margin:0;font-family:Tahoma,sans-serif;background:#0C0C11;color:#F2F2F7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
-.card{max-width:26rem;border:3px solid #F2F2F7;box-shadow:8px 8px 0 #000;padding:2.4rem;text-align:center}
-.k{font-family:'Courier New',monospace;font-size:.7rem;letter-spacing:.2em;color:#D4AF37;direction:ltr}
-h1{font-size:2rem;margin:.9rem 0 .6rem;font-weight:900}
-.d{color:#B9B9C6;line-height:2;font-size:.95rem;margin:0 0 1.4rem}
-.p{font-family:'Courier New',monospace;font-size:.75rem;letter-spacing:.1em;border:2px solid #F2F2F7;opacity:.7;padding:.3rem .6rem;direction:ltr;display:inline-block;margin-bottom:1.8rem}
-a.b{display:inline-block;color:#F2F2F7;text-decoration:none;border:3px solid #F2F2F7;box-shadow:8px 8px 0 #000;padding:.8rem 1.4rem;font-weight:800}
-a.b:hover{transform:translate(-2px,-2px);box-shadow:12px 12px 0 #000}
-.note{margin-top:1.6rem;font-size:.75rem;color:#8A8A99}
+/* round 14: the highlighter follows the room light here too — the
+   same per-world ::selection the main cabinet wears since round 12 */
+::selection{background:var(--acc);color:#0d0d15}
+html,body{margin:0;padding:0}
+body{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);color:#f2f2f7;font-family:'Segoe UI',Tahoma,Vazirmatn,sans-serif;
+  padding:1.5rem;overflow-x:hidden}
+/* the tube: scanlines + aperture grille + slow roll, the main site's glass */
+.scanlines{position:fixed;inset:0;z-index:40;pointer-events:none;
+  --sl-dark:rgba(0,0,0,.08);--sl-light:rgba(255,255,255,.05);
+  background:repeating-linear-gradient(0deg,var(--sl-dark) 0 1px,transparent 1px 4px),
+  repeating-linear-gradient(0deg,transparent 0 2px,var(--sl-light) 2px 3px,transparent 3px 4px);
+  box-shadow:inset 0 0 0 9999px #d4af3714}
+.scanlines::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(255,64,64,.025) 0 1px,rgba(64,255,128,.018) 1px 2px,rgba(96,128,255,.025) 2px 3px)}
+.scanlines::after{content:"";position:absolute;inset-inline:0;top:-150px;height:130px;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.03) 35%,rgba(0,0,0,.055) 72%,transparent);
+  animation:crtroll 8s linear infinite}
+@keyframes crtroll{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}
+.gate{width:100%;max-width:30rem;position:relative;z-index:2}
+.card{position:relative;background:var(--panel);border:3px solid #f2f2f7;
+  box-shadow:8px 8px 0 rgba(0,0,0,.6);padding:2.2rem 1.8rem 1.7rem;text-align:center}
+.card::before{content:"";position:absolute;inset:4px;border:1px solid rgba(255,255,255,.09);pointer-events:none}
+.k{font-family:'Courier New',monospace;font-size:.68rem;letter-spacing:.22em;color:var(--acc);direction:ltr;margin:0 0 1rem}
+.k bdi{color:var(--acc-hi)}
+h1{font-size:1.9rem;margin:.2rem 0 .5rem;font-weight:900;letter-spacing:-.5px}
+.d{color:#b9b9c6;line-height:1.9;font-size:.9rem;margin:0 0 1.3rem}
+/* the terrarium: the keeper of this world lives here too */
+.terra{margin:0 auto 1rem;width:min(11rem,72vw);background:#07070d;border:2px solid var(--acc);
+  box-shadow:5px 5px 0 rgba(0,0,0,.55);padding:.55rem .55rem .5rem;position:relative;cursor:pointer;
+  transition:transform 180ms steps(3,end),box-shadow 180ms steps(3,end)}
+.terra::before{content:"";position:absolute;inset:3px;border:1px solid rgba(255,255,255,.08);pointer-events:none}
+.terra:hover,.terra:active{transform:translateY(-3px);box-shadow:7px 8px 0 rgba(0,0,0,.55)}
+.terra:active{transform:translateY(0);box-shadow:3px 3px 0 rgba(0,0,0,.55)}
+.terra canvas{display:block;margin:0 auto;image-rendering:pixelated;image-rendering:crisp-edges;
+  width:204px;height:144px;max-width:100%}
+/* round 13 · the glass sweep, baked in from the main cabinet: once per
+   hover a bar of light slides across the pane in six hard steps.
+   round 13 CORRECTION (shared with the main cabinet): the bar animates
+   TRANSFORM on the pane itself — a registered custom property ran but
+   never moved in this engine, leaving the pane parked off-glass. A
+   pseudo-element carries its own keyframes; no registration needed.
+   A press pushes the vivarium back onto the shelf. */
+.terra::after{content:"";position:absolute;top:0;bottom:0;left:0;width:34%;
+  background:linear-gradient(105deg,transparent 0 30%,rgba(255,255,255,.075) 42%,rgba(255,255,255,.13) 50%,rgba(255,255,255,.075) 58%,transparent 70% 100%);
+  transform:translateX(-120%);pointer-events:none}
+.terra:hover::after{animation:glasssweep 780ms steps(6,end) 1}
+@keyframes glasssweep{from{transform:translateX(-120%)}to{transform:translateX(320%)}}
+@media (prefers-reduced-motion:reduce){.terra:hover::after{animation:none}.terra::after{display:none}}
+.tname{font-size:.8rem;margin:.55rem 0 1.2rem;color:#f2f2f7;line-height:1.7}
+.tname b{color:var(--acc)}
+.tname i{font-style:normal;color:#9494a8;font-size:.72rem;display:block;margin-top:.15rem}
+.tname i.is-rare{color:#ffd76a;animation:truerare 460ms steps(1) 4}
+@keyframes truerare{0%,100%{opacity:1}50%{opacity:.35}}
+.p{font-family:'Courier New',monospace;font-size:.72rem;letter-spacing:.12em;color:var(--acc);
+  border:2px solid var(--acc);display:inline-block;padding:.3rem .7rem;direction:ltr;margin:0 0 1.6rem}
+.b{display:inline-block;color:#f2f2f7;text-decoration:none;border:3px solid var(--acc);
+  box-shadow:6px 6px 0 rgba(0,0,0,.6);padding:.75rem 1.3rem;font-weight:800;font-size:.95rem;
+  transition:transform 150ms steps(3,end),box-shadow 150ms steps(3,end)}
+.b:hover,.b:focus-visible{transform:translate(-2px,-2px);box-shadow:9px 9px 0 rgba(0,0,0,.6);outline:2px solid var(--acc-hi);outline-offset:3px}
+.b:active{transform:translate(1px,1px);box-shadow:3px 3px 0 rgba(0,0,0,.6)}
+.coin{font-family:'Courier New',monospace;font-size:.62rem;letter-spacing:.24em;color:#5c5c6b;
+  direction:ltr;margin:1.5rem 0 0}
+/* the cabinet record: the main tube's kept best follows you through
+   the gate — one quiet line of gold under the coin door */
+.rec{font-family:'Courier New',monospace;font-size:.66rem;letter-spacing:.18em;
+  direction:ltr;margin:.55rem 0 0;color:var(--acc-dk)}
+.rec b{font-weight:400;color:var(--acc-hi)}
+.note{margin:.8rem 0 0;font-size:.72rem;color:#8a8a99;line-height:1.8}
+.gnum{position:absolute;top:.55rem;left:.7rem;font-family:'Courier New',monospace;font-size:.62rem;
+  letter-spacing:.2em;color:var(--acc-dk);direction:ltr}
+@media (max-width:420px){.card{padding:1.7rem 1.2rem 1.4rem}h1{font-size:1.55rem}}
 </style>
 </head>
 <body>
-<div class="card">
-<p class="k">WORLD 01 · PREVIEW ONLY</p>
-<h1>دنیای اردیبهشت</h1>
-<p class="d">طلای اردیبهشت — فروشگاه آنلاین طلا و جواهر + قلک دیجیتال</p>
-<p class="p">/ordibehesht/</p><br>
-<a class="b" href="../index.html">← بازگشت به هسته</a>
-<p class="note">این دنیا در استقرار اصلی شما زندگی می‌کند؛ این صفحه فقط برای پیش‌نمایش دروازه است.</p>
-</div>
+<div class="scanlines" aria-hidden="true"></div>
+<main class="gate">
+  <div class="card">
+    <span class="gnum">01/04</span>
+    <p class="k">WORLD 01 · <bdi>اردیبهشت</bdi></p>
+    <h1>دنیای اردیبهشت</h1>
+    <p class="d">طلای اردیبهشت — فروشگاه آنلاین طلا و جواهر + قلک دیجیتال</p>
+    <div class="terra" id="terra" role="img" aria-label="ساکن این دنیا: شمشونی">
+      <canvas id="terracv" width="34" height="24"></canvas>
+    </div>
+    <p class="tname"><b>شمشونی</b> — نگهبان شمش‌ها<i>شمشونی می‌گوید: سکه‌ات را بشمار؛ این دنیا طلاست!</i></p>
+    <p class="p">/ordibehesht/</p><br>
+    <a class="b" href="/">← بازگشت به دروازه</a>
+    <p class="coin">INSERT COIN · NO COIN REQUIRED</p>
+    <p class="rec" id="recChip" dir="ltr" hidden></p>
+    <p class="note">این دنیا در استقرار اصلی زندگی می‌کند؛ این صفحه، اتاق ورودی دروازه است.</p>
+  </div>
+</main>
+<script>
+(function(){
+  'use strict';
+  /* the record rides with you: this gate prefers its OWN kept best
+     (runs made under this world's patronage), and falls back to the
+     cabinet's global wall — four doors, one machine, every wall
+     honest. The best rank ever worn rides on whichever it shows. */
+  try{
+    var recEl=document.getElementById('recChip');
+    if(recEl){
+      /* round 12: the doors keep their own records now — this gate
+         reads ITS bucket first (fw-hiscore-0X, written by any run
+         made under this world's patronage) and only falls back to
+         the cabinet's global wall when the door has none yet. */
+      var wb='01';
+      var own=parseInt(localStorage.getItem('fw-hiscore-'+wb)||'0',10)||0;
+      var glob=parseInt(localStorage.getItem('fw-hiscore')||'0',10)||0;
+      var useOwn=own>0;
+      var hs=useOwn?own:glob;
+      var src=useOwn?'GATE RECORD':'CABINET RECORD';
+      var rb=useOwn?wb:'';
+      var rt=Math.max(1,Math.min(6,parseInt(localStorage.getItem('fw-best-rank'+(rb?'-'+rb:''))||localStorage.getItem('fw-best-rank')||'1',10)||1));
+      var RT=['ROOKIE','CADET','PILOT','VETERAN','ACE','DEFENDER'];
+      if(hs>0){
+        var hn=(localStorage.getItem('fw-hi-name'+(rb?'-'+rb:''))||localStorage.getItem('fw-hi-name')||'AAA').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3)||'AAA';
+        recEl.innerHTML=src+' <b>'+String(hs).padStart(10,'0')+'</b> · '+hn+(rt>=2?' · RANK '+RT[rt-1]:'');
+        recEl.hidden=false;
+      } else if(rt>=2){
+        recEl.innerHTML=(useOwn?'GATE':'CABINET')+' RANK <b>'+RT[rt-1]+'</b>';
+        recEl.hidden=false;
+      }
+    }
+  }catch(e){}
+  var cv=document.getElementById('terracv');
+  var g=cv.getContext('2d');
+  g.imageSmoothingEnabled=false;
+  var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var FLOOR='#8a6d1f';
+  var FLOOR_HI='#d4af37';
+  function cross(g,x,y,col){g.fillStyle=col;g.fillRect(x,y-1,1,3);g.fillRect(x-1,y,3,1);}
+  var reactT=0;
+  var rareT=0,clicks=0,lastClick=0;
+  function paint(g,t,age,rare){
+    var cx=17,base=18;
+    var ph=(t%4200)/4200;
+    var hopY=ph<0.12?-3*Math.sin(ph/0.12*Math.PI):0;
+    if(age>=0&&age<0.9){hopY=Math.min(hopY,-2-Math.round(Math.sin(age*18)*1.5));}
+    var h=Math.round(hopY);
+    var squash=(ph>=0.12&&ph<0.2)?1:0;
+    for(var r=0;r<9-squash;r++){
+      var hw=Math.round(6+r*0.75),y=base-9+squash+r+h;
+      g.fillStyle=r<1?'#fff4cc':(r<6?'#ffd76a':'#ab8420');
+      g.fillRect(cx-hw,y,hw*2,1);
+      g.fillStyle='#ffdf6d';g.fillRect(cx-hw+1,y,1,1);
+    }
+    var eyeY=base-6+h+squash,blink=(t%3400)<140;
+    g.fillStyle='#2b1e0a';
+    if(!blink){g.fillRect(cx-3,eyeY-1,1,2);g.fillRect(cx+3,eyeY-1,1,2);}
+    else{g.fillRect(cx-3,eyeY,2,1);g.fillRect(cx+2,eyeY,2,1);}
+    g.fillRect(cx-1,base-3+h+squash,3,1);
+    g.fillRect(cx-2,base-4+h+squash,1,1);g.fillRect(cx+2,base-4+h+squash,1,1);
+    if((t%6000)<260){cross(g,cx+9,base-13+((t%260)>130?1:0),'#fff4cc');}
+    if(age>=0&&age<0.9){
+      var cp=age/0.9,cy=base-10-Math.round(Math.sin(cp*Math.PI)*11);
+      g.fillStyle='#c99b3f';g.fillRect(cx-1,cy,3,3);
+      g.fillStyle='#fff4cc';g.fillRect(cx,cy+1,1,1);
+    }
+    if(rare>=0&&rare<1.6){
+      for(var rc=0;rc<6;rc++){
+        var rp=(rare*1.15+rc*0.17)%1;
+        var rx=cx-9+rc*4+Math.round(Math.sin(rp*6.28+rc)*3);
+        var ry2=3+Math.round(rp*15);
+        g.fillStyle=rc%2?'#c99b3f':'#ffd76a';g.fillRect(rx,ry2,2,2);
+        if(rp<0.85){g.fillStyle='#fff4cc';g.fillRect(rx,ry2,1,1);}
+      }
+      if(rare<0.5&&(Math.floor(t/90)%2)===0){cross(g,cx,base-13,'#ffffff');}
+    }
+  }
+  function frame(t){
+    g.clearRect(0,0,34,24);
+    for(var x=0;x<34;x++){
+      g.fillStyle=FLOOR;g.fillRect(x,19,1,5);
+      var h=(Math.sin(x*12.9898+7.233)*43758.5453)%1;
+      if(h>0.6){g.fillStyle=FLOOR_HI;g.fillRect(x,19,1,1);}
+      if(h<-0.82){g.fillStyle=FLOOR_HI;g.fillRect(x,21,1,1);}
+    }
+    var age=reactT>0?(t-reactT)/1000:-1;
+    var rare=rareT>0?(t-rareT)/1000:-1;
+    paint(g,t,age,rare);
+    if(!reduced){requestAnimationFrame(frame);}
+  }
+  if(reduced){frame(1);}
+  else{requestAnimationFrame(frame);}
+  /* the keepers' voices — the same four timbres the main tube uses.
+     Round 11: one shared AudioContext, built on the first sound and
+     reused for every blip after — a door that doesn't build a new
+     speaker cabinet every time somebody knocks. */
+  var ACTX=null;
+  function ac(){
+    if(!ACTX){
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC){return null;}
+      ACTX=new AC();
+    }
+    if(ACTX.state==='suspended'&&ACTX.resume){ACTX.resume();}
+    return ACTX;
+  }
+  function voice(kind,a){
+    try{
+      var c=ac();
+      if(!c){return;}
+      var t0=c.currentTime;
+      function tone(o){
+        var os=c.createOscillator(),gn=c.createGain();
+        os.type=o.w||'square';
+        os.frequency.setValueAtTime(o.f,t0+(o.at||0));
+        if(o.f1){os.frequency.exponentialRampToValueAtTime(o.f1,t0+(o.at||0)+o.d);}
+        gn.gain.setValueAtTime(o.v,t0+(o.at||0));
+        gn.gain.exponentialRampToValueAtTime(0.0001,t0+(o.at||0)+o.d);
+        os.connect(gn);gn.connect(c.destination);
+        os.start(t0+(o.at||0));os.stop(t0+(o.at||0)+o.d+0.02);
+      }
+      if(kind==='ingot'){tone({f:196,f1:294,d:.09,v:.055});tone({f:392,d:.06,v:.02,w:'triangle',at:.05});}
+      else if(kind==='gem'){tone({f:1318.5,f1:1975.5,d:.1,v:.04,w:'sine'});tone({f:2637,d:.07,v:.014,w:'triangle',at:.03});}
+      else if(kind==='bolt'){tone({f:440,d:.045,v:.05});tone({f:554,d:.05,v:.05,at:.05});}
+      else if(kind==='bloom'){tone({f:523.25,f1:783.99,d:.12,v:.042,w:'triangle'});}
+      else{tone({f:660,f1:1180,d:.09,v:.06});}
+      if(a){
+        var up=[783.99,987.77,1174.66,1567.98];
+        for(var i=0;i<up.length;i++){tone({f:up[i],d:.07,v:.05,at:.3+i*.062});}
+        for(var j=0;j<up.length;j++){tone({f:up[j]*1.335,d:.07,v:.035,w:'triangle',at:.6+j*.055});}
+      }
+    }catch(e){}
+  }
+  var terraEl=document.getElementById('terra');
+  var helloEl=document.querySelector('.tname i');
+  terraEl.addEventListener('click',function(){
+    reactT=performance.now();
+    var nowC=performance.now();
+    clicks=(nowC-lastClick<1400)?clicks+1:1;
+    lastClick=nowC;
+    if(clicks>=5){
+      clicks=0;
+      rareT=nowC;
+      if(helloEl){
+        if(!helloEl.dataset.keep){helloEl.dataset.keep=helloEl.textContent;}
+        helloEl.classList.add('is-rare');
+        helloEl.textContent='شمشونی: طلا می‌بارد، همه‌اش مال شما!';
+        clearTimeout(helloEl.__rt);
+        helloEl.__rt=setTimeout(function(){
+          helloEl.classList.remove('is-rare');
+          helloEl.textContent=helloEl.dataset.keep;
+        },2200);
+      }
+      voice('ingot',true);
+    }else{
+      voice('ingot',false);
+    }
+  });
+  document.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click',function(){
+      try{
+        var x=ac();
+        if(x){
+          var o=x.createOscillator(),gn=x.createGain();
+          o.type='square';o.frequency.setValueAtTime(880,x.currentTime);
+          o.frequency.exponentialRampToValueAtTime(440,x.currentTime+0.09);
+          gn.gain.setValueAtTime(0.05,x.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.0001,x.currentTime+0.12);
+          o.connect(gn);gn.connect(x.destination);o.start();o.stop(x.currentTime+0.14);
+        }
+      }catch(e){}
+    });
+  });
+})();
+</script>
 </body>
 </html>

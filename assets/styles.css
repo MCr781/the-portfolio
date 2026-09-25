@@ -75,6 +75,11 @@ a { color: inherit; }
   background: #d4af37;
   color: #0c0c11;
 }
+/* round 12: the highlighter follows the room light — select copy
+   inside a world section and the ink takes that world's accent */
+body[data-world="02"] ::selection { background: #b24fd8; }
+body[data-world="03"] ::selection { background: #028c85; }
+body[data-world="04"] ::selection { background: #ed145b; }
 
 :focus-visible {
   outline: 3px solid var(--c-accent);
@@ -122,11 +127,43 @@ a { color: inherit; }
   background:
     repeating-linear-gradient(0deg, var(--sl-dark) 0 1px, transparent 1px 4px),
     repeating-linear-gradient(0deg, transparent 0 2px, var(--sl-light) 2px 3px, transparent 3px 4px);
+  /* the phosphor wash rides this shadow: a flat color, stepped in —
+     reading a world, the whole tube leans into that world's accent,
+     the room light of the cabinet changing with the page you're on */
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0);
+  transition: box-shadow 520ms steps(4, end);
+}
+/* the aperture grille: a shadow-mask CRT also splits every row into
+   red/green/blue triads. Two percent of alpha — you feel it more
+   than you see it, exactly like leaning into a real tube. */
+.scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg,
+    rgba(255, 64, 64, .028) 0 1px,
+    rgba(64, 255, 128, .020) 1px 2px,
+    rgba(96, 128, 255, .028) 2px 3px);
 }
 body[data-world="02"] .scanlines,
 body[data-world="04"] .scanlines {
   --sl-dark: rgba(0, 0, 0, .1);
   --sl-light: rgba(255, 255, 255, .09);
+}
+body[data-world="01"] .scanlines {
+  box-shadow: inset 0 0 0 9999px rgba(212, 175, 55, .045);
+}
+body[data-world="02"] .scanlines {
+  box-shadow: inset 0 0 0 9999px rgba(178, 79, 216, .06);
+}
+body[data-world="03"] .scanlines {
+  box-shadow: inset 0 0 0 9999px rgba(2, 140, 133, .06);
+}
+body[data-world="04"] .scanlines {
+  box-shadow: inset 0 0 0 9999px rgba(237, 20, 91, .05);
+}
+@media (prefers-reduced-motion: reduce) {
+  .scanlines { transition: none; }
 }
 .scanlines::after {
   content: "";
@@ -281,7 +318,7 @@ html.has-cursor .cursor { display: block; }
   /* the top band stays clear: the attract-mode score row (1P / HIGH
      SCORE / 2P) is painted on the tube glass above the title block;
      the bottom band belongs to the fixed world-HUD strip */
-  padding: clamp(4rem, 8.5vh, 5.2rem) clamp(1rem, 3vw, 2rem) clamp(4.2rem, 7vh, 5rem);
+  padding: clamp(3.2rem, 6.5vh, 4.4rem) clamp(1rem, 3vw, 2rem) clamp(3.4rem, 5.6vh, 4.2rem);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -312,10 +349,31 @@ html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
    opacity in the cascade) */
 html.banner-on .hero-inner,
 html.banner-on .hero-cue { visibility: hidden; }
-/* GAME OVER: the marquee recedes to a third of itself — present at
+/* GAME OVER: the marquee recedes to under half of itself — present at
    the edges, ghosted behind the plate, never glyph-on-glyph */
 html.gameover-dim .hero-inner,
-html.gameover-dim .hero-cue { animation: none; opacity: .34; }
+html.gameover-dim .hero-cue { animation: none; opacity: .45; }
+/* the idle show: the tube owns the glass. The copy steps off entirely
+   (visibility, same recipe as banner-on — an attract screen replaces
+   the page the way it replaced the play) and the cue steps away too */
+html.attract-show .hero-inner,
+html.attract-show .hero-cue { visibility: hidden; }
+/* the GAME OVER plate is a DOM stamp mounted ON the glass: the tube
+   canvas lives behind the copy by design, so the plate gets its own
+   high layer and sits above the introduction, exactly on the marquee */
+.go-plate {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  z-index: 5;
+  line-height: 0;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: auto; cursor: pointer; }
+.go-plate .go-cv { image-rendering: pixelated; image-rendering: crisp-edges; image-rendering: pixelated; }
 @keyframes fadeinstep {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
@@ -337,8 +395,8 @@ html.gameover-dim .hero-cue { animation: none; opacity: .34; }
 }
 /* the pixel canvases carry their own heights; the gaps below just keep
    the title-card rhythm (kept in whole pixels on purpose) */
-.hero-role { margin-bottom: clamp(4px, 1vh, 8px); }
-.hero-name { margin-bottom: clamp(8px, 1.2vh, 12px); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; line-height: 1.14; color: #f09e6c; text-wrap: balance; }
+.hero-role { margin-bottom: clamp(4px, 1vh, 8px); white-space: nowrap; }
+.hero-name { margin-bottom: clamp(8px, 1.2vh, 12px); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; line-height: 1.14; color: #f09e6c; white-space: nowrap; }
 .hero-statement { margin-bottom: clamp(8px, 1.2vh, 10px); font-size: clamp(0.92rem, 1.5vw, 1.18rem); font-weight: 800; line-height: 1.4; color: #e9e9f2; max-width: 42rem; }
 .hero-para { max-width: 40rem; margin-inline: auto; color: #b9b9c6; font-size: clamp(.8rem, 1.1vw, .92rem); line-height: 1.6; }
 
@@ -387,6 +445,25 @@ html.gameover-dim .hero-cue { animation: none; opacity: .34; }
      action buttons on the right — even though the page reads RTL */
   direction: ltr;
 }
+/* round 13 · the deck lights dim while the tube talks: a real cabinet
+   drops its play-field lamps during the attract show so the screen
+   owns the room. This must be an ANIMATION, not an opacity rule — the
+   awake fade-in's forwards fill outranks ordinary opacity in the
+   cascade (the same reason attract-show hides copy with visibility).
+   deckdim steps the lamps down while the show runs; when the show
+   folds the rule stops applying and the finished fadeinstep fill
+   hands the lamps straight back to full — the deck lights up the
+   moment a hand lands on it, which is exactly how a cabinet wakes. */
+@keyframes deckdim {
+  from { opacity: 1; }
+  to { opacity: .32; }
+}
+@keyframes coindim {
+  from { opacity: 1; }
+  to { opacity: .5; }
+}
+html[data-show] .hero-deck { animation: deckdim 320ms steps(3, end) forwards; }
+html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
 .joy { position: relative; flex: none; }
 .pstart {
   display: flex;
@@ -416,6 +493,29 @@ html.coin-hidden .coin-row { visibility: hidden; }
   padding-bottom: 8px;
 }
 .pbtn { position: relative; display: block; flex: none; }
+/* the deck's SOUND rocker — a real switch, not a chip: same hardware
+   rules as the other controls, a 44px hand target, keyboard focus
+   ring tuned to the cabinet's gold */
+.snddeck {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2px 5px 6px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  overflow: visible;
+  flex: none;
+}
+.snddeck:focus-visible {
+  outline: 2px solid var(--c-accent, #ffd76a);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
 
 /* ── coin row · a pixel coin door on the glass ──────── */
 .coin-row {
@@ -457,10 +557,25 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .coin-label canvas { display: block; margin-inline: auto; }
 
 /* ── marquee seam ───────────────────────────────────── */
+/* the backlight behind a real marquee never sits still: a long, quiet
+   flutter — two dips a cycle, too soft to catch on purpose */
 .marquee {
   border-block: 3px solid var(--shell-line);
   background: var(--shell-surface);
   overflow: hidden;
+  /* round 11: the letterstrip dissolves at both lips of the cabinet
+     instead of being cut — the words melt into the tube glass */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  animation: mq-live 13s steps(1, end) infinite;
+}
+@keyframes mq-live {
+  0%, 100% { filter: brightness(1); }
+  37%      { filter: brightness(.88); }
+  38.2%    { filter: brightness(1); }
+  61%      { filter: brightness(.8); }
+  61.9%    { filter: brightness(.93); }
+  62.8%    { filter: brightness(1); }
 }
 .marquee-track {
   display: flex;
@@ -489,6 +604,17 @@ html.coin-hidden .coin-row { visibility: hidden; }
   display: block;
   height: 14px;
   background: repeating-linear-gradient(90deg, var(--c-text) 0 7px, var(--c-bg) 7px 14px);
+}
+/* the exit line: every world ends with a thin accent strip — you
+   crossed the level, here is the checkpoint. The dashed entry line
+   above and the solid accent line below bracket each world like a
+   stage on an old level-select map. */
+.world::after {
+  content: "";
+  display: block;
+  height: 3px;
+  background: var(--c-accent);
+  opacity: .55;
 }
 .w01 { --c-bg: #faf7f2; --c-accent: #d4af37; --c-text: #241c0f; --c-shadow: #241c0f; --btn-ink: #241c0f; }
 .w02 { --c-bg: #4a154b; --c-accent: #d4af37; --c-text: #f7effa; --c-shadow: #2a0c2c; --btn-ink: #2a0c2c; }
@@ -564,6 +690,16 @@ html.coin-hidden .coin-row { visibility: hidden; }
   border: 2px solid var(--c-text);
   padding: .28rem .55rem;
   opacity: .68;
+  transition: color var(--t-fast) steps(2), border-color var(--t-fast) steps(2), opacity var(--t-fast) steps(2);
+}
+/* the paired hover: take the gate in your hand and its address
+   lights up in the world's own accent — signpost and door answer
+   each other */
+.world-cta:hover .path-chip,
+.world-cta:focus-within .path-chip {
+  color: var(--c-accent);
+  border-color: var(--c-accent);
+  opacity: 1;
 }
 
 /* ── gate buttons ───────────────────────────────────── */
@@ -585,7 +721,23 @@ html.coin-hidden .coin-row { visibility: hidden; }
   font-size: 1.15rem;
   text-decoration: none;
   min-height: 44px;
+  overflow: hidden;
 }
+/* the sheen sweep: one bar of light crossing the plate in seven hard
+   steps when the hand arrives — pixel motion, never a slide */
+.btn-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, calc(100% - 12px) 12px, 100% 12px, 100% 100%, 0 100%);
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .42) 50%, transparent 58%);
+  transform: translateX(-130%);
+}
+.btn-gate:hover .btn-sheen,
+.btn-gate:focus-visible .btn-sheen { animation: sheensweep 640ms steps(7) 1; }
+@keyframes sheensweep { to { transform: translateX(130%); } }
+@media (prefers-reduced-motion: reduce) { .btn-sheen { display: none; } }
 .btn-gate::before {
   content: "";
   position: absolute;
@@ -624,7 +776,238 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .contact .btn-gate:not(.btn-primary)::after { background: var(--ink); }
 
 /* ── cartridge composition ──────────────────────────── */
-.world-art { display: flex; justify-content: center; }
+.world-art { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: clamp(1.2rem, 2.5vw, 2.2rem); }
+
+/* ── the terrariums · every world has a keeper ─────── */
+/* A small glass vivarium plate that lives beside each cartridge:
+   a notched steel frame, a lit interior with its own floor strip,
+   and the resident — a pixel creature painted by the engine on
+   .terra-cv, with idle life, hover reactions and a click trick. */
+.terrarium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+  width: min(11.5rem, 40vw);
+  padding: .6rem .6rem .55rem;
+  background: #0d0d15;
+  border: 2px solid var(--c-accent, #d4af37);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, .55);
+  position: relative;
+  order: 2;
+  cursor: pointer;
+}
+/* round 14 · the keyboard sees the shelf too: a hard accent ring,
+   offset like the plate's own shadow — never the browser's default
+   blue glow, and only for hands that came by keyboard */
+.terrarium:focus-visible {
+  outline: 2px solid var(--c-accent, #d4af37);
+  outline-offset: 3px;
+  transform: translateY(-3px);
+  box-shadow: 8px 9px 0 rgba(0, 0, 0, .55);
+}
+.terrarium::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  pointer-events: none;
+}
+.terrarium::after {
+  /* notched corners — the site's cut language */
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border: 2px solid transparent;
+  pointer-events: none;
+}
+.terra-tag {
+  color: var(--c-accent, #d4af37);
+  font-size: .58rem;
+  letter-spacing: .22em;
+  opacity: .85;
+}
+.terra-cage {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: #07070d;
+  border: 1px solid #2a2a38;
+  padding: 6px 4px 4px;
+  overflow: hidden;
+  /* the glass case on its mount: the engine tilts it a few degrees
+     toward the pointer (quantized, pointer-only) and it settles back
+     in three hard steps — pixel motion, never a slide */
+  transform: perspective(460px) rotateY(var(--tx, 0deg)) rotateX(var(--ty, 0deg));
+  /* round 11: the frame also warms in the accent while hovered —
+     the color steps in the same hard-stepped family as the tilt */
+  transition: transform 200ms steps(3), border-color 180ms steps(2), box-shadow 180ms steps(2);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .terra-cage { transform: none; transition: none; }
+}
+.terra-cage::before {
+  /* the glass sheen: two hard steps, no gradient */
+  content: "";
+  position: absolute;
+  top: 4px;
+  inset-inline: 6px;
+  height: 2px;
+  background: rgba(255, 255, 255, .10);
+  pointer-events: none;
+}
+.terra-cv { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.terra-name {
+  font-size: .74rem;
+  font-weight: 700;
+  color: #f2f2f7;
+  text-align: center;
+  line-height: 1.5;
+}
+/* the keeper's true line: gold, blinking hard while it borrows
+   the label slot, then gone */
+.terra-name.is-rare {
+  color: #ffd76a;
+  animation: rarerare 460ms steps(1) 4;
+}
+@keyframes rarerare {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+/* ── round 14 · the doors wear their records on the shelf ──
+   the same buckets the gate pages read, stamped under the keeper's
+   name. A dark enamel plate with a hard offset shadow — the accent
+   belongs to the DOOR (the same four inks the GATE CHAMPIONS card
+   wears), not to the section it sits in. Honest silence when the
+   door has no record: [hidden] keeps the shelf clean. */
+.terra-rec {
+  margin: .4rem auto 0;
+  font-size: .58rem;
+  letter-spacing: .1em;
+  color: var(--rec-c, #ffd76a);
+  border: 1px solid var(--rec-c, #ffd76a);
+  background: rgba(13, 13, 21, .78);
+  padding: .18rem .5rem;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .45);
+  white-space: nowrap;
+  animation: fadeinstep 420ms steps(4) both;
+}
+.w01 .terra-rec { --rec-c: #ffd76a; }
+.w02 .terra-rec { --rec-c: #b24fd8; }
+.w03 .terra-rec { --rec-c: #2fbfae; }
+.w04 .terra-rec { --rec-c: #ff2a6d; }
+/* the keeper wakes when the case is visited: the plate lifts one
+   hard step and the ink burns brighter — same family as the cage
+   tilt, never a smooth fade */
+.terrarium:hover .terra-rec,
+.terrarium:focus-visible .terra-rec {
+  background: rgba(13, 13, 21, .95);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .5);
+  filter: brightness(1.18);
+}
+@media (prefers-reduced-motion: reduce) {
+  .terra-rec { animation: none; }
+}
+.terrarium.is-hover { transform: translateY(-3px); box-shadow: 8px 9px 0 rgba(0, 0, 0, .55); }
+.terrarium { transition: transform 180ms steps(3, end), box-shadow 180ms steps(3, end); }
+
+/* ── round 11 · details ─────────────────────────────────────────
+   the cast-show caption, the glass that warms under the hand, the
+   focusing reticle, and the marquee dissolving at the lip */
+
+/* the cast-show caption: the ONLY DOM copy allowed on stage while
+   the idle show owns the glass. It waits invisible between the cue
+   and the deck; when the tube introduces its keepers (the engine
+   stamps html[data-show='cast']) it steps up under the card. */
+.cast-caption {
+  position: absolute;
+  left: 50%;
+  top: 51.5%;
+  transform: translateX(-50%) translateY(4px);
+  z-index: 4;
+  margin: 0;
+  font-size: clamp(.72rem, 1.1vw, .85rem);
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: #b9b9c6;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+html[data-show='cast'] .cast-caption {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%);
+  transition: opacity 300ms steps(3), transform 300ms steps(3);
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-show='cast'] .cast-caption { transition: none; transform: translateX(-50%); }
+}
+
+/* the case answers the hand: while a terrarium is watched, the glass
+   cage's frame warms toward the world accent and the interior gains
+   a faint inner hairline — light spilling off the resident */
+.terrarium.is-hover .terra-cage {
+  border-color: color-mix(in srgb, var(--c-accent, #d4af37) 55%, #2a2a38);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-accent, #d4af37) 16%, transparent);
+}
+
+/* round 12 · the glass sweep: once per hover a bar of light slides
+   across the case, the way a curved vivarium pane catches the room.
+   Hard steps, one pass, reduced-motion holds the glass still.
+   round 13 CORRECTION: the bar now animates TRANSFORM on the pane
+   itself — the old recipe animated a registered custom property
+   (--sweep-x) on the parent, and this engine runs that animation
+   without ever moving the value: the pane sat at its off-glass start
+   forever, invisible. A pseudo-element can carry its own keyframes,
+   so the sweep now moves where every other CSS animation already
+   moves — on transform, in steps, no registration required. */
+.terra-cage::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 34%;
+  background: linear-gradient(
+    105deg,
+    transparent 0 30%,
+    rgba(255, 255, 255, .075) 42%,
+    rgba(255, 255, 255, .13) 50%,
+    rgba(255, 255, 255, .075) 58%,
+    transparent 70% 100%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.terrarium.is-hover .terra-cage::after {
+  animation: glasssweep 780ms steps(6, end) 1;
+}
+@keyframes glasssweep {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(320%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .terrarium.is-hover .terra-cage::after { animation: none; }
+  .terra-cage::after { display: none; }
+}
+
+/* the reticle: keyboard focus blinks a targeting ring — the outline
+   itself never leaves (a11y first), the offset ticks like a scope
+   locking on. Reduced motion holds it steady. */
+@keyframes reticle {
+  0%, 100% { outline-offset: 3px; }
+  50% { outline-offset: 5px; }
+}
+:focus-visible { animation: reticle 640ms steps(2) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  :focus-visible { animation: none; }
+}
+
 .cartridge {
   position: relative;
   width: min(20rem, 80vw);
@@ -721,6 +1104,29 @@ html.coin-hidden .coin-row { visibility: hidden; }
   background: repeating-linear-gradient(90deg, var(--c-text) 0 9px, transparent 9px 18px);
   border-radius: 2px;
 }
+/* the power LED: one pixel of hardware honesty on the cart's lip —
+   the cartridge is "on", and it breathes in hard steps, never a
+   fade (a real LED switches, it doesn't dim). Each world's cart
+   wears its own accent. */
+.cart-led {
+  position: absolute;
+  bottom: calc(.35rem + 12px);
+  inset-inline-end: .35rem;
+  width: 7px;
+  height: 7px;
+  background: var(--c-accent);
+  box-shadow: 0 0 8px var(--c-accent), 2px 2px 0 rgba(0, 0, 0, .5);
+  animation: ledidle 1.6s steps(1) infinite;
+}
+@keyframes ledidle {
+  0%, 100% { opacity: 1; }
+  55% { opacity: .55; }
+  70% { opacity: 1; }
+}
+.cartridge.is-hover .cart-led { box-shadow: 0 0 14px var(--c-accent), 2px 2px 0 rgba(0, 0, 0, .5); animation-duration: .5s; }
+@media (prefers-reduced-motion: reduce) {
+  .cart-led { animation: none; }
+}
 
 /* ── manifesto ──────────────────────────────────────── */
 .manifesto {
@@ -808,6 +1214,33 @@ html.coin-hidden .coin-row { visibility: hidden; }
   margin-top: .8rem;
 }
 .foot-fa { color: var(--shell-muted); font-size: .85rem; margin-top: .35rem; }
+/* the cast roll: the terrarium keepers get their marquee credit */
+.foot-cast { color: #b9b9c6; font-size: .78rem; margin-top: .3rem; }
+.foot-cast .mono {
+  color: var(--c-accent);
+  letter-spacing: .22em;
+  font-size: .6rem;
+  margin-inline: .7rem;
+}
+.foot-dl {
+  display: inline-block;
+  margin-top: 1.4rem;
+  padding: .62rem 1.25rem;
+  border: 2px solid var(--shell-line);
+  color: var(--shell-text);
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-decoration: none;
+  background: transparent;
+  transition: background var(--t-fast) var(--ease-snap), color var(--t-fast) var(--ease-snap), transform var(--t-fast) var(--ease-snap);
+}
+.foot-dl:hover, .foot-dl:focus-visible {
+  background: var(--shell-line);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+.foot-dl:active { transform: translateY(1px); }
 .foot-hint {
   color: #4a4a55;
   font-size: .55rem;
@@ -862,6 +1295,15 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .hud.party { border-top-color: var(--c-accent); }
 .hud.party .hud-index { color: var(--c-accent); }
 .hud.party .hud-world { color: var(--c-accent); animation: blink .34s steps(2) infinite; }
+/* the living HUD: scroll into a world and the fixed strip breathes
+   its accent — the world name warms to the world's own color and
+   the strip's hairline follows, both easing on the registered
+   accent transition (480ms). :where keeps party's celebration
+   rules winning. */
+:where(body[data-world]:not([data-world=""])) .hud-world { color: var(--c-accent); }
+:where(body[data-world]:not([data-world=""])) .hud {
+  border-top-color: color-mix(in srgb, var(--c-accent) 42%, var(--shell-line));
+}
 .confetti-bit {
   position: absolute;
   bottom: 8px;
@@ -976,6 +1418,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
     gap: .9rem;
   }
   .panel-btns { padding-bottom: 10px; }
+  .snddeck { padding: 2px 3px 8px; }
   .coin-row { gap: .7rem 1rem; }
 }
 @media (max-width: 560px) {
@@ -1002,6 +1445,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
   .cartridge.snap,
   .btn-gate.snap,
   .hud.party .hud-world,
+  .marquee,
   .scanlines::after { animation: none; }
   html.booting .hero-inner,
   html.booting .hero-cue,
@@ -1014,4 +1458,50 @@ html.coin-hidden .coin-row { visibility: hidden; }
   .cartridge,
   .cart-bar { transition: none; }
   * { scroll-behavior: auto; }
+}
+
+/* ── round 5 · the cabinet's own scrollbar ──────────── */
+/* the page is a long tube; its scrollbar should read as hardware,
+   not as a browser default: near-black track, steel thumb that
+   answers the hand in gold */
+html { scrollbar-color: #2a2a38 #0d0d15; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #0d0d15; }
+::-webkit-scrollbar-thumb {
+  background: #2a2a38;
+  border: 2px solid #0d0d15;
+}
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active { background: var(--c-accent, #d4af37); }
+::-webkit-scrollbar-corner { background: #0d0d15; }
+
+/* the chips press like keys: the plate shifts one pixel and the
+   hard shadow follows, in three hard steps */
+.chip {
+  transition: transform 140ms steps(3, end), box-shadow 140ms steps(3, end);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .35);
+}
+.chip:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, .35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip { transition: none; }
+  .chip:hover { transform: none; }
+}
+
+/* ── round 12 · the hint that breathes ──────────────── */
+/* the Konami line at the foot of the page used to sit dead still;
+   now it idles like a power lamp — a slow hard blink that never
+   quite goes out, so the secret stays findable in the dark */
+.foot-hint {
+  animation: hintbreath 2400ms steps(1) infinite;
+}
+@keyframes hintbreath {
+  0%, 100% { opacity: 1; }
+  55% { opacity: .35; }
+  75% { opacity: .8; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .foot-hint { animation: none; }
 }

@@ -9,126 +9,154 @@
 <meta property="og:description" content="محمد‌مهدی رضائی، توسعه‌دهنده‌ی فرانت‌اند. چهار وب‌سایت واقعی — فروشگاه طلا و قلک دیجیتال، بوتیک جواهرات، شرکت مهندسی مشاور و پلتفرم خیریه — در یک دروازه‌ی مشترک.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="محمد‌مهدی رضائی — توسعه‌دهنده‌ی فرانت‌اند | چهار دنیا">
+<meta name="twitter:description" content="چهار وب‌سایت واقعی — فروشگاه طلا و قلک دیجیتال، بوتیک جواهرات، شرکت مهندسی مشاور و پلتفرم خیریه — در یک دروازه‌ی مشترک.">
 <meta name="theme-color" content="#0C0C11">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preload" href="assets/fonts/Estedad-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/styles.css?v=ff180db">
+<link rel="stylesheet" href="assets/styles.css?v=mm2523">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Person","name":"محمد‌مهدی رضائی","jobTitle":"Front-End Developer","sameAs":["https://t.me/mm1381r"]}
 </script>
 </head>
 <body data-world="">
 <a class="skip" href="#content">پرش به محتوا</a>
-
 <div id="boot" class="boot" role="status" aria-label="در حال روشن کردن دستگاه بازی">
   <canvas id="bootfx" aria-hidden="true"></canvas>
-  <p class="boot-fa"><span data-px="bootfa">در حال بیدار کردن دنیاها…</span></p>
-  <p class="boot-skip"><span data-px="bootskip">برای رد کردن، کلیک کنید</span></p>
-</div>
-
+  <p class="boot-fa">
+    <span data-px="bootfa">در حال بیدار کردن دنیاها…</span></p>
+  <p class="boot-skip">
+    <span data-px="bootskip">برای رد کردن، کلیک کنید</span></p></div>
 <div id="cursor" class="cursor" aria-hidden="true">
-  <canvas class="cursor-cv"></canvas>
-</div>
+  <canvas class="cursor-cv"></canvas></div>
 <canvas id="cursorTag" class="cursor-tag" width="0" height="0" aria-hidden="true"></canvas>
-
 <div class="scanlines" aria-hidden="true"></div>
-
 <main id="content">
-
   <section class="hero" id="hero" aria-label="دروازه">
     <canvas id="field" aria-hidden="true"></canvas>
     <div class="hero-inner">
-      <p class="hero-role"><span data-px="chip">توسعه‌دهنده‌ی فرانت‌اند</span></p>
-      <h1 class="hero-name"><span data-px="name"><span class="nowrap">محمد‌مهدی</span> رضائی</span></h1>
-      <p class="hero-statement"><span data-px="statement">چهار دنیا ساخته‌ام؛ این صفحه، دروازه‌ی ورود به همه‌ی آن‌هاست.</span></p>
-      <p class="hero-para"><span data-px="para">از فروشگاه طلا و قلک دیجیتال تا بوتیک جواهرات، از شرکت مهندسی مشاور تا پلتفرم خیریه<br>چهار وب‌سایت واقعی که هر کدام در پوشه‌ی خود، در همین دامنه زنده‌اند. برای ورود، به پایین بیایید یا دکمه‌ی شروع را فشار دهید.</span></p>
-    </div>
+      <p class="hero-role">
+        <span data-px="chip">توسعه‌دهنده‌ی فرانت‌اند</span></p>
+      <h1 class="hero-name">
+        <span data-px="name">محمد‌مهدی رضائی</span></h1>
+      <p class="hero-statement">
+        <span data-px="statement">چهار دنیا ساخته‌ام؛ این صفحه، دروازه‌ی ورود به همه‌ی آن‌هاست.</span></p>
+      <p class="hero-para">
+        <span data-px="para">از فروشگاه طلا و قلک دیجیتال تا بوتیک جواهرات، از شرکت مهندسی مشاور تا پلتفرم خیریه
+          <br>چهار وب‌سایت واقعی که هر کدام در پوشه‌ی خود، در همین دامنه زنده‌اند. برای ورود، به پایین بیایید یا دکمه‌ی شروع را فشار دهید.</span></p></div>
+    <div class="go-plate" aria-hidden="true">
+      <canvas class="go-cv"></canvas></div>
     <div class="hero-cue" aria-hidden="true">
       <canvas class="cue-cv pxcv"></canvas>
-      <canvas class="cue-sub pxcv"></canvas>
-    </div>
+      <canvas class="cue-sub pxcv"></canvas></div>
+    <p class="cast-caption" aria-hidden="true">نگهبان‌های چهار دنیا — هر کدام پاسدار یک دروازه</p>
     <div class="hero-deck">
       <div class="joy" aria-hidden="true">
         <canvas class="joy-cv pxcv"></canvas>
-        <p class="joy-fa"><span data-px="joyfa">WASD</span></p>
-      </div>
+        <p class="joy-fa">
+          <span data-px="joyfa">WASD</span></p></div>
       <button class="pstart" id="startBtn" type="button" aria-label="شروع بازی و رفتن به دنیای اول">
         <canvas class="pstart-cv pxcv" aria-hidden="true"></canvas>
-        <span class="pstart-fa"><span data-px="pstartfa">شروع بازی</span></span>
-      </button>
+        <span class="pstart-fa">
+          <span data-px="pstartfa">شروع بازی</span></span></button>
       <div class="panel-btns" aria-hidden="true">
-        <span class="pbtn pbtn-white"><canvas class="pbtn-cv pxcv"></canvas></span>
-        <span class="pbtn pbtn-red"><canvas class="pbtn-cv pxcv"></canvas><span class="pbtn-fa"><span data-px="firefa">SPACE</span></span></span>
-      </div>
-    </div>
+        <span class="pbtn pbtn-white">
+          <canvas class="pbtn-cv pxcv"></canvas></span>
+        <span class="pbtn pbtn-red">
+          <canvas class="pbtn-cv pxcv"></canvas>
+          <span class="pbtn-fa">
+            <span data-px="firefa">SPACE</span></span></span></div>
+      <button class="snddeck" id="sndDeck" type="button" aria-pressed="false" aria-label="روشن یا خاموش کردن صدای دستگاه">
+        <canvas class="snddeck-cv pxcv" aria-hidden="true"></canvas></button></div>
     <div class="coin-row">
       <button class="coin-slot" id="coinBtn" type="button" aria-label="انداختن سکه — نمایشی">
-        <canvas class="coin-cv pxcv" aria-hidden="true"></canvas>
-      </button>
+        <canvas class="coin-cv pxcv" aria-hidden="true"></canvas></button>
       <p class="coin-label" dir="ltr" id="coinLabel" aria-hidden="true">INSERT COIN</p>
-      <p class="coin-fa"><span data-px="coinfa">سکه لازم نیست؛ ورود آزاد است.</span></p>
-    </div>
+      <p class="coin-fa">
+        <span data-px="coinfa">سکه لازم نیست؛ ورود آزاد است.</span></p></div>
     <div class="hero-foot" aria-hidden="true">
       <p class="crt-decal" dir="ltr" id="crtDecal">1 PLAYER · 4 WORLDS</p>
-      <p class="credit" dir="ltr" id="creditLabel">CREDIT 00</p>
-    </div>
-  </section>
-
+      <p class="credit" dir="ltr" id="creditLabel">CREDIT 00</p></div></section>
   <div class="marquee" dir="ltr" aria-hidden="true">
     <div class="marquee-track">
       <div class="marquee-seq">
-        <span class="mq-fa">چهار دنیا</span><span class="mq-dot">·</span><span class="mq-mono mono">WORLD SELECT</span><span class="mq-dot">·</span><span class="mq-fa">اردیبهشت</span><span class="mq-dot">·</span><span class="mq-fa">طلاشو</span><span class="mq-dot">·</span><span class="mq-fa">رازان</span><span class="mq-dot">·</span><span class="mq-fa">یاسی شو</span><span class="mq-dot">·</span>
-      </div>
+        <span class="mq-fa">چهار دنیا</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-mono mono">WORLD SELECT</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">اردیبهشت</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">طلاشو</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">رازان</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">یاسی شو</span>
+        <span class="mq-dot">·</span></div>
       <div class="marquee-seq">
-        <span class="mq-fa">چهار دنیا</span><span class="mq-dot">·</span><span class="mq-mono mono">WORLD SELECT</span><span class="mq-dot">·</span><span class="mq-fa">اردیبهشت</span><span class="mq-dot">·</span><span class="mq-fa">طلاشو</span><span class="mq-dot">·</span><span class="mq-fa">رازان</span><span class="mq-dot">·</span><span class="mq-fa">یاسی شو</span><span class="mq-dot">·</span>
-      </div>
-    </div>
-  </div>
+        <span class="mq-fa">چهار دنیا</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-mono mono">WORLD SELECT</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">اردیبهشت</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">طلاشو</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">رازان</span>
+        <span class="mq-dot">·</span>
+        <span class="mq-fa">یاسی شو</span>
+        <span class="mq-dot">·</span></div></div></div>
   <ul class="sr-only">
-    <li>اردیبهشت</li><li>طلاشو</li><li>رازان</li><li>یاسی شو</li>
-  </ul>
-
+    <li>اردیبهشت</li>
+    <li>طلاشو</li>
+    <li>رازان</li>
+    <li>یاسی شو</li></ul>
   <section class="world w01" data-world="01" data-name="اردیبهشت" aria-labelledby="w01t">
     <div class="world-inner">
       <div class="world-text">
-        <p class="world-kicker"><span class="mono" dir="ltr">WORLD 01</span><span class="kicker-fa">مرحله‌ی اول</span></p>
+        <p class="world-kicker">
+          <span class="mono" dir="ltr">WORLD 01</span>
+          <span class="kicker-fa">مرحله‌ی اول</span></p>
         <h2 class="world-title" id="w01t">طلای اردیبهشت</h2>
         <p class="world-sub">فروشگاه آنلاین طلا و جواهر + قلک دیجیتالِ اندوختن طلا</p>
         <p class="world-body">دنیای اول، دنیای طلاست؛ فروشگاهی چندصفحه‌ای برای طلا و جواهر — گردنبند، گوشواره، النگو، سکه — همراه با صفحه‌ی محصول، بلاگ، پرسش‌های متداول و صفحات رسمی. اما قلب تپنده‌ی این دنیا «قلک طلای اردیبهشت» است: یک وب‌اپ کامل برای اندوختن طلای آب‌شده با نرخ لحظه‌ای ۱۸ عیار؛ روی گوشی نصب می‌شود، مانند برنامه‌ای بومی سریع عمل می‌کند و مستقل از مرورگر در دسترس می‌ماند.</p>
         <ul class="chips">
-          <li class="chip"><bdi>PWA</bdi> نصب‌شدنی</li>
+          <li class="chip">
+            <bdi>PWA</bdi> نصب‌شدنی</li>
           <li class="chip">نرخ لحظه‌ای ۱۸ عیار</li>
           <li class="chip">فروشگاه چندصفحه‌ای</li>
-          <li class="chip">بلاگ و پرسش‌های متداول</li>
-        </ul>
+          <li class="chip">بلاگ و پرسش‌های متداول</li></ul>
         <div class="world-cta">
-          <a class="btn-gate" href="ordibehesht/">
+          <a class="btn-gate" href="ordibehesht/index.html">
+            <span class="btn-sheen" aria-hidden="true"></span>
             <span class="btn-label">ورود به دنیای اردیبهشت</span>
-            <span class="btn-arrow" aria-hidden="true">←</span>
-          </a>
-          <span class="path-chip mono" dir="ltr">/ordibehesht/</span>
-        </div>
-      </div>
-      <div class="world-art" aria-hidden="true">
-        <div class="cartridge">
+            <span class="btn-arrow" aria-hidden="true">←</span></a>
+          <span class="path-chip mono" dir="ltr">/ordibehesht/</span></div></div>
+      <div class="world-art">
+        <aside class="terrarium" data-terra="ingot">
+          <p class="terra-tag mono" dir="ltr" aria-hidden="true">RESIDENT · 01</p>
+          <div class="terra-cage" aria-hidden="true">
+            <canvas class="terra-cv pxcv"></canvas></div>
+          <p class="terra-name">شمشونی — نگهبان شمش‌ها</p>
+          <p class="terra-rec mono" dir="ltr" data-rec="01" hidden aria-hidden="true"></p></aside>
+        <div class="cartridge" aria-hidden="true">
           <div class="cart-stair"></div>
           <div class="cart-label-wrap">
-            <img src="assets/cartridge_1.jpg" alt="Ordibehesht Gold 16-bit Cartridge" class="cart-img" loading="lazy">
-          </div>
+            <picture>
+              <source type="image/webp" srcset="assets/cartridge_1.webp">
+              <img src="assets/cartridge_1.jpg" alt="Ordibehesht Gold 16-bit Cartridge" class="cart-img" loading="lazy"></picture></div>
           <p class="cart-num mono" dir="ltr">01</p>
           <p class="cart-plate mono" dir="ltr">ORDIBEHESHT GOLD</p>
+          <span class="cart-led" aria-hidden="true"></span>
           <div class="cart-bar"></div>
-          <div class="cart-slot"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
+          <div class="cart-slot"></div></div></div></div></section>
   <section class="world w02" data-world="02" data-name="طلاشو" aria-labelledby="w02t">
     <div class="world-inner">
       <div class="world-text">
-        <p class="world-kicker"><span class="mono" dir="ltr">WORLD 02</span><span class="kicker-fa">مرحله‌ی دوم</span></p>
+        <p class="world-kicker">
+          <span class="mono" dir="ltr">WORLD 02</span>
+          <span class="kicker-fa">مرحله‌ی دوم</span></p>
         <h2 class="world-title" id="w02t">طلاشو</h2>
         <p class="world-sub">بوتیک آنلاین جواهرات لوکس — وی‌آی‌پی برزیگر</p>
         <p class="world-body">دنیای دوم، ویترین است؛ بوتیکی شاهانه برای جواهرات لوکس، زیرمجموعه‌ی برند وی‌آی‌پی برزیگر. مگامنوی سه‌ستونه، اسلایدر جشنواره‌ها، تخته‌ی زنده‌ی قیمت طلا و سکه و دلار، شمارش‌معکوس پیشنهادهای ویژه و کارت‌های محصول. همه‌چیز از پیش برای اتصال به سرور مستندسازی و آماده شده است تا داده‌ها وارد شوند و ویترین همچنان لوکس بماند.</p>
@@ -136,71 +164,77 @@
           <li class="chip">تخته‌ی قیمت زنده</li>
           <li class="chip">آماده‌ی اتصال به بک‌اند</li>
           <li class="chip">فونت فارسی لوکال</li>
-          <li class="chip">راست‌به‌چپ کامل</li>
-        </ul>
+          <li class="chip">راست‌به‌چپ کامل</li></ul>
         <div class="world-cta">
-          <a class="btn-gate" href="talasho/">
+          <a class="btn-gate" href="talasho/index.html">
+            <span class="btn-sheen" aria-hidden="true"></span>
             <span class="btn-label">ورود به دنیای طلاشو</span>
-            <span class="btn-arrow" aria-hidden="true">←</span>
-          </a>
-          <span class="path-chip mono" dir="ltr">/talasho/</span>
-        </div>
-      </div>
-      <div class="world-art" aria-hidden="true">
-        <div class="cartridge">
+            <span class="btn-arrow" aria-hidden="true">←</span></a>
+          <span class="path-chip mono" dir="ltr">/talasho/</span></div></div>
+      <div class="world-art">
+        <aside class="terrarium" data-terra="gem">
+          <p class="terra-tag mono" dir="ltr" aria-hidden="true">RESIDENT · 02</p>
+          <div class="terra-cage" aria-hidden="true">
+            <canvas class="terra-cv pxcv"></canvas></div>
+          <p class="terra-name">الماسک — جواهرِ ویترین</p>
+          <p class="terra-rec mono" dir="ltr" data-rec="02" hidden aria-hidden="true"></p></aside>
+        <div class="cartridge" aria-hidden="true">
           <div class="cart-stair"></div>
           <div class="cart-label-wrap">
-            <img src="assets/cartridge_2.jpg" alt="Talasho Luxury 16-bit Cartridge" class="cart-img" loading="lazy">
-          </div>
+            <picture>
+              <source type="image/webp" srcset="assets/cartridge_2.webp">
+              <img src="assets/cartridge_2.jpg" alt="Talasho Luxury 16-bit Cartridge" class="cart-img" loading="lazy"></picture></div>
           <p class="cart-num mono" dir="ltr">02</p>
           <p class="cart-plate mono" dir="ltr">TALASHO</p>
+          <span class="cart-led" aria-hidden="true"></span>
           <div class="cart-bar"></div>
-          <div class="cart-slot"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
+          <div class="cart-slot"></div></div></div></div></section>
   <section class="world w03" data-world="03" data-name="رازان" aria-labelledby="w03t">
     <div class="world-inner">
       <div class="world-text">
-        <p class="world-kicker"><span class="mono" dir="ltr">WORLD 03</span><span class="kicker-fa">مرحله‌ی سوم</span></p>
+        <p class="world-kicker">
+          <span class="mono" dir="ltr">WORLD 03</span>
+          <span class="kicker-fa">مرحله‌ی سوم</span></p>
         <h2 class="world-title" id="w03t">رازان</h2>
         <p class="world-sub">وب‌سایت رسمی شرکت مهندسی مشاور رازان</p>
-        <p class="world-body">دنیای سوم به زبان دیگری سخن می‌گوید؛ وب‌سایت رسمی یک شرکت مهندسی مشاور، کاملاً انگلیسی و چپ‌به‌راست. با انیمیشن ورودی که لوگو را از پنج قطعه می‌سازد، گالری پروژه‌های معماری — از برج تجاری تهران تا ویلا و رودخانه — و بخش‌های برند، تیم و سوابق. ساختن یک دنیای <bdi>LTR</bdi> انگلیسی در کنار دنیاهای فارسی، یعنی تسلط به هر دو جهتِ طراحی.</p>
+        <p class="world-body">دنیای سوم به زبان دیگری سخن می‌گوید؛ وب‌سایت رسمی یک شرکت مهندسی مشاور، کاملاً انگلیسی و چپ‌به‌راست. با انیمیشن ورودی که لوگو را از پنج قطعه می‌سازد، گالری پروژه‌های معماری — از برج تجاری تهران تا ویلا و رودخانه — و بخش‌های برند، تیم و سوابق. ساختن یک دنیای 
+          <bdi>LTR</bdi> انگلیسی در کنار دنیاهای فارسی، یعنی تسلط به هر دو جهتِ طراحی.</p>
         <ul class="chips">
-          <li class="chip">کاملاً <bdi>LTR</bdi> و انگلیسی</li>
+          <li class="chip">کاملاً 
+            <bdi>LTR</bdi> و انگلیسی</li>
           <li class="chip">انیمیشن ورودی لوگو</li>
           <li class="chip">گالری پروژه‌های معماری</li>
-          <li class="chip">برند، تیم و سوابق</li>
-        </ul>
+          <li class="chip">برند، تیم و سوابق</li></ul>
         <div class="world-cta">
-          <a class="btn-gate" href="razan/">
+          <a class="btn-gate" href="razan/index.html">
+            <span class="btn-sheen" aria-hidden="true"></span>
             <span class="btn-label">ورود به دنیای رازان</span>
-            <span class="btn-arrow" aria-hidden="true">←</span>
-          </a>
-          <span class="path-chip mono" dir="ltr">/razan/</span>
-        </div>
-      </div>
-      <div class="world-art" aria-hidden="true">
-        <div class="cartridge">
+            <span class="btn-arrow" aria-hidden="true">←</span></a>
+          <span class="path-chip mono" dir="ltr">/razan/</span></div></div>
+      <div class="world-art">
+        <aside class="terrarium" data-terra="bolt">
+          <p class="terra-tag mono" dir="ltr" aria-hidden="true">RESIDENT · 03</p>
+          <div class="terra-cage" aria-hidden="true">
+            <canvas class="terra-cv pxcv"></canvas></div>
+          <p class="terra-name">پیچِک — مهندسِ دستگاه</p>
+          <p class="terra-rec mono" dir="ltr" data-rec="03" hidden aria-hidden="true"></p></aside>
+        <div class="cartridge" aria-hidden="true">
           <div class="cart-stair"></div>
           <div class="cart-label-wrap">
-            <img src="assets/cartridge_3.jpg" alt="Razan Engineering 16-bit Cartridge" class="cart-img" loading="lazy">
-          </div>
+            <picture>
+              <source type="image/webp" srcset="assets/cartridge_3.webp">
+              <img src="assets/cartridge_3.jpg" alt="Razan Engineering 16-bit Cartridge" class="cart-img" loading="lazy"></picture></div>
           <p class="cart-num mono" dir="ltr">03</p>
           <p class="cart-plate mono" dir="ltr">RAZAN</p>
+          <span class="cart-led" aria-hidden="true"></span>
           <div class="cart-bar"></div>
-          <div class="cart-slot"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
+          <div class="cart-slot"></div></div></div></div></section>
   <section class="world w04" data-world="04" data-name="یاسی شو" aria-labelledby="w04t">
     <div class="world-inner">
       <div class="world-text">
-        <p class="world-kicker"><span class="mono" dir="ltr">WORLD 04</span><span class="kicker-fa">مرحله‌ی چهارم</span></p>
+        <p class="world-kicker">
+          <span class="mono" dir="ltr">WORLD 04</span>
+          <span class="kicker-fa">مرحله‌ی چهارم</span></p>
         <h2 class="world-title" id="w04t">یاسی شو</h2>
         <p class="world-sub">پلتفرم مشارکت مردمی انجمن خیریه‌ی یاس کرمان</p>
         <p class="world-body">دنیای چهارم، دنیای کار است؛ پلتفرمی مردمی برای ساخت و تکمیل پروژه‌های انجمن خیریه‌ی حمایت از بیماران سرطانی یاس کرمان. آرشیو پروژه‌های درمانی، صفحه‌ی اختصاصی هر پروژه، مسیر کامل پرداخت و رسید، حساب کاربری و ثبت‌نام. در این دنیا، وب‌سایت فقط ویترین نیست؛ ابزار کار یک خیریه‌ی واقعی است — و همین، سطح دقت را چند پله بالا می‌برد.</p>
@@ -208,39 +242,36 @@
           <li class="chip">مسیر کامل پرداخت و رسید</li>
           <li class="chip">حساب کاربری و ثبت‌نام</li>
           <li class="chip">آرشیو پروژه‌ها</li>
-          <li class="chip">وب‌سایت اجتماعی واقعی</li>
-        </ul>
+          <li class="chip">وب‌سایت اجتماعی واقعی</li></ul>
         <div class="world-cta">
-          <a class="btn-gate" href="yassi/">
+          <a class="btn-gate" href="yassi/index.html">
+            <span class="btn-sheen" aria-hidden="true"></span>
             <span class="btn-label">ورود به دنیای یاسی</span>
-            <span class="btn-arrow" aria-hidden="true">←</span>
-          </a>
-          <span class="path-chip mono" dir="ltr">/yassi/</span>
-        </div>
-      </div>
-      <div class="world-art" aria-hidden="true">
-        <div class="cartridge">
+            <span class="btn-arrow" aria-hidden="true">←</span></a>
+          <span class="path-chip mono" dir="ltr">/yassi/</span></div></div>
+      <div class="world-art">
+        <aside class="terrarium" data-terra="bloom">
+          <p class="terra-tag mono" dir="ltr" aria-hidden="true">RESIDENT · 04</p>
+          <div class="terra-cage" aria-hidden="true">
+            <canvas class="terra-cv pxcv"></canvas></div>
+          <p class="terra-name">یاسِک — گلِ امید</p>
+          <p class="terra-rec mono" dir="ltr" data-rec="04" hidden aria-hidden="true"></p></aside>
+        <div class="cartridge" aria-hidden="true">
           <div class="cart-stair"></div>
           <div class="cart-label-wrap">
-            <img src="assets/cartridge_4.jpg" alt="Yassi Charity 16-bit Cartridge" class="cart-img" loading="lazy">
-          </div>
+            <picture>
+              <source type="image/webp" srcset="assets/cartridge_4.webp">
+              <img src="assets/cartridge_4.jpg" alt="Yassi Charity 16-bit Cartridge" class="cart-img" loading="lazy"></picture></div>
           <p class="cart-num mono" dir="ltr">04</p>
           <p class="cart-plate mono" dir="ltr">YASSI</p>
+          <span class="cart-led" aria-hidden="true"></span>
           <div class="cart-bar"></div>
-          <div class="cart-slot"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
+          <div class="cart-slot"></div></div></div></div></section>
   <section class="manifesto" aria-labelledby="mant">
     <div class="manifesto-inner">
       <p class="section-kicker mono" dir="ltr" aria-hidden="true">THE MAKER</p>
       <h2 class="manifesto-title" id="mant">سازنده‌ی دنیاها</h2>
-      <p class="manifesto-body">من محمد‌مهدی رضائی‌ام؛ توسعه‌دهنده‌ی فرانت‌اند. کارم این است که طراحی را از کاغذ به مرورگر بیاورم، بدون آن‌که در راه چیزی از دقت یا سرعتش کم شود. چهار دنیای این صفحه را از صفر ساخته‌ام؛ از نخستین خط تا آخرین پیکسل. به راست‌به‌چپ به‌عنوان زبان اصلی طراحی فکر می‌کنم، نه تنظیمی در پایان پروژه. فارسی را با فونت درست، نیم‌فاصله‌ی درست و پیکسل‌بندی درست می‌نویسم. رابط‌هایی می‌سازم که زنده‌اند؛ به لمس پاسخ می‌دهند، به اسکرول گوش می‌دهند و هرگز کند نمی‌شوند. جزئیاتی می‌سازم که شاید هرگز دیده نشوند — چون درست‌اند. ابزار و فناوری هرچه باشد، امضای من همین است.</p>
-    </div>
-  </section>
-
+      <p class="manifesto-body">من محمد‌مهدی رضائی‌ام؛ توسعه‌دهنده‌ی فرانت‌اند. کارم این است که طراحی را از کاغذ به مرورگر بیاورم، بدون آن‌که در راه چیزی از دقت یا سرعتش کم شود. چهار دنیای این صفحه را از صفر ساخته‌ام؛ از نخستین خط تا آخرین پیکسل. به راست‌به‌چپ به‌عنوان زبان اصلی طراحی فکر می‌کنم، نه تنظیمی در پایان پروژه. فارسی را با فونت درست، نیم‌فاصله‌ی درست و پیکسل‌بندی درست می‌نویسم. رابط‌هایی می‌سازم که زنده‌اند؛ به لمس پاسخ می‌دهند، به اسکرول گوش می‌دهند و هرگز کند نمی‌شوند. جزئیاتی می‌سازم که شاید هرگز دیده نشوند — چون درست‌اند. ابزار و فناوری هرچه باشد، امضای من همین است.</p></div></section>
   <section class="contact" aria-labelledby="cont">
     <div class="contact-inner">
       <p class="section-kicker mono" dir="ltr" aria-hidden="true">NEXT WORLD</p>
@@ -248,57 +279,47 @@
       <p class="contact-body">چهار دنیا ساخته‌ام و جای دنیای پنجمی خالی است. اگر پروژه‌ای دارید که به سازنده‌ی دنیا نیاز دارد — یک فروشگاه، یک پلتفرم، یا چیزی که هنوز نام ندارد — خوشحال می‌شوم در تماس باشیم.</p>
       <div class="contact-ctas">
         <a class="btn-gate btn-primary" href="https://t.me/mm1381r" target="_blank" rel="noopener noreferrer">
+          <span class="btn-sheen" aria-hidden="true"></span>
           <span class="btn-label">گفت‌وگو در تلگرام</span>
-          <span class="btn-arrow" aria-hidden="true">↗</span>
-        </a>
+          <span class="btn-arrow" aria-hidden="true">↗</span></a>
         <a class="btn-gate" href="mailto:m.m.rezaee@ut.ac.ir">
+          <span class="btn-sheen" aria-hidden="true"></span>
           <span class="btn-label">ارسال ایمیل</span>
-          <span class="btn-arrow" aria-hidden="true">↗</span>
-        </a>
-      </div>
-      <p class="contact-micro">معمولاً به‌سرعت پاسخ می‌دهم.</p>
-    </div>
-  </section>
-
-</main>
-
+          <span class="btn-arrow" aria-hidden="true">↗</span></a></div>
+      <p class="contact-micro">معمولاً به‌سرعت پاسخ می‌دهم.</p></div></section></main>
 <footer class="footer">
   <p class="foot-line">© محمد‌مهدی رضائی — همه‌ی دنیاها واقعی‌اند و در همین دامنه زندگی می‌کنند.</p>
   <p class="foot-ornament mono" dir="ltr" aria-hidden="true">INSERT COIN · NO COIN REQUIRED</p>
   <p class="foot-fa">سکه لازم نیست؛ ورود آزاد است.</p>
-  <p class="foot-hint mono" id="footHint" dir="ltr" aria-hidden="true">↑↑↓↓←→←→BA</p>
-</footer>
-
+  <p class="foot-cast">
+    <span class="mono" dir="ltr" aria-hidden="true">· STARRING ·</span>
+    <bdi>شمشونی</bdi> · 
+    <bdi>الماسک</bdi> · 
+    <bdi>پیچِک</bdi> · 
+    <bdi>یاسِک</bdi> — ساکنان چهار دنیا</p>
+  <a class="foot-dl mono" dir="ltr" href="the-portfolio-site.zip" download="the-portfolio-site.zip" aria-label="دانلود کل وب‌سایت به صورت فایل زیپ">▾ DOWNLOAD SITE · ZIP · 7.5MB</a>
+  <p class="foot-hint mono" id="footHint" dir="ltr" aria-hidden="true">↑↑↓↓←→←→BA</p></footer>
 <div class="hud" aria-label="ناوبری دنیاها">
   <div class="hud-right">
     <span class="hud-index mono" dir="ltr" aria-hidden="true">WORLD 01/04</span>
-    <span class="hud-world" aria-live="polite">اردیبهشت</span>
-  </div>
+    <span class="hud-world" aria-live="polite">اردیبهشت</span></div>
   <div class="hud-pips" aria-hidden="true">
     <span class="pip" data-pip="01"></span>
     <span class="pip" data-pip="02"></span>
     <span class="pip" data-pip="03"></span>
-    <span class="pip" data-pip="04"></span>
-  </div>
+    <span class="pip" data-pip="04"></span></div>
   <div class="hud-left">
     <button class="hud-sound" id="soundBtn" type="button" aria-pressed="false">
       <span class="mono" dir="ltr" aria-hidden="true">SND</span>
-      <span class="sound-label" id="soundLabel">صدا: خاموش</span>
-    </button>
-  </div>
-</div>
-
+      <span class="sound-label" id="soundLabel">صدا: خاموش</span></button></div></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
-  <div class="modal-backdrop" data-close></div>
+  <div class="modal-backdrop" data-close="true"></div>
   <div class="modal-card">
     <h2 class="modal-title" id="modalTitle">کنسول سازنده</h2>
     <p class="modal-body">چیت فعال شد. اما نگران نباشید؛ چیزی برای تقلب وجود ندارد — همه‌ی این‌ها واقعی‌اند.</p>
-    <button class="btn-gate" id="modalClose" type="button"><span class="btn-label">بستن</span></button>
-  </div>
-</div>
-
+    <button class="btn-gate" id="modalClose" type="button">
+      <span class="btn-label">بستن</span></button></div></div>
 <div class="toast" id="toast" role="status" hidden>هر چهار دنیا را پیمودید. حالا نوبت ساختن دنیای بعدی است.</div>
-
-<script src="assets/main.js?v=ff180db" defer></script>
+<script src="assets/main.js?v=mm2523" defer></script>
 </body>
 </html>
