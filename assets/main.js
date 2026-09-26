@@ -831,9 +831,9 @@
       };
       im.src = src;
     }
-    loadSheet('ship', 'assets/spr_ship.webp');
-    loadSheet('mario', 'assets/spr_mario.webp');
-    loadSheet('mother', 'assets/spr_mother.webp');
+    loadSheet('ship', 'assets/spr_ship.webp?v=mm2526');
+    loadSheet('mario', 'assets/spr_mario.webp?v=mm2526');
+    loadSheet('mother', 'assets/spr_mother.webp?v=mm2526');
   }
   initSprSheets();
 
