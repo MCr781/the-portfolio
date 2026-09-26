@@ -1160,14 +1160,17 @@
   var cloudSprs = [];
 
 function terrRow(wx, rows) {
-	     /* A landscape needs a silhouette, not television-static.  The long
+	     /* A landscape needs a silhouette, not television-static. The long
 	        wave makes a recognisable horizon; the two quieter voices add old,
-	        weathered shelves.  Quantising to two pixels gives the ridge the
+	        weathered shelves. Quantising to two pixels gives the ridge the
 	        deliberate, hand-stepped contour of a cabinet backdrop. */
 	     var h = 0.715 + Math.sin(wx * 0.018) * 0.052 +
 	       Math.sin(wx * 0.047 + 1.7) * 0.018 + vnoise(wx, 71) * 0.024;
 	     if (hash01(Math.floor(wx / 97)) > 0.82) { h += vnoise(wx, 19) * 0.026; }
-	     h = Math.max(0.655, Math.min(0.84, h));
+	     /* smooth soft-knee curvature avoiding abrupt flat-top shelf clamping */
+	     if (h > 0.81) { h = 0.81 + (h - 0.81) * 0.38; }
+	     if (h < 0.67) { h = 0.67 - (0.67 - h) * 0.38; }
+	     h = Math.max(0.655, Math.min(0.838, h));
 	     return Math.round((h * rows) / 2) * 2;
 	   }
 function farRow(wx, rows) {
@@ -3083,18 +3086,61 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
        While the planet is fallen the near ridge abandons gold for a
        red-lit scar — the ground itself remembers what was taken */
     var heroMode = mode === 'hero';
-var TONE = heroMode
-	       ? (w.planetFall
-	         ? { hi: '#592239', lite: '#35182e', base: '#211222', dim: '#100913', glint: '#ff9d70', gThr: 0.991 }
-	         : { hi: '#72569a', lite: '#483666', base: '#2a2043', dim: '#120f21', glint: '#f2cf83', gThr: 0.991 })
-	       : { hi: '#d58b49', lite: '#82513f', base: '#402542', dim: '#171020', glint: '#fff0bf', gThr: 0.987 };
+    var isFall = !!w.planetFall;
+    var PAL = !isFall
+      ? {
+          crestSpec:  '#ffffff',  /* diamond specular glint */
+          crestHi:    '#fff2a8',  /* bright phosphor gold */
+          crestBase:  '#f5b041',  /* rich amber gold */
+          crestLo:    '#d97706',  /* deep solar gold */
+          mossHi:     '#34d399',  /* subtle emerald bio-moss tips */
+          mossLo:     '#059669',
+          strataHi:   '#92400e',  /* warm copper sandstone */
+          strataBase: '#78350f',  /* rich umber loam */
+          strataLo:   '#451a03',  /* deep terracotta */
+          rockHi:     '#4c1d63',  /* cosmic purple basalt */
+          rockBase:   '#311440',
+          rockDim:    '#1c0c24',
+          bedrock:    '#0f0714',  /* deep cavern mantle */
+          goldVein:   '#ffd700',  /* raw gold ore */
+          goldSh:     '#b45309',
+          cyanGem:    '#00f0ff',  /* glowing cyan crystal */
+          cyanSh:     '#008099',
+          amethyst:   '#c084fc',  /* glowing amethyst geode */
+          amethystSh: '#7e22ce'
+        }
+      : {
+          crestSpec:  '#ffffff',
+          crestHi:    '#fed7aa',
+          crestBase:  '#f97316',
+          crestLo:    '#ea580c',
+          mossHi:     '#c2410c',
+          mossLo:     '#9a3412',
+          strataHi:   '#7c2d12',
+          strataBase: '#5c1d0a',
+          strataLo:   '#451a03',
+          rockHi:     '#431407',
+          rockBase:   '#2c0b0e',
+          rockDim:    '#1a0608',
+          bedrock:    '#0e0304',
+          goldVein:   '#ff4500',
+          goldSh:     '#7c2d12',
+          cyanGem:    '#ffaa00',
+          cyanSh:     '#9a3412',
+          amethyst:   '#ef4444',
+          amethystSh: '#450a0a'
+        };
 
     /* far mountains — slow silhouette ridge */
     var fx0 = Math.floor(w.worldX * 0.22);
     for (var sx = 0; sx < cols; sx++) {
       var ftr = farRow(fx0 + sx, rows);
-      g.fillStyle = heroMode ? '#0e0d17' : PC.far;
+      g.fillStyle = heroMode ? '#0b0918' : PC.far;
       g.fillRect(sx, ftr, 1, rows - ftr);
+      if (hash01(fx0 + sx) > 0.45) {
+        g.fillStyle = heroMode ? '#16122e' : PC.mid;
+        g.fillRect(sx, ftr, 1, 1);
+      }
     }
 
     /* mid mountains — silhouette with a lit top edge */
@@ -3103,166 +3149,212 @@ var TONE = heroMode
       var mtr = midRow(mx0 + sx, rows);
       g.fillStyle = heroMode ? '#131024' : PC.mid;
       g.fillRect(sx, mtr, 1, rows - mtr);
-      if (hash01(mx0 + sx) > 0.5) {
-        g.fillStyle = heroMode ? '#1c1832' : PC.midEdge;
+      if (hash01(mx0 + sx) > 0.4) {
+        g.fillStyle = heroMode ? '#251c3e' : PC.midEdge;
         g.fillRect(sx, mtr, 1, 1);
       }
     }
 
-/* near terrain — the gold-phosphor ground the game plays on, laid
-         with love: a two-light crest that reads on the dimmest cabinet,
-         ridge fireflies where the gold breathes, strata with wandering
-         hash-offset bedding, pebble grain in the face, a six-row bayer
-         fade into deep ground — and surface props with personalities:
-         cross-glittering crystals, shaded rocks, three-blade tufts,
-         ancient ruin stones, wildflower clusters, mushroom caps, and
-         gemstone veins that catch the light. A foreground grass blade
-         row sits at the crest's lip so the ground reads as living, not
-         drawn — and the whole ridge breathes with gold fireflies. */
-	     var wx0 = Math.floor(w.worldX);
-	     for (sx = 0; sx < cols; sx++) {
-	       var wx = wx0 + sx;
-	       var tr = terrRow(wx, rows);
-	       var hv = hash01(wx);
-	       var seam = hash01(wx * 3 + 11);
-	       var seam2 = hash01(wx * 7 + 23);
-	       /* surface props — rare, deterministic, part of the world */
-	       var prop = hash01(wx * 13 + 5);
-	       if (prop > 0.998) {
-	         /* a tall ruin pillar: ancient stone standing alone, lit from
-	            the upper-left, with a gold capstone that winks */
-	         g.fillStyle = TONE.dim;
-	         g.fillRect(sx, tr - 8, 1, 8);
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr - 9, 1, 1);
-	         g.fillRect(sx - 1, tr - 8, 3, 1);
-	         if ((Math.floor(t / 600 + wx) % 4) === 0) {
-	           g.fillStyle = TONE.glint;
-	           g.fillRect(sx, tr - 9, 1, 1);
-	         }
-	       } else if (prop > 0.995) {
-	         /* a ruin stone: old wall with a dim cap, keeping one gold fleck
-	            that winks on a slow cycle */
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr - 5, 2, 5);
-	         g.fillStyle = TONE.dim;
-	         g.fillRect(sx, tr - 6, 2, 1);
-	         if ((Math.floor(t / 500 + wx) % 3) === 0) {
-	           g.fillStyle = TONE.glint;
-	           g.fillRect(sx, tr - 4, 1, 1);
-	         }
-	       } else if (prop > 0.991) {
-	         /* a crystal cluster: three crystals of varying height, their
-	            cross-tips twinkling gold in rotation */
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr - 4, 1, 4);
-	         g.fillRect(sx + 2, tr - 3, 1, 3);
-	         g.fillRect(sx - 1, tr - 2, 1, 2);
-	         var cPhase = Math.floor(t / 250 + wx);
-	         g.fillStyle = (cPhase % 3 === 0) ? TONE.glint : TONE.lite;
-	         g.fillRect(sx, tr - 5, 1, 1);
-	         g.fillRect(sx - 1, tr - 5, 3, 1);
-	         if (cPhase % 3 === 1) {
-	           g.fillStyle = TONE.glint;
-	           g.fillRect(sx + 2, tr - 4, 1, 1);
-	         }
-	       } else if (prop > 0.987) {
-	         /* a mushroom: a tiny cap on a stem, the forest's own coin */
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr - 1, 1, 2);
-	         g.fillStyle = TONE.hi;
-	         g.fillRect(sx - 1, tr - 2, 3, 1);
-	         g.fillStyle = TONE.glint;
-	         g.fillRect(sx, tr - 2, 1, 1);
-	       } else if (prop > 0.981) {
-	         /* a wildflower: a tiny cluster of gold and white pixels */
-	         g.fillStyle = TONE.glint;
-	         g.fillRect(sx, tr - 2, 1, 1);
-	         g.fillStyle = '#ffffff';
-	         g.fillRect(sx - 1, tr - 3, 1, 1);
-	         g.fillRect(sx + 1, tr - 3, 1, 1);
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr - 1, 1, 1);
-	       } else if (prop > 0.968) {
-	         /* a rock: a chunky knob with a lit brow and a shaded foot */
-	         g.fillStyle = TONE.dim;
-	         g.fillRect(sx - 1, tr - 1, 3, 1);
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx - 1, tr - 2, 2, 1);
-	         g.fillStyle = TONE.glint;
-	         g.fillRect(sx - 1, tr - 2, 1, 1);
-	       } else if (prop > 0.945) {
-	         /* a tuft: three blades leaning out from one root */
-	         g.fillStyle = TONE.hi;
-	         g.fillRect(sx, tr - 1, 1, 1);
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx - 1, tr - 2, 1, 2);
-	         g.fillRect(sx + 1, tr - 3, 1, 3);
-	       } else if (prop > 0.790 && prop < 0.808) {
-	         /* a grass blade: a single pixel at the crest lip */
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr - 1, 1, 1);
-	       }
-	       if (hv > TONE.gThr) {
-	         /* ridge fireflies breathe: two gold pixels blinking on a slow
-	            odd-period cycle, each column offset so the ridge shimmers */
-	         if ((Math.floor((t + sx * 137) / 420) % 2) === 0) {
-	           g.fillStyle = TONE.glint;
-	           g.fillRect(sx, tr - 2, 1, 2);
-	         }
-	       }
-	       /* crest sparkle: the brightest ridge stones catch the light */
-	       if (hv > 0.86) {
-	         g.fillStyle = TONE.glint;
-	         g.fillRect(sx, tr - 1, 1, 1);
-	       }
-	       /* a foreground grass blade row at the crest's lip — the ground
-	          reads as living, not drawn */
-	       if (hv > 0.58 && hv < 0.62) {
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr, 1, 1);
-	       }
-	       /* the crest keeps two lights: a bright crown over a soft lip */
-	       g.fillStyle = hv > 0.52 ? TONE.hi : TONE.lite;
-	       g.fillRect(sx, tr, 1, 1);
-	       g.fillStyle = hv > 0.42 ? TONE.lite : TONE.base;
-	       g.fillRect(sx, tr + 1, 1, 1);
-	       g.fillStyle = TONE.base;
-	       g.fillRect(sx, tr + 2, 1, 5);
-	       /* bedding seams that wander like rock, not like graph paper —
-	          two independent seam offsets create overlapping strata */
-	       if (((wx + Math.floor(seam * 4)) & 7) < 2) {
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr + 4, 1, 1);
-	       }
-	       if (seam > 0.72) {
-	         g.fillStyle = TONE.lite;
-	         g.fillRect(sx, tr + 6, 1, 1);
-	       }
-	       if (((wx + Math.floor(seam2 * 3)) & 5) < 2) {
-	         g.fillStyle = TONE.hi;
-	         g.fillRect(sx, tr + 8, 1, 1);
-	       }
-	       /* pebble grain in the face — denser, more organic */
-	       var grain = hash01(wx * 7 + 1);
-	       if (grain > 0.82) {
-	         g.fillStyle = TONE.dim;
-	         g.fillRect(sx, tr + 3, 1, 1);
-	       }
-	       if (grain > 0.91) {
-	         g.fillStyle = TONE.hi;
-	         g.fillRect(sx, tr + 5, 1, 1);
-	       }
-	       /* face → dithered fade into deep ground, eight rows deep */
-	       for (var dRow = 0; dRow < 8; dRow++) {
-	         var yy = tr + 7 + dRow;
-	         if (yy >= rows) { break; }
-	         if (bayerAt(sx, yy) > dRow / 8) { g.fillStyle = TONE.base; } else { g.fillStyle = TONE.dim; }
-	         g.fillRect(sx, yy, 1, 1);
-	       }
-	       g.fillStyle = TONE.dim;
-	       if (tr + 15 < rows) { g.fillRect(sx, tr + 15, 1, rows - tr - 15); }
-	     }
+    /* near terrain — rich 16-bit arcade pixel art ground */
+    var wx0 = Math.floor(w.worldX);
+
+    /* Pass 1: Geological strata & subterranean bedrock with run-length batching */
+    for (sx = 0; sx < cols; sx++) {
+      var wx = wx0 + sx;
+      var tr = terrRow(wx, rows);
+      var hv = hash01(wx);
+      var sWave1 = Math.sin(wx * 0.045 + 1.2) * 2.2 + vnoise(wx, 29) * 2.8;
+      var sWave2 = Math.sin(wx * 0.024 + 3.1) * 3.2 + vnoise(wx, 47) * 3.5;
+      var sWave3 = Math.sin(wx * 0.013 + 0.5) * 4.2 + vnoise(wx, 73) * 4.0;
+
+      var curCol = null, runStart = tr;
+      for (var sy = tr; sy < rows; sy++) {
+        var depth = sy - tr;
+        var pCol;
+
+        if (depth === 0) {
+          pCol = hv > 0.88 ? PAL.crestSpec : (hv > 0.40 ? PAL.crestHi : (hv > 0.18 ? PAL.crestBase : PAL.crestLo));
+        } else if (depth === 1) {
+          pCol = hv > 0.72 ? PAL.crestHi : (hv > 0.35 ? PAL.crestBase : (hv > 0.12 ? PAL.crestLo : PAL.strataHi));
+        } else if (depth === 2 || depth === 3) {
+          var mCut = bayerAt(sx, sy);
+          pCol = (hv > 0.65 && mCut > 0.4) ? PAL.crestLo : (mCut > 0.3 ? PAL.strataHi : PAL.strataBase);
+        } else if (depth < 12) {
+          var bPos = depth - 4 + sWave1;
+          if (bPos >= 2.0 && bPos <= 4.2) {
+            pCol = bayerAt(sx, sy) > 0.25 ? PAL.strataHi : PAL.strataBase;
+          } else if (bPos >= 6.5 && bPos <= 8.5) {
+            pCol = PAL.strataLo;
+          } else {
+            pCol = bayerAt(sx, sy) > (depth - 4) / 9.0 ? PAL.strataBase : PAL.strataLo;
+          }
+          if (hash01(wx * 13 + depth * 19) > 0.95) { pCol = PAL.goldVein; }
+        } else if (depth < 28) {
+          var bPos2 = depth - 12 + sWave2;
+          var isGold = (bPos2 >= 2.2 && bPos2 <= 4.0) && (hash01(wx * 5 + 7) > 0.60);
+          var isCyan = (bPos2 >= 7.5 && bPos2 <= 9.2) && (hash01(wx * 3 + 19) > 0.64);
+          var isAmeth = (bPos2 >= 13.0 && bPos2 <= 14.8) && (hash01(wx * 7 + 41) > 0.70);
+          if (isGold) { pCol = bayerAt(sx, sy) > 0.3 ? PAL.goldVein : PAL.goldSh; }
+          else if (isCyan) { pCol = bayerAt(sx, sy) > 0.25 ? PAL.cyanGem : PAL.cyanSh; }
+          else if (isAmeth) { pCol = bayerAt(sx, sy) > 0.3 ? PAL.amethyst : PAL.amethystSh; }
+          else if (bPos2 >= 5.0 && bPos2 <= 6.8) { pCol = PAL.rockHi; }
+          else { pCol = bayerAt(sx, sy) > (depth - 12) / 16.0 ? PAL.rockBase : PAL.rockDim; }
+        } else {
+          var tDeep = Math.min(1.0, (depth - 28) / 36.0);
+          var cellX = Math.floor(wx / 22);
+          var cellY = Math.floor(depth / 16);
+          var fSeed = hash01(cellX * 97 + cellY * 31);
+          var rX = (wx % 22) - 11;
+          var rY = (depth % 16) - 8;
+          var dist = rX * rX + rY * rY;
+          if (fSeed > 0.95 && dist <= 14) {
+            pCol = dist <= 3 ? ((wx + depth) % 2 === 0 ? PAL.cyanGem : PAL.crestHi) : (bayerAt(sx, sy) > 0.4 ? '#64748b' : PAL.rockHi);
+          } else if (fSeed > 0.90 && dist <= 10) {
+            pCol = bayerAt(sx, sy) > 0.35 ? PAL.goldVein : PAL.goldSh;
+          } else {
+            pCol = bayerAt(sx, sy) > tDeep ? PAL.rockDim : PAL.bedrock;
+          }
+        }
+
+        if (pCol !== curCol) {
+          if (curCol !== null) {
+            g.fillStyle = curCol;
+            g.fillRect(sx, runStart, 1, sy - runStart);
+          }
+          curCol = pCol;
+          runStart = sy;
+        }
+      }
+      if (curCol !== null && runStart < rows) {
+        g.fillStyle = curCol;
+        g.fillRect(sx, runStart, 1, rows - runStart);
+      }
+    }
+
+    /* Pass 2: Landmark Surface Props & Animated Flora */
+    var colOccupied = 0;
+    for (sx = 3; sx < cols - 8; sx++) {
+      if (colOccupied > 0) { colOccupied--; continue; }
+      var wxP = wx0 + sx;
+      var trP = terrRow(wxP, rows);
+      var trNext = terrRow(wxP + 1, rows);
+      var slope = Math.abs(trNext - trP);
+      var pSeed = hash01(wxP * 37 + 11);
+
+      /* 1. Ancient Runic Obelisk / Monolith (width 6, height 13) */
+      if (pSeed > 0.982 && slope <= 2) {
+        colOccupied = 8;
+        var pulse = Math.sin(t * 0.004 + wxP);
+        var glyphCol = pulse > 0 ? PAL.cyanGem : PAL.crestHi;
+        for (var dy = 0; dy < 13; dy++) {
+          var py = trP - 13 + dy;
+          var curW = dy < 2 ? 2 : (dy < 5 ? 4 : 6);
+          var startX = sx + Math.floor((6 - curW) / 2);
+          for (var px = startX; px < startX + curW; px++) {
+            var bCol;
+            if (px === startX) { bCol = '#94a3b8'; }
+            else if (px === startX + curW - 1) { bCol = '#334155'; }
+            else if ((dy === 4 || dy === 7 || dy === 10) && px === startX + 1) { bCol = glyphCol; }
+            else { bCol = '#64748b'; }
+            g.fillStyle = bCol;
+            g.fillRect(px, py, 1, 1);
+          }
+        }
+        for (var px2 = sx - 1; px2 < sx + 7; px2++) {
+          g.fillStyle = PAL.crestBase;
+          g.fillRect(px2, trP - 1, 1, 1);
+        }
+      }
+      /* 2. Bioluminescent Crystal Cluster (width 6, height 9) */
+      else if (pSeed > 0.965 && slope <= 2) {
+        colOccupied = 6;
+        var cType = hash01(wxP * 17) > 0.5;
+        var cHi = cType ? PAL.cyanGem : PAL.amethyst;
+        var cSh = cType ? PAL.cyanSh : PAL.amethystSh;
+        for (var dy2 = 0; dy2 < 9; dy2++) {
+          g.fillStyle = dy2 === 0 ? PAL.crestSpec : cHi;
+          g.fillRect(sx + 2, trP - 9 + dy2, 1, 1);
+          g.fillStyle = cSh;
+          g.fillRect(sx + 3, trP - 9 + dy2, 1, 1);
+        }
+        for (var dy3 = 0; dy3 < 6; dy3++) {
+          g.fillStyle = cHi;
+          g.fillRect(sx, trP - 6 + dy3, 1, 1);
+          g.fillStyle = cSh;
+          g.fillRect(sx + 1, trP - 6 + dy3, 1, 1);
+        }
+        g.fillStyle = cHi;
+        g.fillRect(sx + 4, trP - 4, 1, 4);
+        if ((Math.floor(t * 0.003 + wxP) % 3) === 0) {
+          g.fillStyle = '#ffffff';
+          g.fillRect(sx + 2, trP - 10, 1, 1);
+          g.fillRect(sx + 1, trP - 9, 3, 1);
+        }
+      }
+      /* 3. Glowing Spore Mushroom Colony */
+      else if (pSeed > 0.948 && slope <= 2) {
+        colOccupied = 5;
+        var mCap = hash01(wxP * 7) > 0.5 ? '#f43f5e' : '#ec4899';
+        g.fillStyle = mCap;
+        g.fillRect(sx, trP - 4, 4, 1);
+        g.fillRect(sx - 1, trP - 3, 6, 1);
+        g.fillStyle = '#be185d';
+        g.fillRect(sx - 1, trP - 2, 6, 1);
+        g.fillStyle = '#ffffff';
+        g.fillRect(sx, trP - 4, 1, 1);
+        g.fillRect(sx + 3, trP - 3, 1, 1);
+        g.fillStyle = '#fdf4ff';
+        g.fillRect(sx + 1, trP - 2, 1, 2);
+        g.fillStyle = '#cbd5e1';
+        g.fillRect(sx + 2, trP - 2, 1, 2);
+        g.fillStyle = mCap;
+        g.fillRect(sx + 4, trP - 2, 1, 1);
+        g.fillStyle = '#fdf4ff';
+        g.fillRect(sx + 4, trP - 1, 1, 1);
+      }
+      /* 4. Chunky 3D Pixel Boulder */
+      else if (pSeed > 0.925) {
+        colOccupied = 4;
+        g.fillStyle = PAL.crestHi;
+        g.fillRect(sx, trP - 3, 3, 1);
+        g.fillStyle = '#94a3b8';
+        g.fillRect(sx - 1, trP - 2, 1, 1);
+        g.fillStyle = '#64748b';
+        g.fillRect(sx, trP - 2, 2, 1);
+        g.fillStyle = '#334155';
+        g.fillRect(sx + 2, trP - 2, 1, 1);
+        g.fillStyle = '#1e293b';
+        g.fillRect(sx - 1, trP - 1, 4, 1);
+      }
+      /* 5. Cosmic Wildflower Blossom */
+      else if (pSeed > 0.900) {
+        var fCol = hash01(wxP * 19) > 0.5 ? '#f59e0b' : '#38bdf8';
+        g.fillStyle = fCol;
+        g.fillRect(sx, trP - 3, 1, 1);
+        g.fillRect(sx - 1, trP - 2, 3, 1);
+        g.fillStyle = '#ffffff';
+        g.fillRect(sx, trP - 2, 1, 1);
+        g.fillStyle = PAL.crestLo;
+        g.fillRect(sx, trP - 1, 1, 1);
+      }
+      /* 6. Wind-Swaying Phosphor Grass & Fern Tufts */
+      else if (pSeed > 0.810) {
+        var sway = Math.round(Math.sin(t * 0.003 + wxP * 0.18));
+        g.fillStyle = PAL.crestBase;
+        g.fillRect(sx, trP - 1, 1, 2);
+        g.fillStyle = PAL.mossHi;
+        g.fillRect(sx - 1 + sway, trP - 3, 1, 2);
+        g.fillStyle = PAL.crestHi;
+        g.fillRect(sx + 1 + sway, trP - 4, 1, 3);
+      }
+      /* 7. Floating Ridge Bio-Spores & Fireflies */
+      if (hash01(wxP * 43) > 0.955) {
+        var flyY = trP - 3 - Math.floor(Math.abs(Math.sin(t * 0.003 + wxP * 0.4)) * 8);
+        var flyCol = (Math.floor(t * 0.004 + wxP) % 2 === 0) ? PAL.crestSpec : PAL.cyanGem;
+        g.fillStyle = flyCol;
+        g.fillRect(sx, flyY, 1, 1);
+      }
+    }
 
     /* embers off the fallen world's ridge — hot pixels climbing off
        the scar and fading. Spawned by the sim, drawn here, gone fast */
