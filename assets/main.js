@@ -815,6 +815,48 @@
     }
   }
 
+  /* ── animated sprite sheets preloader & hardware blitter ── */
+  var SPR_SHEETS = {
+    ship: { img: null, loaded: false, cols: 6, rows: 6, cellW: 195, cellH: 85 },
+    mario: { img: null, loaded: false, cols: 6, rows: 3, cellW: 108, cellH: 160 },
+    mother: { img: null, loaded: false, cols: 6, rows: 6, cellW: 228, cellH: 120 }
+  };
+  function initSprSheets() {
+    if (typeof Image === 'undefined') { return; }
+    function loadSheet(key, src) {
+      var im = new Image();
+      im.onload = function () {
+        SPR_SHEETS[key].img = im;
+        SPR_SHEETS[key].loaded = true;
+      };
+      im.src = src;
+    }
+    loadSheet('ship', 'assets/spr_ship.webp');
+    loadSheet('mario', 'assets/spr_mario.webp');
+    loadSheet('mother', 'assets/spr_mother.webp');
+  }
+  initSprSheets();
+
+  function drawSheetFrame(g, key, frameIdx, x, y, destW, destH, flip, alpha) {
+    var S = SPR_SHEETS[key];
+    if (!S || !S.loaded || !S.img) { return false; }
+    var col = frameIdx % S.cols;
+    var row = Math.floor(frameIdx / S.cols);
+    var sx = col * S.cellW;
+    var sy = row * S.cellH;
+    g.save();
+    if (alpha !== undefined && alpha < 1) { g.globalAlpha = Math.max(0, alpha); }
+    if (flip) {
+      g.translate(Math.round(x + destW), Math.round(y));
+      g.scale(-1, 1);
+      g.drawImage(S.img, sx, sy, S.cellW, S.cellH, 0, 0, destW, destH);
+    } else {
+      g.drawImage(S.img, sx, sy, S.cellW, S.cellH, Math.round(x), Math.round(y), destW, destH);
+    }
+    g.restore();
+    return true;
+  }
+
   /* pixel ball — a shaded circle, the pixel-art way to draw domes */
   function pxBall(g, cx, cy, r, tones, squishX) {
     /* tones: {out, hi, base, dk} — hi on the upper-left, dk lower-right */
@@ -2093,6 +2135,7 @@ var moX = Math.round(M.sx);
     var w = world;
     if (!w) { return; }
     var S = w.ship;
+    S.lastFire = w.t;
     /* while the gift burns, the gun IS the beam: one continuous lance,
        zero-length bolts — the FIRE dome and SPACE pull the same beam */
     if (w.t < (w.laserUntil || 0)) {
@@ -3305,15 +3348,19 @@ if (w.mother) {
 	             }
 	           }
 	         }
-	         drawSpr(g, SPR_MOTHER, moRX, moRY, MOTHER_LEG, 0, 2);
-	         /* engine-block lights blink in step, the eye breathes — faster
-	            when the hull is bleeding (rage) */
 	         var rageMo = MoR.hp <= 3;
-	         g.fillStyle = (Math.floor(t / (rageMo ? 150 : 380)) % 2) ? PC.gold : '#ffffff';
-	         g.fillRect(moRX + 2, moRY + 20, 2, 2);
-	         g.fillRect(moRX + MOTHER_DRAW_W - 4, moRY + 20, 2, 2);
-	         g.fillStyle = (Math.floor(t / (rageMo ? 110 : 240)) % 2) ? PC.redHi : PC.red;
-	         g.fillRect(moRX + 24, moRY + 10, 12, 4);
+	         var moFrame = Math.floor(t / (rageMo ? 35 : 70)) % 36;
+	         var drewMother = drawSheetFrame(g, 'mother', moFrame, moRX - 2, moRY - 4, 72, 38, 0);
+	         if (!drewMother) {
+	           drawSpr(g, SPR_MOTHER, moRX, moRY, MOTHER_LEG, 0, 2);
+	           /* engine-block lights blink in step, the eye breathes — faster
+	              when the hull is bleeding (rage) */
+	           g.fillStyle = (Math.floor(t / (rageMo ? 150 : 380)) % 2) ? PC.gold : '#ffffff';
+	           g.fillRect(moRX + 2, moRY + 20, 2, 2);
+	           g.fillRect(moRX + MOTHER_DRAW_W - 4, moRY + 20, 2, 2);
+	           g.fillStyle = (Math.floor(t / (rageMo ? 110 : 240)) % 2) ? PC.redHi : PC.red;
+	           g.fillRect(moRX + 24, moRY + 10, 12, 4);
+	         }
 	         if (MoR.shield > 0) {
 	           g.fillStyle = PC.bulletGlow;
 	           for (var shX = 0; shX < MOTHER_DRAW_W; shX += 2) {
@@ -3560,7 +3607,10 @@ if (w.mother) {
                    py + 5 + Math.round(Math.sin(pa) * (rr2 - 1)), 1, 1);
       }
       var half = Math.min(4, Math.floor(age / 1500 * 4) + 1);
-      drawSprClip(g, SPR_SHIP, px, py, SHIP_LEG, 0, 4 - half, 3 + half);
+      var drewPortalShip = drawSheetFrame(g, 'ship', 0, px - 8, py - 6, 52, 23, 0, Math.min(1, age / 1500));
+      if (!drewPortalShip) {
+        drawSprClip(g, SPR_SHIP, px, py, SHIP_LEG, 0, 4 - half, 3 + half);
+      }
     } else {
       /* facing mirrors the hull; a victory roll flips it once more */
       var flip = ((S.face || 1) < 0 ? 1 : 0) ^ (t < (S.flipUntil || 0) ? 1 : 0);
@@ -3577,12 +3627,27 @@ if (w.mother) {
                      shipY + 5 + Math.round(Math.sin(ia) * 7), 1, 1);
         }
       }
+      var shipDrawn = false;
       if (!inv || (Math.floor(t / 110) % 2) === 0) {
+        var shipFrame = 0;
+        if (superOn && w.t < (w.beamUntil || 0)) {
+          /* heavy super beam: 14 frames cycling fast */
+          shipFrame = 20 + (Math.floor(t / 40) % 14);
+        } else if (w.t - (S.lastFire || 0) < 260) {
+          /* active laser fire burst: 10 frames */
+          shipFrame = 10 + (Math.floor(t / 50) % 10);
+        } else {
+          /* clean idle hover: 10 frames engine flicker */
+          shipFrame = Math.floor(t / 80) % 10;
+        }
+        var drawShipX = flip ? shipX - 14 : shipX - 8;
+        var drawShipY = shipY - 6;
+        shipDrawn = drawSheetFrame(g, 'ship', shipFrame, drawShipX, drawShipY, 52, 23, flip);
+
         if (superOn) {
           /* the gift shows: gold hull, white-hot trim, a pulsing halo
              and golden sparks trailing the engines — the ship wears
              the mushroom's promise on the outside too */
-          drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG_SUPER, flip);
           if (Math.floor(t / 200) % 2) {
             g.fillStyle = PC.goldHi;
             for (var hk = 0; hk < 12; hk++) {
@@ -3598,15 +3663,16 @@ if (w.mother) {
                             : shipX - 3 - Math.round(sph * 12),
                        shipY + 5 + Math.round(Math.sin(sph * 6.28 + sk2 * 2.1) * 2), 1, 1);
           }
-        } else {
-          drawSpr(g, SPR_SHIP, shipX, shipY, SHIP_LEG, flip);
+        }
+        if (!shipDrawn) {
+          drawSpr(g, SPR_SHIP, shipX, shipY, superOn ? SHIP_LEG_SUPER : SHIP_LEG, flip);
           /* Nose tip plasma flare & canopy specular shine */
           var nosePx = flip ? shipX : shipX + 29;
           g.fillStyle = (Math.floor(t / 130) % 2) ? '#ffffff' : '#00f0ff';
           g.fillRect(nosePx, shipY + 5, 1, 1);
         }
       }
-      if (!inv || (Math.floor(t / 110) % 2) === 0) {
+      if (!shipDrawn && (!inv || (Math.floor(t / 110) % 2) === 0)) {
         /* the exhaust: a four-stage arcade flame — white-hot root,
            gold body, orange transition, ember tip — breathing through
            a 3-phase flicker, so she looks alive even holding still.
@@ -3635,12 +3701,15 @@ if (w.mother) {
       }
     }
     if (w.mario) {
-      /* the guest is BIG now: a 12×15 plumber at scale 2 — he walks
-         the visible lane, lobs the mushroom in a tracked arc, bows out */
+      /* the guest is BIG now: animated plumber with 16-frame walk cycle + victory punch */
       var M2 = w.mario;
       var mx2 = Math.round(M2.x), my2 = Math.round(M2.y);
       var mFlip = M2.give ? 1 : 0;
-      drawSpr(g, (Math.floor(t / 150) % 2) ? SPR_MARIO2 : SPR_MARIO, mx2, my2, MARIO_LEG, mFlip, 2);
+      var marioFrame = (M2.toss && !M2.give) ? 16 : (Math.floor(t / 70) % 16);
+      var drewMario = drawSheetFrame(g, 'mario', marioFrame, mx2, my2 - 12, 28, 42, mFlip);
+      if (!drewMario) {
+        drawSpr(g, (Math.floor(t / 150) % 2) ? SPR_MARIO2 : SPR_MARIO, mx2, my2, MARIO_LEG, mFlip, 2);
+      }
       if (M2.toss && !M2.give) {
         drawSpr(g, SPR_SHROOM, Math.round(M2.sx), Math.round(M2.sy), SHROOM_LEG,
                 (Math.floor(t / 120) % 2) ? 1 : 0, 2);
@@ -4948,8 +5017,11 @@ if (w.mother) {
         var spr = row[0];
         if (i === 2 && (Math.floor(t / 180) % 2)) { spr = SPR_MUTANT2; }   /* the mutant flaps */
         var bob = Math.round(Math.sin(t * 0.004 + i * 1.7) * 1.5);
-        var sway = i === 4 ? Math.round(Math.sin(t * 0.003 + i) * 1.5) : 0;
-        drawSpr(g, spr, box.x + 16 + sway, ry + bob + 1, row[1]);
+        if (spr === SPR_MOTHER && drawSheetFrame(g, 'mother', Math.floor(t / 70) % 36, box.x + 16 + sway - 1, ry + bob - 1, 36, 19)) {
+          /* animated mothership */
+        } else {
+          drawSpr(g, spr, box.x + 16 + sway, ry + bob + 1, row[1]);
+        }
         if (i === 1 && blink) {
           /* the tractor hangs its beam even on the placard */
           g.fillStyle = '#7a1f4d';
