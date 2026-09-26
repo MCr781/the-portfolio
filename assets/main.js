@@ -817,7 +817,7 @@
 
   /* ── animated sprite sheets preloader & hardware blitter ── */
   var SPR_SHEETS = {
-    ship: { img: null, loaded: false, cols: 6, rows: 6, cellW: 195, cellH: 85 },
+    ship: { img: null, loaded: false, cols: 6, rows: 8, cellW: 195, cellH: 85 },
     mario: { img: null, loaded: false, cols: 6, rows: 3, cellW: 108, cellH: 160 },
     mother: { img: null, loaded: false, cols: 6, rows: 6, cellW: 228, cellH: 120 }
   };
@@ -3361,13 +3361,6 @@ if (w.mother) {
 	           g.fillStyle = (Math.floor(t / (rageMo ? 110 : 240)) % 2) ? PC.redHi : PC.red;
 	           g.fillRect(moRX + 24, moRY + 10, 12, 4);
 	         }
-	         if (MoR.shield > 0) {
-	           g.fillStyle = PC.bulletGlow;
-	           for (var shX = 0; shX < MOTHER_DRAW_W; shX += 2) {
-	             if (bayerAt(moRX + shX, moRY) > 0.35) { g.fillRect(moRX + shX, moRY - 1, 1, 1); }
-	             if (bayerAt(moRX + shX + 7, moRY) > 0.6) { g.fillRect(moRX + shX, moRY + MOTHER_DRAW_H, 1, 1); }
-	           }
-	         }
 	         if (MoR.hitFlash > 0 && (Math.floor(t / 40) % 2) === 0) {
 	           g.globalAlpha = 0.55;
 	           g.fillStyle = '#ffffff';
@@ -3506,22 +3499,23 @@ if (w.mother) {
       }
     }
 
-    /* bullets — 16-bit plasma laser bolts */
+    /* bullets — green plasma laser bolts matching the ship sprite */
     for (i = 0; i < w.bullets.length; i++) {
       var bx = Math.round(w.bullets[i].x);
       var by = Math.round(w.bullets[i].y);
       var bd = w.bullets[i].dir || 1;
-      g.fillStyle = PC.bulletGlow;
+      g.fillStyle = '#22b332';
       g.fillRect(bd > 0 ? bx - 2 : bx - 5, by, 8, 1);
-      g.fillStyle = PC.bullet;
+      g.fillStyle = '#47d84d';
       g.fillRect(bd > 0 ? bx - 2 : bx - 2, by, 5, 1);
+      g.fillStyle = '#c4f092';
+      g.fillRect(bd > 0 ? bx : bx - 2, by, 3, 1);
       g.fillStyle = '#ffffff';
-      g.fillRect(bd > 0 ? bx + 2 : bx - 3, by, 2, 1);
+      g.fillRect(bd > 0 ? bx + 2 : bx - 3, by, 1, 1);
     }
 
     /* the unibeam — a literal infinite lance: nose to sky's edge (or
-       the first mountain it meets), white core, cyan sheath, gold
-       muzzle bloom. Iron Man would approve. */
+       the first mountain it meets), white core, cyan sheath. */
     if (w.t < (w.beamUntil || 0) && !w.shipDead && !w.portal) {
       var Sb = w.ship;
       var dirB = (Sb.face || 1) < 0 ? -1 : 1;
@@ -3553,13 +3547,6 @@ if (w.mother) {
           g.fillRect(x0B + esp, beamY + 3, 1, 1);
         }
       }
-      /* muzzle bloom — a gold cross with a white heart */
-      g.fillStyle = PC.gold;
-      g.fillRect(muzzX - 2, beamY - 3, 5, 7);
-      g.fillStyle = PC.goldHi;
-      g.fillRect(muzzX - 1, beamY - 2, 3, 5);
-      g.fillStyle = '#ffffff';
-      g.fillRect(muzzX - 1, beamY - 1, 3, 3);
       /* a hot spark where the lance meets sky or stone */
       g.fillStyle = '#ffffff';
       g.fillRect(hitX - 1, beamY - 2, 3, 5);
@@ -3632,12 +3619,15 @@ if (w.mother) {
         var shipFrame = 0;
         if (superOn && w.t < (w.beamUntil || 0)) {
           /* heavy super beam: 14 frames cycling fast */
-          shipFrame = 20 + (Math.floor(t / 40) % 14);
+          shipFrame = 30 + (Math.floor(t / 40) % 14);
+        } else if (superOn) {
+          /* special is active/charged: show charging rings on beak */
+          shipFrame = 20 + (Math.floor(t / 60) % 10);
         } else if (w.t - (S.lastFire || 0) < 260) {
           /* active laser fire burst: 10 frames */
           shipFrame = 10 + (Math.floor(t / 50) % 10);
         } else {
-          /* clean idle hover: 10 frames engine flicker */
+          /* clean idle hover: 10 frames engine flicker with clean beak */
           shipFrame = Math.floor(t / 80) % 10;
         }
         var drawShipX = flip ? shipX - 14 : shipX - 8;
