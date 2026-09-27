@@ -1159,20 +1159,48 @@
   var skyCv = null, vigCv = null, dimCv = null, attractCv = null, flashCvs = [], doomCv = null;
   var cloudSprs = [];
 
-function terrRow(wx, rows) {
-	     /* A landscape needs a silhouette, not television-static. The long
-	        wave makes a recognisable horizon; the two quieter voices add old,
-	        weathered shelves. Quantising to two pixels gives the ridge the
-	        deliberate, hand-stepped contour of a cabinet backdrop. */
-	     var h = 0.715 + Math.sin(wx * 0.018) * 0.052 +
-	       Math.sin(wx * 0.047 + 1.7) * 0.018 + vnoise(wx, 71) * 0.024;
-	     if (hash01(Math.floor(wx / 97)) > 0.82) { h += vnoise(wx, 19) * 0.026; }
-	     /* smooth soft-knee curvature avoiding abrupt flat-top shelf clamping */
-	     if (h > 0.81) { h = 0.81 + (h - 0.81) * 0.38; }
-	     if (h < 0.67) { h = 0.67 - (0.67 - h) * 0.38; }
-	     h = Math.max(0.655, Math.min(0.838, h));
-	     return Math.round((h * rows) / 2) * 2;
-	   }
+  function baseTerrRow(wx, rows) {
+    /* A landscape needs a silhouette, not television-static. The long
+       wave makes a recognisable horizon; the two quieter voices add old,
+       weathered shelves. Quantising to two pixels gives the ridge the
+       deliberate, hand-stepped contour of a cabinet backdrop. */
+    var h = 0.715 + Math.sin(wx * 0.018) * 0.052 +
+      Math.sin(wx * 0.047 + 1.7) * 0.018 + vnoise(wx, 71) * 0.024;
+    if (hash01(Math.floor(wx / 97)) > 0.82) { h += vnoise(wx, 19) * 0.026; }
+    /* smooth soft-knee curvature avoiding abrupt flat-top shelf clamping */
+    if (h > 0.81) { h = 0.81 + (h - 0.81) * 0.38; }
+    if (h < 0.67) { h = 0.67 - (0.67 - h) * 0.38; }
+    h = Math.max(0.655, Math.min(0.838, h));
+    return Math.round((h * rows) / 2) * 2;
+  }
+
+  function terrRow(wx, rows) {
+    var b = baseTerrRow(wx, rows);
+    var w = typeof world !== 'undefined' ? world : null;
+    if (!w || !w.craters || !w.craters.length) { return b; }
+    var dy = 0, lip = 0;
+    for (var i = 0; i < w.craters.length; i++) {
+      var c = w.craters[i];
+      var dx = Math.abs(wx - c.wx);
+      if (dx <= c.radius) {
+        var p = dx / c.radius;
+        var cd = 0;
+        if (c.kind === 'penetrator') {
+          cd = c.depth * Math.exp(-Math.pow(p * 2.2, 2));
+        } else if (c.kind === 'incendiary') {
+          var jg = 1 + Math.sin(wx * 0.9) * 0.22;
+          cd = c.depth * jg * (1 - Math.pow(p, 1.4));
+        } else {
+          cd = c.depth * (1 - p * p);
+        }
+        if (cd > dy) { dy = cd; }
+      } else if (dx <= c.radius + 3 && c.lip > 0) {
+        var lp = (c.radius + 3 - dx) / 3 * c.lip;
+        if (lp > lip) { lip = lp; }
+      }
+    }
+    return Math.round(b + dy - lip);
+  }
 function farRow(wx, rows) {
 	     /* slow silhouette ridge — the mountains beyond the mountains,
 	        painted in deep indigo with a single lit edge */
@@ -1674,17 +1702,16 @@ function farRow(wx, rows) {
       stars: makeStars(cols, rows),
       landers: [], bullets: [], bombs: [], booms: [], hums: [],
       ship: {
-        /* the demo lane patrols the horizon ridge, well below the
-           title block — the ship must never fly through the marquee */
-        x: Math.round(cols * 0.3), y: Math.round(rows * 0.60),
-        ty: Math.round(rows * 0.60), tyCd: 0,
+        /* the demo lane patrols the central dogfight airspace */
+        x: Math.round(cols * 0.3), y: Math.round(rows * 0.40),
+        ty: Math.round(rows * 0.40), tyCd: 0,
         hopY: 0, hopV: 0, flipUntil: 0, fireCd: 900
       },
       score: old ? old.score : 0,
       flash: old ? old.flash : 0,
       banner: old ? old.banner : null,
       bombCd: 2600, humCd: 4000,
-      rings: [], scorch: [], shake: 0, embers: [], emberCd: 0,
+      rings: [], scorch: [], craters: old ? old.craters : [], shake: 0, embers: [], emberCd: 0,
       shipDead: false, shipDeadAt: 0, portal: null,
       kills: 0, laserUntil: 0, mario: null,
       mutants: old ? old.mutants : [],
@@ -1989,16 +2016,55 @@ var moX = Math.round(M.sx);
   /* a bomb's burst is impact damage: a shock ring, a scorch on the
      ridge, and everyone caught in the radius is gone — not just the
      one soul the shell touched */
-  function blastAt(sx, sy) {
+  function blastAt(sx, sy, kind) {
     var w = world;
-    boomAt(sx, sy, 12);
-    w.rings.push({ x: sx, y: sy, r: 2, life: 420, max: 420 });
-    w.scorch.push({ x: sx, y: sy, ttl: 9000 });
+    if (!w) { return; }
+    kind = kind || 'heavy';
+    var wx = Math.round(sx + w.worldX);
+
+    if (!w.craters) { w.craters = []; }
+    var cRad = 13, cDep = 9, cLip = 2;
+    var boomN = 22, ringR = 3, ringLife = 560;
+
+    if (kind === 'penetrator') {
+      cRad = 5; cDep = 18; cLip = 1;
+      boomN = 18; ringR = 1; ringLife = 340;
+      w.shake = Math.max(w.shake, 180);
+    } else if (kind === 'incendiary') {
+      cRad = 9; cDep = 6; cLip = 1.5;
+      boomN = 12; ringR = 2; ringLife = 520;
+      w.shake = Math.max(w.shake, 150);
+      for (var emi = 0; emi < 6; emi++) {
+        w.embers.push({
+          x: sx + (Math.random() - 0.5) * 16,
+          y: sy - Math.random() * 4,
+          vy: 8 + Math.random() * 14,
+          life: 800 + Math.random() * 900,
+          max: 1700
+        });
+      }
+    } else {
+      w.shake = Math.max(w.shake, 260);
+    }
+
+    w.craters.push({
+      wx: wx,
+      kind: kind,
+      radius: cRad,
+      depth: cDep,
+      lip: cLip,
+      created: w.t
+    });
+    if (w.craters.length > 35) { w.craters.shift(); }
+
+    boomAt(sx, sy, boomN);
+    w.rings.push({ x: sx, y: sy, r: ringR, life: ringLife, max: ringLife });
+    w.scorch.push({ x: sx, y: sy, ttl: 9000, kind: kind });
     for (var j = 0; j < w.hums.length; j++) {
       var H = w.hums[j];
       if (H.gone || H.state !== 'ground') { continue; }
       var hx = H.wx - w.worldX;
-      if (Math.abs(hx + 2 - sx) < 10 && Math.abs(H.y + 4 - sy) < 11) {
+      if (Math.abs(hx + 2 - sx) < (cRad + 2) && Math.abs(H.y + 4 - sy) < (cDep + 6)) {
         H.gone = true;
         w.humsLost = (w.humsLost || 0) + 1;
         boomAt(Math.round(hx + 2), Math.round(H.y + 3), 6);
@@ -2545,9 +2611,21 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           var dd = Math.abs(w.hums[j].wx - thrower.wx);
           if (dd < td) { td = dd; tgtH = w.hums[j]; }
         }
+        var bKind = 'heavy';
+        var rndB = Math.random();
+        if (thrower.type === 'tractor') {
+          bKind = rndB < 0.5 ? 'heavy' : 'penetrator';
+        } else {
+          bKind = rndB < 0.45 ? 'incendiary' : (rndB < 0.85 ? 'heavy' : 'penetrator');
+        }
+        var vyMult = bKind === 'penetrator' ? 1.45 : (bKind === 'incendiary' ? 0.9 : 1.0);
         w.bombs.push({
           x: thrower.wx - w.worldX, y: thrower.y + 7,
-          vx: 0, vy: 7 * btune.bombV, tgt: tgtH || null, gone: false
+          vx: (Math.random() - 0.5) * 6,
+          vy: 7 * btune.bombV * vyMult,
+          tgt: tgtH || null,
+          kind: bKind,
+          gone: false
         });
       }
     }
@@ -2586,7 +2664,7 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
         var hxs = Hb.wx - w.worldX;
         if (Math.abs(bo.x - hxs - 2) < 3.5 && Math.abs(bo.y - (Hb.y + 4)) < 5) {
           bo.gone = true;
-          blastAt(Math.round(hxs + 2), Math.round(Hb.y + 4));
+          blastAt(Math.round(hxs + 2), Math.round(Hb.y + 4), bo.kind);
           break;
         }
       }
@@ -2594,14 +2672,14 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
       if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0) &&
           Math.abs(bo.x - (w.ship.x + 15)) < 12 && Math.abs(bo.y - (w.ship.y + w.ship.hopY + 6)) < 7) {
         bo.gone = true;
-        blastAt(Math.round(bo.x), Math.round(bo.y));
+        blastAt(Math.round(bo.x), Math.round(bo.y), bo.kind);
         killShip(null);
         continue;
       }
       var bR = terrRow(Math.round(bo.x + w.worldX), w.rows);
       if (bo.y >= bR - 1) {
         bo.gone = true;
-        blastAt(Math.round(bo.x), bR - 1);
+        blastAt(Math.round(bo.x), bR - 1, bo.kind);
       }
     }
 
@@ -2645,7 +2723,7 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
         }
         if (M.toss) {
           /* the mushroom flies a real arc: it tracks the ship's LIVE
-             position, rises, falls into the hull — never a teleport */
+              position, rises, falls into the hull — never a teleport */
           M.p = Math.min(1, (w.t - M.toss) / 720);
           var handX = M.x + 9, handY = M.y + 5;
           M.sx = handX + ((S.x + 6) - handX) * M.p;
@@ -2687,8 +2765,8 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
         if (S.x > w.cols - 10) { S.x = w.cols - 10; }
         if (S.y < w.rows * 0.16) { S.y = w.rows * 0.16; }
         /* the ground is real: sample the ridge in WORLD space (the old
-           code fed screen x into a world-space function, so the floor
-           lied). Flying into the terrain kills her — no sliding on it */
+            code fed screen x into a world-space function, so the floor
+            lied). Flying into the terrain kills her — no sliding on it */
         if (!w.portal && w.t >= (w.invUntil || 0)) {
           var trBack = terrRow(Math.floor(w.worldX) + Math.round(S.x + 4), w.rows);
           var trMid  = terrRow(Math.floor(w.worldX) + Math.round(S.x + 15), w.rows);
@@ -2701,7 +2779,7 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
         S.tyCd -= dt;
         if (S.tyCd <= 0) {
           S.tyCd = 1500 + Math.random() * 1500;
-          S.ty = w.rows * (0.56 + Math.random() * 0.10);
+          S.ty = w.rows * (0.36 + Math.random() * 0.12);
         }
         S.y += (S.ty - S.y) * Math.min(1, ds * 1.6);
         /* the demo pilot never dies by mountain: a soft floor, sampled
@@ -3253,12 +3331,51 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
       var sWave2 = Math.sin(wx * 0.024 + 3.1) * 3.2 + vnoise(wx, 47) * 3.5;
       var sWave3 = Math.sin(wx * 0.013 + 0.5) * 4.2 + vnoise(wx, 73) * 4.0;
 
+      var nearCrater = null;
+      var cDist = 999;
+      if (w.craters && w.craters.length) {
+        for (var ci = 0; ci < w.craters.length; ci++) {
+          var cCand = w.craters[ci];
+          var cdx = Math.abs(wx - cCand.wx);
+          if (cdx <= cCand.radius && cdx < cDist) {
+            cDist = cdx;
+            nearCrater = cCand;
+          }
+        }
+      }
+
       var curCol = null, runStart = tr;
       for (var sy = tr; sy < rows; sy++) {
         var depth = sy - tr;
         var pCol;
 
-        if (depth === 0) {
+        if (nearCrater && depth < (nearCrater.kind === 'penetrator' ? 18 : 6)) {
+          if (nearCrater.kind === 'incendiary') {
+            if (depth === 0) {
+              pCol = (wx + Math.floor(t / 110)) % 3 === 0 ? '#fbbf24' : '#ea580c';
+            } else if (depth === 1) {
+              pCol = (wx % 2 === 0) ? '#ea580c' : '#9a3412';
+            } else {
+              pCol = '#451a03';
+            }
+          } else if (nearCrater.kind === 'penetrator') {
+            if (depth >= 13 && depth <= 17) {
+              pCol = (wx % 2 === 0) ? PAL.goldVein : PAL.cyanGem;
+            } else if (depth < 6) {
+              pCol = '#09080d';
+            } else {
+              pCol = bayerAt(sx, sy) > 0.4 ? '#181524' : '#09080d';
+            }
+          } else {
+            if (depth === 0) {
+              pCol = hv > 0.5 ? '#47415e' : '#262338';
+            } else if (depth <= 2) {
+              pCol = '#1a1727';
+            } else {
+              pCol = bayerAt(sx, sy) > 0.3 ? '#262338' : '#14121f';
+            }
+          }
+        } else if (depth === 0) {
           pCol = hv > 0.88 ? PAL.crestSpec : (hv > 0.40 ? PAL.crestHi : (hv > 0.18 ? PAL.crestBase : PAL.crestLo));
         } else if (depth === 1) {
           pCol = hv > 0.72 ? PAL.crestHi : (hv > 0.35 ? PAL.crestBase : (hv > 0.12 ? PAL.crestLo : PAL.strataHi));
@@ -3671,11 +3788,63 @@ if (w.mother) {
       drawSpr(g, (Math.floor(t / 140) + i) % 2 ? SPR_MUTANT2 : SPR_MUTANT, mxR, Math.round(muR.y), MUT_LEG);
     }
 
-    /* bombs blink red as they fall */
-    if ((Math.floor(t / 130) % 2) === 0) {
-      g.fillStyle = PC.bomb;
-      for (i = 0; i < w.bombs.length; i++) {
-        g.fillRect(Math.round(w.bombs[i].x) - 1, Math.round(w.bombs[i].y), 2, 2);
+    /* bombs — distinct, high-fidelity pixel-art for all 3 variations */
+    for (i = 0; i < w.bombs.length; i++) {
+      var bo = w.bombs[i];
+      var bx = Math.round(bo.x);
+      var by = Math.round(bo.y);
+      if (bx < -10 || bx > cols + 10 || by < -10 || by > rows + 10) { continue; }
+      var bKind = bo.kind || 'heavy';
+
+      if (bKind === 'penetrator') {
+        /* 1. Kinetic Dart / Bunker-Buster:
+           Needle tip (white), titanium hull with fins, rocket thruster fire tail */
+        var flColor = (Math.floor(t / 40) % 2) ? '#fbbf24' : '#ef4444';
+        g.fillStyle = flColor;
+        g.fillRect(bx, by - 4, 1, 2);
+        g.fillStyle = '#f97316';
+        g.fillRect(bx, by - 2, 1, 1);
+        g.fillStyle = '#475569';
+        g.fillRect(bx - 1, by - 1, 3, 1);
+        g.fillStyle = '#94a3b8';
+        g.fillRect(bx, by, 1, 3);
+        g.fillStyle = '#e2e8f0';
+        g.fillRect(bx, by + 3, 1, 1);
+      } else if (bKind === 'incendiary') {
+        /* 2. Thermite Canister:
+           Tumbling bronze canister leaking molten flame droplets */
+        var rotFrame = Math.floor((t * 0.01 + i) % 4);
+        g.fillStyle = '#78350f';
+        if (rotFrame === 0 || rotFrame === 2) {
+          g.fillRect(bx - 1, by - 1, 3, 3);
+          g.fillStyle = '#f59e0b';
+          g.fillRect(bx, by - 1, 1, 3);
+        } else {
+          g.fillRect(bx - 1, by - 1, 3, 2);
+          g.fillStyle = '#f59e0b';
+          g.fillRect(bx - 1, by, 3, 1);
+        }
+        g.fillStyle = (Math.floor(t / 60) % 2) ? '#ea580c' : '#fbbf24';
+        g.fillRect(bx, by - 3, 1, 1);
+        if (Math.floor(t / 80) % 2) {
+          g.fillStyle = '#ef4444';
+          g.fillRect(bx + (rotFrame % 2 ? 1 : -1), by - 4, 1, 1);
+        }
+      } else {
+        /* 3. Heavy Plasma Breaker:
+           Pulsing cross-flare core with rotating satellite energy motes */
+        var pulse = (Math.floor(t / 90) % 2);
+        g.fillStyle = pulse ? '#c084fc' : '#e11d48';
+        g.fillRect(bx, by - 2, 1, 5);
+        g.fillRect(bx - 2, by, 5, 1);
+        g.fillStyle = pulse ? '#ffffff' : '#f472b6';
+        g.fillRect(bx - 1, by - 1, 3, 3);
+        g.fillStyle = '#ffffff';
+        g.fillRect(bx, by, 1, 1);
+        var orbA = t * 0.016 + i;
+        g.fillStyle = '#38bdf8';
+        g.fillRect(bx + Math.round(Math.cos(orbA) * 3), by + Math.round(Math.sin(orbA) * 3), 1, 1);
+        g.fillRect(bx - Math.round(Math.cos(orbA) * 3), by - Math.round(Math.sin(orbA) * 3), 1, 1);
       }
     }
 
@@ -4376,6 +4545,9 @@ if (w.mother) {
       pause: function () { togglePause(); },
       isPaused: function () { return paused; },
       spawnLander: function () { spawnLander(); },
+      blastAt: function (sx, sy, kind) { blastAt(sx, sy, kind); },
+      craters: function () { return world ? (world.craters || []) : []; },
+      terrRow: function (wx) { return terrRow(wx, world ? world.rows : 400); },
       /* round 5 hatches: force the idle show, read the ledger,
          wound the mother into rage, read the players' ledger */
       show: function (k) { openAttractShow(k); },
@@ -6662,6 +6834,8 @@ if (w.mother) {
         world.zeroHumsT = 0;
         world.hiAtRunStart = hiScore;
         world.runStartT = world.t;
+        world.ship.y = Math.round(world.rows * 0.40);
+        world.ship.ty = Math.round(world.rows * 0.40);
         world.portal = { t0: world.t };
         sfx('portal');
         world.banner = {
@@ -6730,6 +6904,8 @@ if (w.mother) {
              same pilot, same score, the classic continue */
           world.shipDead = false;
           world.ds1 = world.ds2 = world.ds3 = 0;
+          world.ship.y = Math.round(world.rows * 0.40);
+          world.ship.ty = Math.round(world.rows * 0.40);
           world.portal = { t0: world.t };
           sfx('portal');
           world.hiAtRunStart = hiScore;
