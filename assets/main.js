@@ -280,6 +280,22 @@
       SFX.oneUp();
       noiseHit({ f: 1600, f1: 100, d: 0.9, v: 0.09, at: 0.12 });
     },
+    bossAlarm: function () {
+      tone({ f: 440, d: 0.11, v: 0.07, type: 'sawtooth' });
+      tone({ f: 330, d: 0.11, v: 0.07, type: 'sawtooth', at: 0.13 });
+      tone({ f: 440, d: 0.11, v: 0.07, type: 'sawtooth', at: 0.26 });
+    },
+    bossTurret: function () {
+      tone({ f: 880, f1: 240, d: 0.075, v: 0.045, exp: true });
+    },
+    bossLaser: function () {
+      tone({ f: 110, f1: 55, d: 0.65, v: 0.08, type: 'sawtooth' });
+      noiseHit({ f: 900, f1: 140, d: 0.55, v: 0.065, at: 0.08 });
+    },
+    bossShieldBreak: function () {
+      tone({ f: 1400, f1: 280, d: 0.35, v: 0.08, exp: true });
+      noiseHit({ f: 3000, hp: true, d: 0.45, v: 0.075 });
+    },
     hiScore: function () {
       tone({ f: 783.99, d: 0.12, v: 0.055 });
       tone({ f: 987.77, d: 0.12, v: 0.055, at: 0.13 });
@@ -1468,8 +1484,8 @@ function farRow(wx, rows) {
       '............DDDDDDDD............'
     ];
     var MOTHER_LEG = { D: '#14655c', T: '#2fbfae', W: '#ffffff', R: PC.red, G: PC.gold, E: '#ff8a3d' };
-    var MOTHER_DRAW_W = sprW(SPR_MOTHER) * 2;
-    var MOTHER_DRAW_H = SPR_MOTHER.length * 2;
+    var MOTHER_DRAW_W = 144;
+    var MOTHER_DRAW_H = 76;
    var SPR_HUMF = [
      'B.SS.B',
      'B.SS.B',
@@ -1792,53 +1808,64 @@ function farRow(wx, rows) {
     });
   }
 
-  /* the mothership: every minute or so the sky rumbles and the big
-     carrier crosses, dropping fresh landers from her hangar. Ten hits
-     to crack (the first three ring on her shield), 2000 points, and
-     the whole deck cheers when she burns. She is SCREEN-anchored
-     (like the ship): the world scrolls under her, she does not drift
-     with it. sx is her screen x. */
+  /* the dreadnought mothership boss: a 144x76 armored flagship with
+     two-stage health (16 ion shield + 24 armor core), arena-locking standoff,
+     twin aimed plasma turrets, ventral particle death ray, multi-bomb
+     barrages, and an epic 2.5-second cascading destruction ceremony. */
   function spawnMother(w) {
     var dir = Math.random() < 0.5 ? -1 : 1;
-    var base = Math.round(w.rows * 0.15 + Math.random() * w.rows * 0.08);
+    var base = Math.round(w.rows * 0.16 + Math.random() * w.rows * 0.04);
+    var mw = 144, mh = 76;
     w.mother = {
-      sx: dir < 0 ? w.cols + 40 : -40, base: base, y: base, ph: Math.random() * 6.28,
-      vx: 17 * dir,
-      hp: 10, shield: 3, hitFlash: 0,
-      dropCd: 1600, dropFlash: 0
+      w: mw, h: mh,
+      sx: dir < 0 ? w.cols + 15 : -mw - 15,
+      base: base, y: base, ph: Math.random() * 6.28,
+      vx: 65 * dir,
+      dir: dir,
+      state: 'enter', /* 'enter' -> 'battle' -> 'dying' */
+      hp: 24, maxHp: 24,
+      shield: 16, maxShield: 16,
+      hitFlash: 0, shieldFlash: 0,
+      dropCd: 4000, dropFlash: 0,
+      turretCd: 1800,
+      beamCd: 5500, beamState: 'idle', beamT: 0, beamX: 0,
+      bombsCd: 4500,
+      sparkCd: 0, smokeCd: 0,
+      bolts: [],
+      dieT: 0
     };
-    sfx('mother');   /* the low warble of her arrival */
+    w.bossWarning = 2400;
+    sfx('bossAlarm');
+    sfx('mother');
   }
+
   function hitMother(M, hx, hy) {
     var w = world;
-    if (!w || !M) { return; }
-    M.hitFlash = 130;
+    if (!w || !M || M.state === 'dying') { return; }
+    M.hitFlash = 120;
     if (M.shield > 0) {
-      /* the shield sings, it does not break — yet */
       M.shield -= 1;
+      M.shieldFlash = 160;
       boomAt(Math.round(hx), Math.round(hy), 3);
-      sfx('motherHit');
-      popAt(w, Math.round(hx), Math.round(hy) - 6, 'CLINK');
+      if (M.shield <= 0) {
+        sfx('bossShieldBreak');
+        w.rings.push({ x: Math.round(M.sx + M.w / 2), y: Math.round(M.y + M.h / 2), r: 4, life: 600, max: 600 });
+        w.shake = 350;
+        popAt(w, Math.round(M.sx + M.w / 2 - 20), Math.round(M.y - 8), 'SHIELD BROKEN!');
+      } else {
+        sfx('motherHit');
+        popAt(w, Math.round(hx), Math.round(hy) - 6, 'CLINK');
+      }
       return;
     }
     M.hp -= 1;
     if (M.hp <= 0) {
-var moX = Math.round(M.sx);
-	       var moY = Math.round(M.y);
-	       var pts = awardKill(w, 2000, 2);
-	       w.mother = null;
-	       w.motherCd = 55000 + Math.random() * 40000;
-	       boomAt(moX + 34, moY + 14, 40);
-	       boomAt(moX + 53, moY + 7, 22);
-	       boomAt(moX + 15, moY + 18, 22);
-	       w.rings.push({ x: moX + 34, y: moY + 14, r: 2, life: 720, max: 720 });
-	       w.rings.push({ x: moX + 34, y: moY + 14, r: 1, life: 520, max: 520 });
-      w.flash = 620;
+      M.hp = 0;
+      M.state = 'dying';
+      M.dieT = 2500;
       w.shake = 750;
-      w.cheerUntil = w.t + 2600;   /* the little people saw it too */
-      popAt(w, moX + 26, moY, '+' + pts);
-      rumble(1, 0.8, 650);
-      sfx('motherDown');
+      sfx('boomL');
+      popAt(w, Math.round(M.sx + M.w / 2 - 16), Math.round(M.y), 'CRITICAL!');
     } else {
       boomAt(Math.round(hx), Math.round(hy), 6);
       sfx('motherHit');
@@ -2202,12 +2229,13 @@ var moX = Math.round(M.sx);
       var ahead3 = dir > 0 ? (mx3 > S.x && mx3 < hitX) : (mx3 < S.x + sprW(SPR_SHIP) && mx3 > hitX);
       if (ahead3 && Math.abs(mu3.y + 3 - sy) < 6) { killMutant(mu3); }
     }
-    if (w.mother) {
+    if (w.mother && w.mother.state !== 'dying') {
       var moB = w.mother;
       var moBX = moB.sx;
-      var aheadM = dir > 0 ? (moBX > S.x && moBX < hitX) : (moBX < S.x + sprW(SPR_SHIP) && moBX > hitX);
-      if (aheadM && moBX > -8 && moBX < w.cols + 8 && Math.abs(moB.y + 7 - sy) < 14) {
-        hitMother(moB, moBX + (dir > 0 ? 1 : 67), sy);
+      var mwB = moB.w || 144, mhB = moB.h || 76;
+      var aheadM = dir > 0 ? (moBX + mwB > S.x && moBX < hitX) : (moBX < S.x + sprW(SPR_SHIP) && moBX + mwB > hitX);
+      if (aheadM && moBX > -mwB && moBX < w.cols + mwB && sy >= moB.y + 4 && sy <= moB.y + mhB - 4) {
+        hitMother(moB, Math.max(moB.sx + 8, Math.min(moB.sx + mwB - 8, hitX)), sy);
       }
     }
   }
@@ -2325,39 +2353,221 @@ var moX = Math.round(M.sx);
        window burns out */
     if ((w.chain || 0) > 0 && w.t > (w.chainUntil || 0)) { w.chain = 0; }
 
-    /* the mothership: her clock ticks while the deck is alive. When
-       it burns out she crosses the sky, dropping fresh landers from
-       her hangar — a moving fortress you can pursue and crack */
+    /* the dreadnought mothership boss: arena lock, twin plasma turrets,
+       ventral particle death ray, multi-bomb barrages, and staged meltdown */
+    if (w.bossWarning > 0) { w.bossWarning -= dt; }
     if (!w.mother) {
       w.motherCd -= dt;
       if (w.motherCd <= 0 && !w.shipDead) { spawnMother(w); }
     } else {
       var Mo = w.mother;
-      var rageM = Mo.hp <= 3;
-      Mo.sx += Mo.vx * (rageM ? 1.35 : 1) * ds;   /* she runs hot when bleeding */
-      Mo.y = Mo.base + Math.sin(w.t * (rageM ? 0.0036 : 0.0011) + Mo.ph) * (rageM ? 10 : 4);
-      if (rageM) {
-        /* rage: the wounded hull spits sparks and panics her hangar */
+      var mw = Mo.w || 144, mh = Mo.h || 76;
+      if (Mo.hitFlash > 0) { Mo.hitFlash -= dt; }
+      if (Mo.shieldFlash > 0) { Mo.shieldFlash -= dt; }
+      if (Mo.dropFlash > 0) { Mo.dropFlash -= dt; }
+
+      if (Mo.state === 'dying') {
+        Mo.dieT -= dt;
         Mo.sparkCd = (Mo.sparkCd || 0) - dt;
         if (Mo.sparkCd <= 0) {
-          Mo.sparkCd = 300 + Math.random() * 220;
-          boomAt(Math.round(Mo.sx + 6 + Math.random() * 52), Math.round(Mo.y + 3 + Math.random() * 18), 3);
-          blip(120, 60, 170);
+          Mo.sparkCd = 90 + Math.random() * 80;
+          var exX = Math.round(Mo.sx + 10 + Math.random() * (mw - 20));
+          var exY = Math.round(Mo.y + 6 + Math.random() * (mh - 12));
+          boomAt(exX, exY, 14);
+          sfx('motherHit');
+          w.shake = 300;
         }
-      }
-      if (Mo.hitFlash > 0) { Mo.hitFlash -= dt; }
-      if (Mo.dropFlash > 0) { Mo.dropFlash -= dt; }
-      Mo.dropCd -= dt;
-if (Mo.dropCd <= 0 && w.landers.length < 9) {
-	         Mo.dropCd = rageM ? 1700 + Math.random() * 900 : 2600 + Math.random() * 1900;
-	         spawnLanderAt(Mo.sx + 24, Mo.base + 30);
-	         Mo.dropFlash = 300;
-	         blip(196, 120, 98);
-	       }
-      /* a crossing is a crossing: off the far edge, she is gone */
-      if (Mo.sx < -44 || Mo.sx > w.cols + 44) {
-        w.mother = null;
-        w.motherCd = sectorTune(w).motherNext + Math.random() * 40000;
+        if (Mo.dieT <= 0) {
+          var cx = Math.round(Mo.sx + mw / 2);
+          var cy = Math.round(Mo.y + mh / 2);
+          var pts = awardKill(w, 5000, 5);
+          w.mother = null;
+          w.motherCd = 60000 + Math.random() * 35000;
+          boomAt(cx, cy, 55);
+          boomAt(cx - 40, cy, 35);
+          boomAt(cx + 40, cy, 35);
+          boomAt(cx, cy - 20, 30);
+          boomAt(cx, cy + 20, 30);
+          w.rings.push({ x: cx, y: cy, r: 4, life: 850, max: 850 });
+          w.rings.push({ x: cx, y: cy, r: 2, life: 650, max: 650 });
+          w.flash = 800;
+          w.shake = 1000;
+          w.cheerUntil = w.t + 4500;
+          popAt(w, cx - 40, cy - 10, '+' + pts + ' BOSS DEFEATED!');
+          rumble(1, 1.0, 850);
+          sfx('motherDown');
+          sfx('defstar');
+          for (var bi = 0; bi < w.bombs.length; bi++) {
+            w.bombs[bi].gone = true;
+            boomAt(Math.round(w.bombs[bi].x), Math.round(w.bombs[bi].y), 3);
+          }
+        }
+      } else {
+        var phase3 = Mo.hp <= 10;
+        var phase2 = Mo.shield <= 0 && !phase3;
+        var spdMult = phase3 ? 1.45 : (phase2 ? 1.2 : 1.0);
+
+        if (Mo.state === 'enter') {
+          Mo.sx += Mo.vx * ds;
+          if (Mo.dir > 0 ? (Mo.sx >= w.cols * 0.08) : (Mo.sx <= w.cols * 0.92 - mw)) {
+            Mo.state = 'battle';
+            Mo.vx = 22 * Mo.dir;
+          }
+        } else {
+          /* arena lock standoff — patrol smoothly across upper sky */
+          Mo.sx += Mo.vx * spdMult * ds;
+          var minSx = 10;
+          var maxSx = w.cols - mw - 10;
+          if (Mo.sx <= minSx) {
+            Mo.sx = minSx;
+            Mo.vx = Math.abs(Mo.vx);
+            Mo.dir = 1;
+          } else if (Mo.sx >= maxSx) {
+            Mo.sx = maxSx;
+            Mo.vx = -Math.abs(Mo.vx);
+            Mo.dir = -1;
+          }
+        }
+
+        Mo.y = Mo.base + Math.sin(w.t * (phase3 ? 0.0036 : 0.0016) + Mo.ph) * (phase3 ? 14 : 7);
+
+        /* Phase 3 Meltdown FX */
+        if (phase3) {
+          Mo.smokeCd = (Mo.smokeCd || 0) - dt;
+          if (Mo.smokeCd <= 0) {
+            Mo.smokeCd = 120 + Math.random() * 90;
+            var smkX = Math.round(Mo.sx + (Mo.dir < 0 ? mw - 16 : 16) + (Math.random() - 0.5) * 20);
+            var smkY = Math.round(Mo.y + mh * 0.45 + (Math.random() - 0.5) * 12);
+            boomAt(smkX, smkY, 2);
+          }
+          Mo.sparkCd = (Mo.sparkCd || 0) - dt;
+          if (Mo.sparkCd <= 0) {
+            Mo.sparkCd = 350 + Math.random() * 240;
+            var spkX = Math.round(Mo.sx + 20 + Math.random() * (mw - 40));
+            var spkY = Math.round(Mo.y + 10 + Math.random() * (mh - 20));
+            boomAt(spkX, spkY, 4);
+            blip(140, 60, 160);
+          }
+        }
+
+        /* Twin Ventral Turrets Attack */
+        Mo.turretCd -= dt;
+        if (Mo.turretCd <= 0) {
+          Mo.turretCd = phase3 ? 1100 + Math.random() * 600 : (phase2 ? 1600 + Math.random() * 700 : 2200 + Math.random() * 800);
+          var tX1 = Mo.sx + 28, tY1 = Mo.y + mh - 16;
+          var tX2 = Mo.sx + mw - 28, tY2 = Mo.y + mh - 16;
+          var pX = w.ship.x + 15, pY = w.ship.y + 6;
+          var dX1 = pX - tX1, dY1 = pY - tY1;
+          var dist1 = Math.sqrt(dX1 * dX1 + dY1 * dY1) || 1;
+          var dX2 = pX - tX2, dY2 = pY - tY2;
+          var dist2 = Math.sqrt(dX2 * dX2 + dY2 * dY2) || 1;
+          var bSpd = phase3 ? 9.5 : 7.5;
+          if (!Mo.bolts) { Mo.bolts = []; }
+          Mo.bolts.push({ x: tX1, y: tY1, vx: (dX1 / dist1) * bSpd, vy: Math.max(3, (dY1 / dist1) * bSpd), life: 3200 });
+          Mo.bolts.push({ x: tX2, y: tY2, vx: (dX2 / dist2) * bSpd, vy: Math.max(3, (dY2 / dist2) * bSpd), life: 3200 });
+          sfx('bossTurret');
+        }
+
+        /* Ventral Particle Death Ray (Phase 2 & 3) */
+        if (phase2 || phase3) {
+          Mo.beamCd -= dt;
+          if (Mo.beamState === 'idle' && Mo.beamCd <= 0) {
+            Mo.beamState = 'charge';
+            Mo.beamT = 1100;
+            Mo.beamX = Math.round(Mo.sx + mw / 2);
+            blip(880, 140, 200);
+          } else if (Mo.beamState === 'charge') {
+            Mo.beamT -= dt;
+            Mo.beamX = Math.round(Mo.sx + mw / 2);
+            if (Mo.beamT <= 0) {
+              Mo.beamState = 'fire';
+              Mo.beamT = 900;
+              sfx('bossLaser');
+              w.shake = 450;
+            }
+          } else if (Mo.beamState === 'fire') {
+            Mo.beamT -= dt;
+            Mo.beamX = Math.round(Mo.sx + mw / 2);
+            if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0)) {
+              if (Math.abs(w.ship.x + 15 - Mo.beamX) < 14 && (w.ship.y + 6) >= Mo.y + mh - 10) {
+                killShip(null);
+              }
+            }
+            var bTerrY = terrRow(Math.round(Mo.beamX + w.worldX), w.rows);
+            if (Math.random() < 0.6) {
+              boomAt(Mo.beamX + Math.round((Math.random() - 0.5) * 8), bTerrY - 2, 2);
+            }
+            if (Mo.beamT <= 0) {
+              Mo.beamState = 'idle';
+              Mo.beamCd = phase3 ? 4200 + Math.random() * 2000 : 6500 + Math.random() * 2500;
+            }
+          }
+        }
+
+        /* Bomb Barrages */
+        Mo.bombsCd = (Mo.bombsCd || 4500) - dt;
+        if (Mo.bombsCd <= 0) {
+          Mo.bombsCd = phase3 ? 3000 + Math.random() * 1500 : (phase2 ? 4500 + Math.random() * 1800 : 6000 + Math.random() * 2200);
+          var bCenX = Mo.sx + Math.round(mw / 2);
+          var bCenY = Mo.y + mh - 8;
+          if (phase3) {
+            w.bombs.push({ x: bCenX - 35, y: bCenY, vx: -3, vy: 5, kind: 'incendiary', gone: false });
+            w.bombs.push({ x: bCenX, y: bCenY + 2, vx: 0, vy: 6, kind: 'incendiary', gone: false });
+            w.bombs.push({ x: bCenX + 35, y: bCenY, vx: 3, vy: 5, kind: 'incendiary', gone: false });
+          } else if (phase2) {
+            w.bombs.push({ x: bCenX - 30, y: bCenY, vx: -2.5, vy: 6, kind: 'heavy', gone: false });
+            w.bombs.push({ x: bCenX, y: bCenY + 2, vx: 0, vy: 9, kind: 'penetrator', gone: false });
+            w.bombs.push({ x: bCenX + 30, y: bCenY, vx: 2.5, vy: 6, kind: 'incendiary', gone: false });
+          } else {
+            w.bombs.push({ x: bCenX, y: bCenY, vx: (Math.random() - 0.5) * 3, vy: 6.5, kind: 'heavy', gone: false });
+          }
+          blip(220, 80, 180);
+        }
+
+        /* Escort Deployment */
+        Mo.dropCd -= dt;
+        if (Mo.dropCd <= 0 && w.landers.length < 8) {
+          Mo.dropCd = phase3 ? 3500 + Math.random() * 1500 : 5000 + Math.random() * 2000;
+          spawnLanderAt(Mo.sx + Math.round(mw / 2), Mo.y + mh - 6);
+          Mo.dropFlash = 350;
+          blip(196, 120, 98);
+        }
+
+        /* Turret Bolts Simulation */
+        if (Mo.bolts && Mo.bolts.length) {
+          for (var bi = Mo.bolts.length - 1; bi >= 0; bi--) {
+            var blt = Mo.bolts[bi];
+            blt.x += blt.vx * ds;
+            blt.y += blt.vy * ds;
+            blt.life -= dt;
+            var bltTerr = terrRow(Math.round(blt.x + w.worldX), w.rows);
+            if (blt.life <= 0 || blt.x < -20 || blt.x > w.cols + 20 || blt.y > bltTerr || blt.y < 0) {
+              if (blt.y >= bltTerr) { boomAt(Math.round(blt.x), Math.round(bltTerr), 2); }
+              Mo.bolts.splice(bi, 1);
+              continue;
+            }
+            if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0)) {
+              if (Math.abs(blt.x - (w.ship.x + 15)) < 11 && Math.abs(blt.y - (w.ship.y + w.ship.hopY + 6)) < 8) {
+                boomAt(Math.round(blt.x), Math.round(blt.y), 6);
+                Mo.bolts.splice(bi, 1);
+                killShip(null);
+              }
+            }
+          }
+        }
+
+        /* Player Ship Ramming Collision */
+        if (Mo.state !== 'dying' && !w.shipDead && !w.portal && w.t >= (w.invUntil || 0)) {
+          var pBoxL = w.ship.x + 4, pBoxR = w.ship.x + 26;
+          var pBoxT = w.ship.y + w.ship.hopY + 2, pBoxB = w.ship.y + w.ship.hopY + 10;
+          var mBoxL = Mo.sx + 8, mBoxR = Mo.sx + mw - 8;
+          var mBoxT = Mo.y + 6, mBoxB = Mo.y + mh - 8;
+          if (pBoxR > mBoxL && pBoxL < mBoxR && pBoxB > mBoxT && pBoxT < mBoxB) {
+            boomAt(Math.round(w.ship.x + 15), Math.round(w.ship.y + 6), 18);
+            popAt(w, Math.round(w.ship.x), Math.round(w.ship.y - 6), 'RAMMED!');
+            killShip(null);
+          }
+        }
       }
     }
 
@@ -2877,16 +3087,16 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           }
         }
       }
-/* the mothership takes hits: box test against her 68×28 hull —
-	          the first three shots ring on her shield, then she bleeds */
-	         if (!b.gone && w.mother) {
-	           var MoX = Math.round(w.mother.sx);
-	           var MoY = Math.round(w.mother.y);
-	           if (b.x > MoX + 1 && b.x < MoX + 67 && b.y > MoY + 1 && b.y < MoY + 27) {
-	             if (!b.laser) { b.gone = true; }
-	             hitMother(w.mother, b.x, b.y);
-	           }
-	         }
+         /* the dreadnought boss takes hits: box test against her 144x76 hull */
+         if (!b.gone && w.mother && w.mother.state !== 'dying') {
+           var MoX = Math.round(w.mother.sx);
+           var MoY = Math.round(w.mother.y);
+           var mwH = w.mother.w || 144, mhH = w.mother.h || 76;
+           if (b.x >= MoX + 4 && b.x <= MoX + mwH - 4 && b.y >= MoY + 4 && b.y <= MoY + mhH - 4) {
+             if (!b.laser) { b.gone = true; }
+             hitMother(w.mother, b.x, b.y);
+           }
+         }
     }
 
     /* humanoids — stand, get carried, or fall back to the ground */
@@ -3619,44 +3829,136 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
       drawSpr(g, hSpr, hx, hy, HUM_LEG);
     }
 
-    /* the mothership — she owns the high sky: a 64-pixel wall of hull,
-       a breathing eight-pixel red eye, blinking engine-block lights, the
-       launch tube's violet drop-column while a squad deploys, a dithered
-       shield film while her guard is up, and a white flicker on every
-       hit that lands */
-if (w.mother) {
-	       var MoR = w.mother;
-	       var moRX = Math.round(MoR.sx);
-	       if (moRX > -MOTHER_DRAW_W && moRX < cols + MOTHER_DRAW_W) {
-	         var moRY = Math.round(MoR.y);
-	         if (MoR.dropFlash > 0) {
-	           for (var dfy = moRY + 28; dfy < moRY + 44; dfy++) {
-	             var dfp = (dfy + Math.floor(t / 70)) % 6;
-	             if (dfp < 4) {
-	               g.fillStyle = BEAM_C1;
-	               g.fillRect(moRX + Math.floor(MOTHER_DRAW_W / 2) - 1, dfy, 3, 1);
-	             } else {
-	               g.fillStyle = BEAM_C2;
-	               g.fillRect(moRX + Math.floor(MOTHER_DRAW_W / 2) - 2, dfy, 1, 1);
-	               g.fillRect(moRX + Math.floor(MOTHER_DRAW_W / 2) + 2, dfy, 1, 1);
-	             }
-	           }
-	         }
-	         var rageMo = MoR.hp <= 3;
-	         var moFrame = Math.floor(t / (rageMo ? 35 : 70)) % 36;
-	         var drewMother = drawSheetFrame(g, 'mother', moFrame, moRX - 2, moRY - 4, 72, 38, 0);
-	         if (!drewMother) {
-	           drawSpr(g, SPR_MOTHER, moRX, moRY, MOTHER_LEG, 0, 2);
-	           /* engine-block lights blink in step, the eye breathes — faster
-	              when the hull is bleeding (rage) */
-	           g.fillStyle = (Math.floor(t / (rageMo ? 150 : 380)) % 2) ? PC.gold : '#ffffff';
-	           g.fillRect(moRX + 2, moRY + 20, 2, 2);
-	           g.fillRect(moRX + MOTHER_DRAW_W - 4, moRY + 20, 2, 2);
-	           g.fillStyle = (Math.floor(t / (rageMo ? 110 : 240)) % 2) ? PC.redHi : PC.red;
-	           g.fillRect(moRX + 24, moRY + 10, 12, 4);
-	         }
-	       }
-	     }
+    /* the dreadnought mothership boss — 144x76 flagship with ion shield dome,
+       rotational ventral turrets, particle death ray, and staged damage fx */
+    if (w.mother) {
+      var MoR = w.mother;
+      var mw = MoR.w || 144, mh = MoR.h || 76;
+      var moRX = Math.round(MoR.sx);
+      if (moRX > -mw - 20 && moRX < cols + mw + 20) {
+        var moRY = Math.round(MoR.y);
+        var phase3 = MoR.hp <= 10;
+        var phase2 = MoR.shield <= 0 && !phase3;
+
+        /* 1. Ventral Death Ray */
+        if (MoR.beamState === 'charge') {
+          var bmX = Math.round(MoR.beamX || (moRX + mw / 2));
+          var tGround = terrRow(bmX + w.worldX, rows);
+          g.save();
+          g.strokeStyle = (Math.floor(t / 40) % 2) ? '#ef4444' : '#fbbf24';
+          g.lineWidth = 1;
+          g.beginPath();
+          g.moveTo(bmX, moRY + mh - 8);
+          g.lineTo(bmX, tGround);
+          g.stroke();
+          g.fillStyle = '#ef4444';
+          g.fillRect(bmX - 4, tGround - 2, 9, 2);
+          g.fillRect(bmX - 1, tGround - 5, 3, 7);
+          g.restore();
+        } else if (MoR.beamState === 'fire') {
+          var bmX = Math.round(MoR.beamX || (moRX + mw / 2));
+          var tGround = terrRow(bmX + w.worldX, rows);
+          g.save();
+          /* outer plasma corona */
+          g.fillStyle = (Math.floor(t / 30) % 2) ? 'rgba(56, 189, 248, 0.42)' : 'rgba(192, 132, 252, 0.42)';
+          g.fillRect(bmX - 7, moRY + mh - 10, 15, tGround - (moRY + mh - 10));
+          /* inner intense beam core */
+          g.fillStyle = '#38bdf8';
+          g.fillRect(bmX - 3, moRY + mh - 10, 7, tGround - (moRY + mh - 10));
+          g.fillStyle = '#ffffff';
+          g.fillRect(bmX - 1, moRY + mh - 10, 3, tGround - (moRY + mh - 10));
+          /* ground splash */
+          for (var spk = 0; spk < 6; spk++) {
+            var spkOff = Math.sin(t * 0.05 + spk) * 12;
+            g.fillStyle = (spk % 2 === 0) ? '#ffffff' : '#38bdf8';
+            g.fillRect(bmX + Math.round(spkOff), tGround - 2 - (spk * 2) % 6, 2, 2);
+          }
+          g.restore();
+        }
+
+        /* 2. Escort Deployment beam column */
+        if (MoR.dropFlash > 0) {
+          for (var dfy = moRY + mh; dfy < moRY + mh + 24; dfy++) {
+            var dfp = (dfy + Math.floor(t / 70)) % 6;
+            g.fillStyle = dfp < 4 ? BEAM_C1 : BEAM_C2;
+            g.fillRect(moRX + Math.floor(mw / 2) - 3, dfy, 6, 1);
+          }
+        }
+
+        /* 3. Dreadnought Hull (144x76) */
+        var moFrame = Math.floor(t / (phase3 ? 35 : 70)) % 36;
+        var drewMother = drawSheetFrame(g, 'mother', moFrame, moRX, moRY, mw, mh, 0);
+        if (!drewMother) {
+          drawSpr(g, SPR_MOTHER, moRX + 8, moRY + 6, MOTHER_LEG, 0, 4);
+        }
+
+        /* 4. Hit Flash Overlay */
+        if (MoR.hitFlash > 0 && Math.floor(t / 40) % 2 === 0) {
+          g.save();
+          g.globalCompositeOperation = 'lighter';
+          g.fillStyle = MoR.shield > 0 ? '#38bdf8' : '#ffffff';
+          g.fillRect(moRX + 6, moRY + 4, mw - 12, mh - 8);
+          g.restore();
+        }
+
+        /* 5. Ion Shield Barrier Aura */
+        if (MoR.shield > 0) {
+          g.save();
+          var shAlpha = MoR.shieldFlash > 0 ? 0.75 : 0.35 + Math.sin(t * 0.008) * 0.12;
+          g.strokeStyle = MoR.shieldFlash > 0 ? '#ffffff' : '#38bdf8';
+          g.lineWidth = MoR.shieldFlash > 0 ? 2 : 1;
+          g.globalAlpha = shAlpha;
+          g.beginPath();
+          g.ellipse(moRX + mw / 2, moRY + mh / 2, mw / 2 + 6, mh / 2 + 6, 0, 0, Math.PI * 2);
+          g.stroke();
+          if (Math.floor(t / 60) % 2 === 0) {
+            g.strokeStyle = '#818cf8';
+            g.stroke();
+          }
+          g.restore();
+        }
+
+        /* 6. Ventral Turrets */
+        var pX = w.ship.x + 15, pY = w.ship.y + 6;
+        var tPos = [
+          { x: moRX + 28, y: moRY + mh - 16 },
+          { x: moRX + mw - 28, y: moRY + mh - 16 }
+        ];
+        for (var ti = 0; ti < tPos.length; ti++) {
+          var tp = tPos[ti];
+          var ang = Math.atan2(pY - tp.y, pX - tp.x);
+          g.fillStyle = '#1e293b';
+          g.fillRect(tp.x - 3, tp.y - 2, 7, 5);
+          g.fillStyle = '#64748b';
+          g.fillRect(tp.x - 2, tp.y - 1, 5, 3);
+          var bx = Math.round(tp.x + Math.cos(ang) * 5);
+          var by = Math.round(tp.y + Math.sin(ang) * 5);
+          g.fillStyle = (MoR.turretCd < 300 && Math.floor(t / 50) % 2) ? '#ef4444' : '#94a3b8';
+          g.fillRect(bx - 1, by - 1, 3, 3);
+        }
+
+        /* 7. Turret Bolts in Flight */
+        if (MoR.bolts && MoR.bolts.length) {
+          for (var bi = 0; bi < MoR.bolts.length; bi++) {
+            var bObj = MoR.bolts[bi];
+            var bpx = Math.round(bObj.x), bpy = Math.round(bObj.y);
+            g.fillStyle = (Math.floor(t / 40) % 2) ? '#f43f5e' : '#fbbf24';
+            g.fillRect(bpx - 1, bpy - 1, 3, 3);
+            g.fillStyle = '#ffffff';
+            g.fillRect(bpx, bpy, 1, 1);
+            g.fillStyle = 'rgba(244, 63, 94, 0.4)';
+            g.fillRect(Math.round(bpx - bObj.vx * 0.35), Math.round(bpy - bObj.vy * 0.35), 2, 2);
+          }
+        }
+
+        /* 8. Meltdown Smoke & Engine Fires (Phase 3) */
+        if (phase3) {
+          g.fillStyle = (Math.floor(t / 50) % 2) ? '#ea580c' : '#fbbf24';
+          g.fillRect(moRX + (MoR.dir < 0 ? mw - 8 : 4), moRY + 24, 4, 4);
+          g.fillRect(moRX + (MoR.dir < 0 ? mw - 14 : 10), moRY + 36, 4, 3);
+        }
+      }
+    }
 
     /* landers — grunts wobble on two frames; the advanced tractor
        ship hangs a dithered beam column that pours out of its belly
@@ -4426,13 +4728,78 @@ if (w.mother) {
         }
         rightEdge -= mW('MUTANT') + 4 * sc;
       }
-      /* the mothership is in the sky: MOTHER blinks teal on the glass
-         (double-quick while she is in rage) */
+      /* the dreadnought mothership is in the sky: FLAGSHIP alert blinks */
       if (w.mother) {
-        if ((Math.floor(w.t / (w.mother.hp <= 3 ? 150 : 300)) % 2) === 0) {
-          drawMText(g, 'MOTHER', rightEdge - mW('MOTHER'), y3, w.mother.hp <= 3 ? PC.redHi : '#2fbfae', sc);
+        if ((Math.floor(w.t / (w.mother.hp <= 10 ? 150 : 300)) % 2) === 0) {
+          drawMText(g, 'FLAGSHIP', rightEdge - mW('FLAGSHIP'), y3, w.mother.hp <= 10 ? PC.redHi : (w.mother.shield > 0 ? '#38bdf8' : '#f59e0b'), sc);
         }
-        rightEdge -= mW('MOTHER') + 4 * sc;
+        rightEdge -= mW('FLAGSHIP') + 4 * sc;
+      }
+      /* dedicated Boss Health Bar (Shield + Core Armor) */
+      if (w.mother && w.mother.state !== 'dying') {
+        var MoH = w.mother;
+        var barW = 160;
+        var barH = 5;
+        var barX = Math.round(cols / 2 - barW / 2);
+        var barY = y3 + 2;
+        if (barY < rows * 0.28) {
+          g.save();
+          var bTitle = MoH.hp <= 10 ? '◆ DREADNOUGHT CRITICAL ◆' : (MoH.shield > 0 ? '◆ DREADNOUGHT SHIELDED ◆' : '◆ DREADNOUGHT CORE EXPOSED ◆');
+          var tCol = MoH.hp <= 10 ? PC.redHi : (MoH.shield > 0 ? '#38bdf8' : '#f59e0b');
+          drawMText(g, bTitle, Math.round(cols / 2 - mW(bTitle) / 2), barY - 6, tCol, 1);
+
+          /* Frame */
+          g.fillStyle = '#090d16';
+          g.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
+          g.fillStyle = '#334155';
+          g.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+
+          /* Hull Armor Bar (Back layer) */
+          var hpRatio = Math.max(0, Math.min(1, MoH.hp / (MoH.maxHp || 24)));
+          var hpFillW = Math.round(barW * hpRatio);
+          var hpCol = MoH.hp <= 10 ? '#ef4444' : '#f59e0b';
+          g.fillStyle = '#450a0a';
+          g.fillRect(barX, barY, barW, barH);
+          g.fillStyle = hpCol;
+          g.fillRect(barX, barY, hpFillW, barH);
+
+          /* Shield Bar (Overlaid on top when active) */
+          if (MoH.shield > 0) {
+            var shRatio = Math.max(0, Math.min(1, MoH.shield / (MoH.maxShield || 16)));
+            var shFillW = Math.round(barW * shRatio);
+            g.fillStyle = 'rgba(56, 189, 248, 0.88)';
+            g.fillRect(barX, barY, shFillW, barH);
+            var shimX = barX + (Math.floor(t * 0.18) % Math.max(1, shFillW));
+            g.fillStyle = '#ffffff';
+            g.fillRect(shimX, barY, 2, barH);
+          }
+          if (MoH.hitFlash > 0 && Math.floor(t / 40) % 2) {
+            g.fillStyle = '#ffffff';
+            g.fillRect(barX, barY, barW, barH);
+          }
+          g.restore();
+        }
+      }
+      /* Boss Warning Banner */
+      if (w.bossWarning > 0) {
+        var warnAlpha = Math.min(1, w.bossWarning / 400);
+        g.save();
+        g.globalAlpha = warnAlpha;
+        var midY = Math.round(rows * 0.32);
+        for (var stx = 0; stx < cols; stx += 16) {
+          var stCol = ((stx + Math.floor(t / 50) * 8) % 32 < 16) ? '#dc2626' : '#18181b';
+          g.fillStyle = stCol;
+          g.fillRect(stx, midY - 14, 16, 3);
+          g.fillRect(stx, midY + 15, 16, 3);
+        }
+        g.fillStyle = 'rgba(15, 23, 42, 0.90)';
+        g.fillRect(0, midY - 11, cols, 26);
+        var warnCol = (Math.floor(t / 100) % 2 === 0) ? '#fef08a' : '#ef4444';
+        var wTxt1 = '▲▲▲ WARNING ▲▲▲';
+        var wTxt2 = 'FLAGSHIP DREADNOUGHT APPROACHING';
+        drawMText(g, wTxt1, Math.round(cols / 2 - mW(wTxt1) / 2), midY - 6, warnCol, 1);
+        drawMText(g, wTxt2, Math.round(cols / 2 - mW(wTxt2) / 2), midY + 4, '#ffffff', 1);
+        g.restore();
       }
       /* a real stick on the bus: the glass names the hand flying the
          ship — STICK, DPAD, or plain PAD before either speaks */
@@ -4499,7 +4866,9 @@ if (w.mother) {
       coin: function () { if (coinBtn) { coinBtn.click(); } },
       charge: function (n) { if (world) { world.kills = n; paintPBtns(); } },
       special: function () { fireSpecial(); },
-      mother: function () { if (world && !world.mother && !world.shipDead) { spawnMother(world); } },
+      mother: function () { if (world && !world.mother && !world.shipDead) { spawnMother(world); } return world ? world.mother : null; },
+      bossHit: function () { if (world && world.mother) { hitMother(world.mother, world.mother.sx + 40, world.mother.y + 20); } },
+      bossDefeat: function () { if (world && world.mother) { world.mother.shield = 0; world.mother.hp = 1; hitMother(world.mother, world.mother.sx + 40, world.mother.y + 20); } },
       sector: function (n) {
         if (!world) { return; }
         world.sector = Math.max(1, Math.min(9, n | 0));
@@ -4553,7 +4922,7 @@ if (w.mother) {
       show: function (k) { openAttractShow(k); },
       showState: function () { return { idle: Math.round(attractIdleMs), show: attractShow ? attractShow.kind : null, next: attractNextKind }; },
       table: function () { return hiTable; },
-      rage: function () { if (world && world.mother) { world.mother.hp = 3; } },
+      rage: function () { if (world && world.mother) { world.mother.shield = 0; world.mother.hp = 8; } },
       brag: function () { perfectBrag = performance.now() + 90000; },
       /* round 10 hatches: cross the next rank rung by hand, and read
          the ladder (this run's tier + the machine's kept best) */
@@ -5456,7 +5825,7 @@ if (w.mother) {
         [SPR_LANDER, LANDER_LEG, 'LANDER', '150 PTS'],
         [SPR_LANDER_T, LANDER_LEG_T, 'TRACTOR', '300 PTS'],
         [SPR_MUTANT, MUT_LEG, 'MUTANT', '500 PTS'],
-        [SPR_MOTHER, MOTHER_LEG, 'MOTHER', '2000 PTS'],
+        [SPR_MOTHER, MOTHER_LEG, 'FLAGSHIP', '5000 PTS'],
         [SPR_HUM, HUM_LEG, 'HUMANOID', 'SAVE THEM!']
       ];
       var sway = Math.round(Math.sin(t * 0.003) * 1.5);
@@ -5466,8 +5835,8 @@ if (w.mother) {
         var spr = row[0];
         if (i === 2 && (Math.floor(t / 180) % 2)) { spr = SPR_MUTANT2; }   /* the mutant flaps */
         var bob = Math.round(Math.sin(t * 0.004 + i * 1.7) * 1.5);
-        if (spr === SPR_MOTHER && drawSheetFrame(g, 'mother', Math.floor(t / 70) % 36, box.x + 16 + sway - 1, ry + bob - 1, 36, 19)) {
-          /* animated mothership */
+        if (spr === SPR_MOTHER && drawSheetFrame(g, 'mother', Math.floor(t / 70) % 36, box.x + 14 + sway - 1, ry + bob - 1, 38, 20)) {
+          /* animated flagship mothership */
         } else {
           drawSpr(g, spr, box.x + 16 + sway, ry + bob + 1, row[1]);
         }
