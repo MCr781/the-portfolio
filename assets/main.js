@@ -4443,7 +4443,7 @@ if (w.mother) {
     var rankText = rank ? 'RANK ' + rank.t : '';
     var rw = rank ? (rankBadgeW + 4 + textW(rankText)) : 0;
     var bw = Math.max(textW(bl1, 2), textW(blRevive), bl5 ? textW(bl5) : 0, rw) + 24;
-    var bh0 = bl4 ? 80 : (bl3 && rank ? 80 : (bl3 || rank ? 70 : 60));
+    var bh0 = bl4 ? 88 : (bl3 && rank ? 88 : (bl3 || rank ? 78 : 66));
     goCv.width = bw; goCv.height = bh0;
     goCv.className = 'go-cv pxcv';
     g.clearRect(0, 0, bw, bh0);
@@ -4460,33 +4460,88 @@ if (w.mother) {
     drawText(g, bl1, Math.round(bw / 2 - textW(bl1, 2) / 2) + 1, 9, PC.goldDk, 2);
     drawText(g, bl1, Math.round(bw / 2 - textW(bl1, 2) / 2), 8, PC.score, 2);
 
-    /* prominent coin slot badge centered directly in front of player */
-    var cx = Math.round(bw / 2);
+    /* authentic 32x18 arcade dual coin door centered in front of player */
+    var dw = 32, dh = 18;
+    var dx = Math.round(bw / 2 - dw / 2);
+    var dy = 23;
     var coinFlash = (Math.floor(performance.now() / 250) % 2) === 0;
+    /* drop shadow */
+    g.fillStyle = 'rgba(0,0,0,0.8)';
+    g.fillRect(dx + 1, dy + 1, dw, dh);
+    /* outer notched metal door plate */
     g.fillStyle = PC.metalBd;
-    g.fillRect(cx - 10, 24, 20, 10);
+    g.fillRect(dx + 1, dy, dw - 2, dh);
+    g.fillRect(dx, dy + 1, dw, dh - 2);
     g.fillStyle = PC.metal;
-    g.fillRect(cx - 9, 25, 18, 8);
+    g.fillRect(dx + 1, dy + 1, dw - 2, dh - 2);
     g.fillStyle = PC.metalHi;
-    g.fillRect(cx - 9, 25, 18, 1);
+    g.fillRect(dx + 2, dy + 1, dw - 4, 1);
+    g.fillRect(dx + 1, dy + 2, 1, dh - 4);
     g.fillStyle = PC.metalDk;
-    g.fillRect(cx - 9, 32, 18, 1);
+    g.fillRect(dx + 2, dy + dh - 2, dw - 4, 1);
+    g.fillRect(dx + dw - 2, dy + 2, 1, dh - 4);
+    /* corner door rivets */
     g.fillStyle = PC.ink;
-    g.fillRect(cx - 5, 26, 3, 6);
-    g.fillRect(cx + 2, 26, 3, 6);
-    g.fillStyle = coinFlash ? PC.gold : PC.goldHi;
-    g.fillRect(cx - 4, 27, 1, 4);
-    g.fillRect(cx + 3, 27, 1, 4);
+    g.fillRect(dx + 2, dy + 2, 1, 1); g.fillRect(dx + dw - 3, dy + 2, 1, 1);
+    g.fillRect(dx + 2, dy + dh - 3, 1, 1); g.fillRect(dx + dw - 3, dy + dh - 3, 1, 1);
+    g.fillStyle = PC.metalHi;
+    g.fillRect(dx + 2, dy + 2, 1, 1); g.fillRect(dx + dw - 3, dy + 2, 1, 1);
+
+    /* center indicator LED with breathing glow */
+    if (coinFlash) {
+      g.fillStyle = 'rgba(255, 215, 106, 0.4)';
+      g.fillRect(dx + 13, dy + 2, 6, 3);
+    }
+    g.fillStyle = coinFlash ? PC.gold : PC.goldDk;
+    g.fillRect(dx + 14, dy + 3, 4, 1);
+    if (coinFlash) { g.fillStyle = PC.goldHi; g.fillRect(dx + 15, dy + 3, 2, 1); }
+
+    /* dual coin entry bezels (left & right) */
+    var bxs = [dx + 4, dx + 18];
+    for (var bi = 0; bi < 2; bi++) {
+      var bx = bxs[bi];
+      /* dark bezel border */
+      g.fillStyle = PC.ink;
+      g.fillRect(bx, dy + 3, 10, 12);
+      g.fillStyle = PC.metalBd;
+      g.fillRect(bx, dy + 3, 10, 1);
+      g.fillRect(bx, dy + 14, 10, 1);
+      g.fillRect(bx, dy + 3, 1, 12);
+      g.fillRect(bx + 9, dy + 3, 1, 12);
+      /* amber/orange push-to-reject button face */
+      g.fillStyle = '#a64a14';
+      g.fillRect(bx + 1, dy + 4, 8, 10);
+      g.fillStyle = '#e8782a';
+      g.fillRect(bx + 1, dy + 4, 8, 1);
+      g.fillRect(bx + 1, dy + 4, 1, 10);
+      /* high-contrast vertical coin slit */
+      g.fillStyle = PC.ink;
+      g.fillRect(bx + 4, dy + 5, 2, 8);
+      g.fillStyle = PC.metalBd;
+      g.fillRect(bx + 3, dy + 5, 1, 8);
+      g.fillRect(bx + 6, dy + 5, 1, 8);
+      /* gold glint on slot edge */
+      g.fillStyle = coinFlash ? PC.gold : PC.goldHi;
+      g.fillRect(bx + 4, dy + 6, 1, 5);
+      /* coin poised at top of left slot */
+      if (bi === 0 && coinFlash) {
+        g.fillStyle = PC.gold;
+        g.fillRect(bx + 3, dy + 4, 4, 1);
+        g.fillStyle = PC.goldHi;
+        g.fillRect(bx + 4, dy + 4, 2, 1);
+      }
+    }
 
     var rxKey = Math.round(bw / 2 - textW(blRevive) / 2);
-    drawText(g, blRevive, rxKey + 1, 39, PC.goldDk, 1);
-    drawText(g, blRevive, rxKey, 38, coinFlash ? PC.gold : PC.white, 1);
+    var ky = dy + dh + 4;
+    drawText(g, blRevive, rxKey + 1, ky + 1, PC.goldDk, 1);
+    drawText(g, blRevive, rxKey, ky, coinFlash ? PC.gold : PC.white, 1);
 
     if (bl3 && !bl4) {
-      drawText(g, bl3, Math.round(bw / 2 - textW(bl3) / 2), 50, PC.slateHi, 1);
+      drawText(g, bl3, Math.round(bw / 2 - textW(bl3) / 2), ky + 11, PC.slateHi, 1);
     }
     if (rank) {
-      var ry = bl3 ? 61 : 50;
+      var ry = bl3 ? ky + 21 : ky + 11;
       var rx = Math.round(bw / 2 - rw / 2);
       if (rank.tier >= 6) {
         drawSpr(g, SPR_STAR, rx, ry, STAR_LEG);
@@ -4501,9 +4556,9 @@ if (w.mother) {
       /* the crown: a pixel cup, a gold verdict, and the two scores
          that settled it — the plate becomes the podium */
       var tx = Math.round(bw / 2 - textW(bl4) / 2 - 14);
-      drawSpr(g, SPR_TROPHY, tx, 50, TROPHY_LEG);
-      drawText(g, bl4, Math.round(bw / 2 - textW(bl4) / 2), 52, PC.gold, 1);
-      drawText(g, bl5, Math.round(bw / 2 - textW(bl5) / 2), 62, PC.shellDk, 1);
+      drawSpr(g, SPR_TROPHY, tx, ky + 11, TROPHY_LEG);
+      drawText(g, bl4, Math.round(bw / 2 - textW(bl4) / 2), ky + 13, PC.gold, 1);
+      drawText(g, bl5, Math.round(bw / 2 - textW(bl5) / 2), ky + 23, PC.shellDk, 1);
     }
     goCv.style.width = (bw * PXG) + 'px';
     goCv.style.height = (bh0 * PXG) + 'px';
@@ -6523,25 +6578,43 @@ if (w.mother) {
       var spent = credits > 0;
       if (spent) { credits -= 1; saveCredits(); paintCredit(); }
       if (world) {
+        touchDeck(world);
+        world.humanRun = true;
+        world.shipDead = false;
+        world.score = 0;
+        world.kills = 0;
+        world.chain = 0;
+        world.chainUntil = 0;
         world.sector = 1;             /* the ladder starts over for the hand */
         world.sectorKills = 0;
-        /* round 14: same law as the alternation above — the door you
-           walked through when START landed keeps this run, even if
-           your first control touch arrives after the scroll below */
+        world.rankTier = 1;
         world.runWorld = currentWorld || lastWorld || '';
         world.planetFall = false;
         world.zeroHumsT = 0;
+        world.hiAtRunStart = hiScore;
+        world.runStartT = world.t;
+        world.portal = { t0: world.t };
+        sfx('portal');
         world.banner = {
           l1: 'WORLD 01',
           l2: spent ? 'GOOD LUCK!' : 'FREE PLAY!',
           until: performance.now() + 1600
         };
+        html.classList.remove('gameover-dim');
+        html.classList.add('human-run');
       }
+      closeAttractShow();
+    }
+
+  var exploreBtn = $('#exploreBtn');
+  if (exploreBtn) {
+    exploreBtn.addEventListener('click', function () {
       var w1 = $('.w01');
       if (w1 && w1.scrollIntoView) {
         w1.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
       }
-    }
+    });
+  }
 
   var coinReset = null;
   if (coinBtn) {
@@ -6557,6 +6630,9 @@ if (w.mother) {
       credits = Math.min(99, credits + 1);
       saveCredits();
       sfx('coin');
+      if (paused) {
+        togglePause();
+      }
       /* the coin drops through the slot and into your hand: one solid
          clunk of haptic, only where the hardware offers it */
       if (typeof navigator !== 'undefined' && navigator.vibrate) { navigator.vibrate(14); }

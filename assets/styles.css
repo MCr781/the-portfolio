@@ -440,7 +440,7 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
   align-items: flex-end;
   justify-content: center;
   gap: clamp(1.4rem, 4.5vw, 3.2rem);
-  margin-top: clamp(28px, 4.2vh, 42px);
+  margin-top: clamp(63px, calc(4.2vh + 35px), 77px);
   width: 100%;
   /* a control panel is hardware, not prose: stick on the player's left,
      action buttons on the right — even though the page reads RTL */
@@ -470,7 +470,7 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
 .joy {
   position: relative;
   flex: none;
-  transform: scale(1.25);
+  transform: scale(1.06);
   transform-origin: center bottom;
 }
 .pstart {
@@ -499,6 +499,8 @@ html.coin-hidden .coin-row { visibility: hidden; }
   align-items: flex-end;
   flex: none;
   padding-bottom: 8px;
+  transform: scale(0.85);
+  transform-origin: center bottom;
 }
 .pbtn { position: relative; display: block; flex: none; }
 /* the deck's SOUND rocker — a real switch, not a chip: same hardware
@@ -529,7 +531,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .coin-row {
   position: absolute;
   left: clamp(16px, 2.8vw, 32px);
-  bottom: calc(clamp(3.2rem, 5.6vh, 4.2rem) + 5px);
+  bottom: calc(clamp(3.2rem, 5.6vh, 4.2rem) + 15px);
   z-index: 4;
   display: flex;
   align-items: center;
@@ -559,9 +561,51 @@ html.coin-hidden .coin-row { visibility: hidden; }
   margin-top: clamp(1px, 0.3vh, 2px);
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 16px;
   width: 100%;
 }
 .crt-decal { position: relative; }
+.hero-explore-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 4px;
+  background: rgba(14, 11, 26, 0.85);
+  border: 1px solid var(--shell-line, #382c54);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--c-accent, #ffd76a);
+  cursor: pointer;
+  transition: border-color 160ms, transform 140ms, background 160ms, color 160ms;
+  text-decoration: none;
+  line-height: 1.2;
+}
+.hero-explore-cta:hover {
+  background: rgba(26, 18, 48, 0.95);
+  border-color: var(--c-accent, #ffd76a);
+  transform: translateY(1px);
+  color: #ffffff;
+}
+.hero-explore-cta:focus-visible {
+  outline: 2px solid var(--c-accent, #ffd76a);
+  outline-offset: 2px;
+}
+.hero-explore-cta .cta-arr {
+  font-size: 0.62rem;
+  color: var(--c-accent, #ffd76a);
+  animation: ctabounce 1.6s ease-in-out infinite;
+}
+@keyframes ctabounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(2px); }
+}
+@media (max-width: 600px) {
+  .crt-decal { display: none; }
+}
 .credit { position: absolute; right: 0; bottom: 0; }
 .crt-decal canvas,
 .credit canvas,
