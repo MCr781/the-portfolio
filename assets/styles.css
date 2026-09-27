@@ -348,7 +348,8 @@ html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
    (visibility, not opacity — the awake fade-in animation outranks
    opacity in the cascade) */
 html.banner-on .hero-inner,
-html.banner-on .hero-cue { visibility: hidden; }
+html.banner-on .hero-cue,
+html.human-run .hero-cue { visibility: hidden; }
 /* GAME OVER: the marquee recedes to under half of itself — present at
    the edges, ghosted behind the plate, never glyph-on-glyph */
 html.gameover-dim .hero-inner,
@@ -438,12 +439,14 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: clamp(1rem, 4vw, 2.5rem);
-  margin-top: clamp(2px, 0.6vh, 6px);
+  gap: clamp(1.4rem, 4.5vw, 3.2rem);
+  margin-top: clamp(14px, 2.5vh, 28px);
   width: 100%;
   /* a control panel is hardware, not prose: stick on the player's left,
      action buttons on the right — even though the page reads RTL */
   direction: ltr;
+  transform: scale(1.22);
+  transform-origin: center bottom;
 }
 /* round 13 · the deck lights dim while the tube talks: a real cabinet
    drops its play-field lamps during the attract show so the screen
@@ -519,15 +522,18 @@ html.coin-hidden .coin-row { visibility: hidden; }
 
 /* ── coin row · a pixel coin door on the glass ──────── */
 .coin-row {
-  position: relative;
-  z-index: 2;
-  flex: 0 0 auto;
+  position: absolute;
+  left: clamp(16px, 2.8vw, 32px);
+  bottom: clamp(3.2rem, 5.6vh, 4.2rem);
+  z-index: 4;
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin-top: clamp(2px, 0.6vh, 6px);
+  gap: 8px 12px;
+  margin-top: 0;
+  direction: ltr;
+}
+@media (max-width: 680px) {
+  .coin-fa { display: none; }
 }
 .coin-slot {
   position: relative;
@@ -1205,7 +1211,6 @@ html[data-show='cast'] .cast-caption {
   .hero-para { font-size: .95rem; }
   .hero-role { margin-bottom: 8px; }
   .hero-deck { gap: clamp(1.4rem, 4.5vw, 3.2rem); margin-top: .9rem; }
-  .coin-row { margin-top: .7rem; }
   .hero-foot { margin-top: .5rem; }
 }
 @media (max-width: 860px) {

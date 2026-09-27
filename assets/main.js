@@ -2087,12 +2087,22 @@ var moX = Math.round(M.sx);
     if (!w || w.shipDead) { return; }
     var S = w.ship;
     var dir = S.face || 1;
+    var flip = dir < 0;
+    var muzzX = flip ? Math.round(S.x) - 2 : Math.round(S.x) + sprW(SPR_SHIP) + 1;
     var sy = Math.round(S.y + S.hopY) + 5;
+    var scanX = muzzX;
+    var limX = flip ? -3 : w.cols + 3;
+    var hitX = limX;
+    while (flip ? scanX > limX : scanX < limX) {
+      var trW = terrRow(Math.floor(w.worldX) + scanX, w.rows);
+      if (sy >= trW - 1) { hitX = scanX; break; }
+      scanX += flip ? -2 : 2;
+    }
     for (var k = w.landers.length - 1; k >= 0; k--) {
       var L = w.landers[k];
       if (L.gone) { continue; }
       var lsx = L.wx - w.worldX;
-      var ahead = dir > 0 ? (lsx > S.x + 2) : (lsx < S.x + sprW(SPR_SHIP));
+      var ahead = dir > 0 ? (lsx > S.x + 2 && lsx < hitX) : (lsx < S.x + sprW(SPR_SHIP) && lsx > hitX);
       if (ahead && lsx > -8 && lsx < w.cols + 8 && Math.abs(L.y + 3 - sy) < 6) {
         L.gone = true;
         var bpts = awardKill(w, L.type === 'tractor' ? 300 : 150);
@@ -2107,7 +2117,7 @@ var moX = Math.round(M.sx);
     }
     for (var b2 = w.bombs.length - 1; b2 >= 0; b2--) {
       var bo2 = w.bombs[b2];
-      var ahead2 = dir > 0 ? (bo2.x > S.x) : (bo2.x < S.x + sprW(SPR_SHIP));
+      var ahead2 = dir > 0 ? (bo2.x > S.x && bo2.x < hitX) : (bo2.x < S.x + sprW(SPR_SHIP) && bo2.x > hitX);
       if (ahead2 && Math.abs(bo2.y - sy) < 5) {
         bo2.gone = true;
         boomAt(Math.round(bo2.x), Math.round(bo2.y), 6);
@@ -2117,19 +2127,17 @@ var moX = Math.round(M.sx);
       var mu3 = w.mutants[m3];
       if (mu3.gone) { continue; }
       var mx3 = mu3.wx - w.worldX;
-      var ahead3 = dir > 0 ? (mx3 > S.x) : (mx3 < S.x + sprW(SPR_SHIP));
+      var ahead3 = dir > 0 ? (mx3 > S.x && mx3 < hitX) : (mx3 < S.x + sprW(SPR_SHIP) && mx3 > hitX);
       if (ahead3 && Math.abs(mu3.y + 3 - sy) < 6) { killMutant(mu3); }
     }
-/* the lance meets the mothership: she rides too high for most
-	        beams, but a pilot who climbs to her lane cuts her all the same */
-	        if (w.mother) {
-	          var moB = w.mother;
-	          var moBX = moB.sx;
-	          var aheadM = dir > 0 ? (moBX > S.x) : (moBX < S.x + sprW(SPR_SHIP));
-	          if (aheadM && moBX > -8 && moBX < w.cols + 8 && Math.abs(moB.y + 7 - sy) < 14) {
-	            hitMother(moB, moBX + (dir > 0 ? 1 : 67), sy);
-	          }
-	        }
+    if (w.mother) {
+      var moB = w.mother;
+      var moBX = moB.sx;
+      var aheadM = dir > 0 ? (moBX > S.x && moBX < hitX) : (moBX < S.x + sprW(SPR_SHIP) && moBX > hitX);
+      if (aheadM && moBX > -8 && moBX < w.cols + 8 && Math.abs(moB.y + 7 - sy) < 14) {
+        hitMother(moB, moBX + (dir > 0 ? 1 : 67), sy);
+      }
+    }
   }
 
   /* the three player verbs — wired to FIRE / JUMP / the joystick */
@@ -2470,6 +2478,13 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           }
         }
       }
+      if (!L.gone) {
+        var trL = Math.min(
+          terrRow(Math.round(L.wx - 6), w.rows),
+          Math.min(terrRow(Math.round(L.wx), w.rows), terrRow(Math.round(L.wx + 6), w.rows))
+        );
+        if (L.y > trL - 10) { L.y = trL - 10; }
+      }
     }
 
     /* bombs fall from landers, home gently, burst on the terrain.
@@ -2534,6 +2549,13 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
         }
       }
       if (bo.gone) { continue; }
+      if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0) &&
+          Math.abs(bo.x - (w.ship.x + 15)) < 12 && Math.abs(bo.y - (w.ship.y + w.ship.hopY + 6)) < 7) {
+        bo.gone = true;
+        blastAt(Math.round(bo.x), Math.round(bo.y));
+        killShip(null);
+        continue;
+      }
       var bR = terrRow(Math.round(bo.x + w.worldX), w.rows);
       if (bo.y >= bR - 1) {
         bo.gone = true;
@@ -2782,8 +2804,11 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
       var dym = (S.y + S.hopY + 6) - (mu.y + 4);
       mu.wx += Math.max(-42, Math.min(42, dxm)) * ds;
       mu.y += Math.max(-30, Math.min(30, dym)) * ds + Math.sin(w.t * 0.006 + mu.ph) * 8 * ds;
-      var gYm = terrRow(Math.round(mu.wx), w.rows) - 6;
-      if (mu.y > gYm) { mu.y = gYm; }
+      var trM = Math.min(
+        terrRow(Math.round(mu.wx - 5), w.rows),
+        Math.min(terrRow(Math.round(mu.wx), w.rows), terrRow(Math.round(mu.wx + 5), w.rows))
+      );
+      if (mu.y > trM - 9) { mu.y = trM - 9; }
       if (mu.y < 6) { mu.y = 6; }
       if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0) &&
           Math.abs(mux + 5 - (S.x + 15)) < 15 && Math.abs(mu.y + 4 - (S.y + S.hopY + 6)) < 7) {
@@ -4046,6 +4071,11 @@ if (w.mother) {
     /* CRT vignette — pre-rendered dither, over the world but UNDER
        the glass text: the score row must never be eaten by it */
     g.drawImage(vigCv, 0, 0);
+    /* persistent golden screen surge while paused with coin */
+    if (paused && pauseGold && mode === 'hero') {
+      g.fillStyle = PC.gold;
+      g.fillRect(0, 0, cols, rows);
+    }
     if (mode === 'hero') { drawAttractChrome(g, cols, rows, w); }
     /* the idle show draws last: its wash + card sit over everything
        on the tube (the DOM copy has receded via html.attract-show) */
@@ -4072,7 +4102,20 @@ if (w.mother) {
     /* PAUSE: the sim holds its breath — the glass blinks it (the sim's
        own clock is frozen, so the blink runs on the wall clock) */
     if (paused && (Math.floor(performance.now() / 480) % 2) === 0) {
-      drawMText(g, 'PAUSE', Math.round(cols / 2 - mW('PAUSE') / 2), Math.round(rows * 0.42), PC.gold, 2);
+      var pauseY = Math.round(rows * 0.58);
+      if (cueSubCv && cv) {
+        var rSub = cueSubCv.getBoundingClientRect();
+        var rCv = cv.getBoundingClientRect();
+        if (rSub && rCv && rSub.bottom > rCv.top) {
+          pauseY = Math.round((rSub.bottom - rCv.top) / PXG) + 5;
+        }
+      }
+      if (pauseGold) {
+        drawMText(g, 'PAUSE', Math.round(cols / 2 - mW('PAUSE') / 2) + 1, pauseY + 1, '#ffffff', 2);
+        drawMText(g, 'PAUSE', Math.round(cols / 2 - mW('PAUSE') / 2), pauseY, '#05050a', 2);
+      } else {
+        drawMText(g, 'PAUSE', Math.round(cols / 2 - mW('PAUSE') / 2), pauseY, PC.gold, 2);
+      }
     }
     drawMText(g, '1P', 5, y1, curPlayer === 1 ? PC.gold : chrome, sc);
     if (sc === 2 && !w) { drawMText(g, '00', 5, y2, chrome, sc); }   /* attract placeholder */
@@ -4730,11 +4773,28 @@ if (w.mother) {
   /* the BEST PILOTS ledger — five names and the scores that earned
      them, kept on this cabinet between visits; the newest signature
      blinks until the next one arrives */
+  var DEFAULT_HI_TABLE = [
+    { n: 'NEO', s: 12450 },
+    { n: 'ACE', s: 9800 },
+    { n: 'RAD', s: 7500 },
+    { n: 'MAX', s: 5200 },
+    { n: 'AAA', s: 3100 }
+  ];
   var hiTable = [];
   try { hiTable = JSON.parse(store('fw-hi-table') || '[]') || []; } catch (e) { hiTable = []; }
   if (!Array.isArray(hiTable)) { hiTable = []; }
   hiTable = hiTable.filter(function (r) { return r && r.n && r.s > 0; }).slice(0, 5);
   if (!hiTable.length && hiScore > 0) { hiTable = [{ n: hiName, s: hiScore }]; }
+  for (var dti = 0; dti < DEFAULT_HI_TABLE.length && hiTable.length < 5; dti++) {
+    var def = DEFAULT_HI_TABLE[dti];
+    var exists = false;
+    for (var dtk = 0; dtk < hiTable.length; dtk++) {
+      if (hiTable[dtk].n === def.n) { exists = true; break; }
+    }
+    if (!exists) { hiTable.push({ n: def.n, s: def.s }); }
+  }
+  hiTable.sort(function (a, b) { return (b.s || 0) - (a.s || 0); });
+  hiTable = hiTable.slice(0, 5);
   function saveHiTable() { store('fw-hi-table', JSON.stringify(hiTable)); }
   function pushHiTable(nm, sc) {
     if (!sc || sc <= 0) { return; }
@@ -5092,6 +5152,7 @@ if (w.mother) {
         [SPR_MOTHER, MOTHER_LEG, 'MOTHER', '2000 PTS'],
         [SPR_HUM, HUM_LEG, 'HUMANOID', 'SAVE THEM!']
       ];
+      var sway = Math.round(Math.sin(t * 0.003) * 1.5);
       for (var i = 0; i < TR.length; i++) {
         var row = TR[i];
         var ry = ry0 + i * rowH;
@@ -5389,10 +5450,20 @@ if (w.mother) {
   /* the service switch: P freezes the sim, the glass blinks PAUSE,
      the coin door keeps its promises until you flip back */
   var paused = false;
+  var pauseGold = false;
   function togglePause() {
     paused = !paused;
+    if (!paused) { pauseGold = false; }
     blip(paused ? 392 : 523, 90);
   }
+  document.addEventListener('pointerdown', function (e) {
+    if (paused) {
+      if (coinBtn && (e.target === coinBtn || coinBtn.contains(e.target))) {
+        return; /* let coinBtn handle coin insertion and turn screen golden */
+      }
+      togglePause();
+    }
+  }, true);
   document.addEventListener('visibilitychange', function () {
     /* the arcade courtesy: step away, and the deck pauses itself */
     if (document.hidden && world) { paused = true; }
@@ -5413,6 +5484,11 @@ if (w.mother) {
     if (!heroVisible || !world) { return; }
     /* the signature owns every key while the entry is up */
     if (hiEntry) { entryKey(e.code); e.preventDefault(); return; }
+    if (paused) {
+      togglePause();
+      e.preventDefault();
+      return;
+    }
     if (e.code === 'KeyP') { togglePause(); e.preventDefault(); return; }
     var k = KEYMAP[e.code];
     if (k) {
@@ -6482,6 +6558,7 @@ if (w.mother) {
       credits = Math.min(99, credits + 1);
       saveCredits();
       sfx('coin');
+      if (paused) { pauseGold = true; }
       /* the coin drops through the slot and into your hand: one solid
          clunk of haptic, only where the hardware offers it */
       if (typeof navigator !== 'undefined' && navigator.vibrate) { navigator.vibrate(14); }
@@ -6647,6 +6724,7 @@ if (w.mother) {
       bannerWas = bannerOn;
       html.classList.toggle('banner-on', bannerOn);
     }
+    html.classList.toggle('human-run', !!(world && world.humanRun && !world.shipDead));
     /* a dimming stamp: the introduction recedes behind the DOM plate —
        present, legible at the edges, never glyph-on-glyph */
     var dimOn = !!(world && world.banner && world.banner.dim && t < world.banner.until);
