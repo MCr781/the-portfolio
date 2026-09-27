@@ -1729,7 +1729,7 @@ function farRow(wx, rows) {
     for (var i = 0; i < 9; i++) {
       world.hums.push({
         wx: world.worldX + 24 + Math.random() * cols * 2.4,
-        y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
+        y: 0, state: 'ground', vy: 0, held: null, targetedBy: null, ph: Math.random() * 6.28
       });
     }
     faCache = {};
@@ -1738,10 +1738,10 @@ function farRow(wx, rows) {
 
   function spawnLander() {
     var w = world;
-    /* cruise the gun lane: high enough to be shot, low enough
-       to menace the people on the deck */
+    /* cruise the central airspace: well clear of the mountain ridge,
+       centered between the mothership's high patrol and the deck */
     spawnLanderAt(w.cols + 3 + Math.random() * 16,
-                  w.rows * (0.52 + Math.random() * 0.18));
+                  w.rows * (0.32 + Math.random() * 0.14));
   }
   function spawnLanderAt(sx, sy) {
     var w = world;
@@ -2110,10 +2110,14 @@ var moX = Math.round(M.sx);
         var bpts = awardKill(w, L.type === 'tractor' ? 300 : 150);
         popAt(w, Math.round(lsx), Math.round(L.y) - 2, '+' + bpts);
         boomAt(Math.round(lsx + 5), Math.round(L.y + 3), 9);
-        if (L.target && (L.target.state === 'held' || L.target.state === 'pulled')) {
-          L.target.state = 'fall';
-          L.target.vy = 0;
-          L.target.held = null;
+        if (L.target) {
+          if (L.target.targetedBy === L) { L.target.targetedBy = null; }
+          if (L.target.state === 'held' || L.target.state === 'pulled') {
+            L.target.state = 'fall';
+            L.target.vy = 0;
+            L.target.held = null;
+          }
+          L.target = null;
         }
       }
     }
@@ -2299,7 +2303,19 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
     for (i = 0; i < w.landers.length; i++) {
       var L = w.landers[i];
       L.wx += L.drift * ds;
-      if (L.wx - w.worldX < -8) { L.gone = true; continue; }
+      if (L.wx - w.worldX < -8) {
+        if (L.target) {
+          if (L.target.targetedBy === L) { L.target.targetedBy = null; }
+          if (L.target.state === 'held' || L.target.state === 'pulled') {
+            L.target.state = 'fall';
+            L.target.vy = 0;
+            L.target.held = null;
+          }
+          L.target = null;
+        }
+        L.gone = true;
+        continue;
+      }
       var lsx0 = L.wx - w.worldX;
       if (!w.shipDead && !w.portal && w.t >= (w.invUntil || 0) &&
           Math.abs(lsx0 + 7 - (w.ship.x + 15)) < 15 &&
@@ -2325,11 +2341,13 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           for (j = 0; j < w.hums.length; j++) {
             var cand = w.hums[j];
             if (cand.state !== 'ground') { continue; }
+            if (cand.targetedBy && cand.targetedBy !== L && !cand.targetedBy.gone) { continue; }
             if (L.type === 'tractor') {
               /* the advanced ship claims a soul within reach, then
                  begins the ceremony: glide over, settle, reach */
               var cd2 = Math.abs(cand.wx - L.wx);
               if (cd2 < 110) {
+                cand.targetedBy = L;
                 L.state = 'beam';
                 L.target = cand;
                 L.hoverUntil = 0;
@@ -2341,6 +2359,7 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
                 break;
               }
             } else if (Math.abs(cand.wx - L.wx) < 26) {
+              cand.targetedBy = L;
               L.state = 'descend';
               L.target = cand;
               break;
@@ -2355,12 +2374,16 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
            column finally touches it, and the pull is patient. If the
            mark is lost, the beam dies and the soul falls */
         var tg = L.target;
-        if (!tg || tg.gone || (tg.state !== 'ground' && tg.state !== 'pulled')) {
+        if (!tg || tg.gone || tg.targetedBy !== L || (tg.state !== 'ground' && tg.state !== 'pulled')) {
           L.rey = L.y - (L.base + Math.sin(w.t * 0.0021 + L.ph) * 4);
           L.state = 'drift';
           L.grabCd = 5000 + Math.random() * 4000;
           L.hoverUntil = 0; L.reachAt = 0; L.laneY = 0;
-          if (tg && tg.state === 'pulled') { tg.state = 'fall'; tg.vy = 0; tg.held = null; }
+          if (tg && tg.targetedBy === L) {
+            tg.targetedBy = null;
+            if (tg.state === 'pulled') { tg.state = 'fall'; tg.vy = 0; tg.held = null; }
+          }
+          L.target = null;
         } else if (tg.state === 'ground') {
           /* the approach: slide over the mark and down to the lane */
           var adx = tg.wx - L.wx;
@@ -2394,16 +2417,18 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           tg.y -= Math.min(30 * ds, 3);
           var gYt = terrRow(Math.round(tg.wx), w.rows) - 8;
           if (tg.y > gYt) { tg.y = gYt; }
-          if (tg.y <= L.y + 9) { tg.state = 'held'; L.state = 'lift'; sfx('liftCreak'); }
+          if (tg.y <= L.y + 9) { tg.state = 'held'; tg.held = L; L.state = 'lift'; sfx('liftCreak'); }
         }
       } else if (L.state === 'descend') {
         var tgt = L.target;
-        if (!tgt || tgt.state !== 'ground') {
+        if (!tgt || tgt.gone || tgt.targetedBy !== L || tgt.state !== 'ground') {
           /* the mark was lost mid-dive: climb home instead of
              teleporting back to the lane */
           L.rey = L.y - (L.base + Math.sin(w.t * 0.0021 + L.ph) * 4);
           L.state = 'drift';
           L.grabCd = 6000;
+          if (tgt && tgt.targetedBy === L) { tgt.targetedBy = null; }
+          L.target = null;
         }
         else {
           L.wx += (tgt.wx > L.wx ? 1 : -1) * Math.min(Math.abs(tgt.wx - L.wx), 7 * ds);
@@ -2417,20 +2442,29 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           }
         }
       } else if (L.state === 'lift') {
-        /* a lift you can watch — and interrupt. The climb is labored:
-           the hull wobbles harder the higher it gets, dragging its
-           freight, and the stolen soul kicks in its grip */
-        L.y -= 40 * ds;
-        L.liftWob = Math.min(1, (L.liftWob || 0) + ds * 0.5);
-        if (L.y < w.rows * 0.26) {
-          /* high enough. The ceremony begins: the lander kills its
-             drift and hangs in the sky with its catch */
-          L.state = 'transmute';
-          L.tmAt = w.t;
-          L.tmStage = 0;
-          L.tmY = L.y;
-          L.liftWob = 0;
-          sfx('mutCharge');
+        var tgL = L.target;
+        if (!tgL || tgL.gone || tgL.state !== 'held' || tgL.held !== L) {
+          L.rey = L.y - (L.base + Math.sin(w.t * 0.0021 + L.ph) * 4);
+          L.state = 'drift';
+          L.grabCd = 6000;
+          if (tgL && tgL.targetedBy === L) { tgL.targetedBy = null; }
+          L.target = null;
+        } else {
+          /* a lift you can watch — and interrupt. The climb is labored:
+             the hull wobbles harder the higher it gets, dragging its
+             freight, and the stolen soul kicks in its grip */
+          L.y -= 40 * ds;
+          L.liftWob = Math.min(1, (L.liftWob || 0) + ds * 0.5);
+          if (L.y < w.rows * 0.26) {
+            /* high enough. The ceremony begins: the lander kills its
+               drift and hangs in the sky with its catch */
+            L.state = 'transmute';
+            L.tmAt = w.t;
+            L.tmStage = 0;
+            L.tmY = L.y;
+            L.liftWob = 0;
+            sfx('mutCharge');
+          }
         }
       } else if (L.state === 'transmute') {
         /* THE CEREMONY — three beats, about a second and a half:
@@ -2441,12 +2475,14 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
            reform  — the mutant writes itself in from the crown down,
                      red on white, then tears loose with a shockwave */
         var tgT = L.target;
-        if (!tgT || tgT.gone || tgT.state !== 'held') {
+        if (!tgT || tgT.gone || tgT.state !== 'held' || tgT.held !== L) {
           /* the mark was lost mid-ceremony: climb home, alone */
           L.rey = L.y - (L.base + Math.sin(w.t * 0.0021 + L.ph) * 4);
           L.state = 'drift';
           L.grabCd = 6000;
           L.tmAt = 0; L.tmStage = 0;
+          if (tgT && tgT.targetedBy === L) { tgT.targetedBy = null; }
+          L.target = null;
         } else {
           var ageT = w.t - L.tmAt;
           L.y = L.tmY + Math.sin(w.t * 0.021) * 1.2;
@@ -2457,25 +2493,29 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           } else if (ageT < 1500) {
             if (L.tmStage < 2) { L.tmStage = 2; sfx('mutReform'); }
           } else {
-            /* the burst: Defender's law fulfilled — the soul comes
-               back wrong, red, fast, and personal */
-            if (w.mutants.length < 4) {
+            /* the burst: Defender's law fulfilled — the soul and ship fuse
+               into a mutant */
+            var actMuts = 0;
+            for (var am = 0; am < w.mutants.length; am++) { if (!w.mutants[am].gone) { actMuts++; } }
+            if (actMuts < 6) {
               w.mutants.push({
-                wx: tgT.wx, y: Math.max(8, L.y + 10),
+                wx: L.wx, y: Math.max(8, Math.round(L.y + 4)),
                 ph: Math.random() * 6.28, gone: false
               });
             }
             sfx('mutBurst');
-            boomAt(Math.round(tgT.wx - w.worldX + 5), Math.round(L.y + 12), 10);
-            w.rings.push({ x: tgT.wx - w.worldX + 5, y: L.y + 11, r: 1, life: 420, max: 420 });
-            w.rings.push({ x: tgT.wx - w.worldX + 5, y: L.y + 11, r: 2, life: 560, max: 560 });
+            boomAt(Math.round(L.wx - w.worldX + 5), Math.round(L.y + 6), 12);
+            w.rings.push({ x: L.wx - w.worldX + 5, y: L.y + 6, r: 1, life: 420, max: 420 });
+            w.rings.push({ x: L.wx - w.worldX + 5, y: L.y + 6, r: 2, life: 560, max: 560 });
             w.shake = Math.max(w.shake, 220);
+            tgT.targetedBy = null;
+            tgT.held = null;
             tgT.gone = true;
             w.humsLost = (w.humsLost || 0) + 1;
             L.gone = true;
             w.hums.push({
               wx: w.worldX + w.cols * 2 + Math.random() * w.cols,
-              y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
+              y: 0, state: 'ground', vy: 0, held: null, targetedBy: null, ph: Math.random() * 6.28
             });
           }
         }
@@ -2734,10 +2774,14 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           var lpts = awardKill(w, Ld.type === 'tractor' ? 300 : 150);
           popAt(w, Math.round(lsx), Math.round(Ld.y) - 2, '+' + lpts);
           boomAt(Math.round(lsx + 4), Math.round(Ld.y + 3), 9);
-          if (Ld.target && (Ld.target.state === 'held' || Ld.target.state === 'pulled')) {
-            Ld.target.state = 'fall';
-            Ld.target.vy = 0;
-            Ld.target.held = null;
+          if (Ld.target) {
+            if (Ld.target.targetedBy === Ld) { Ld.target.targetedBy = null; }
+            if (Ld.target.state === 'held' || Ld.target.state === 'pulled') {
+              Ld.target.state = 'fall';
+              Ld.target.vy = 0;
+              Ld.target.held = null;
+            }
+            Ld.target = null;
           }
           break;
         }
@@ -2787,6 +2831,8 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           H.y = gY2;
           H.state = 'ground';
           H.vy = 0;
+          H.held = null;
+          H.targetedBy = null;
           H.cheerUntil = w.t + 1600;   /* saved: arms up, one happy hop */
           sfx('rescue');
           w.score += 250;
@@ -2794,7 +2840,15 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           boomAt(Math.round(H.wx - w.worldX), Math.round(gY2 + 3), 3);
         }
       }
-      if (H.wx - w.worldX < -6) { H.gone = true; w.humsLost = (w.humsLost || 0) + 1; }
+      if (H.wx - w.worldX < -6) {
+        if (H.targetedBy && H.targetedBy.target === H) {
+          H.targetedBy.target = null;
+        }
+        H.targetedBy = null;
+        H.held = null;
+        H.gone = true;
+        w.humsLost = (w.humsLost || 0) + 1;
+      }
     }
 
     /* mutants — the stolen souls, hunting the ship that failed them */
@@ -2835,7 +2889,7 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
       w.humCd = 4200;
       w.hums.push({
         wx: w.worldX + w.cols + Math.random() * w.cols,
-        y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
+        y: 0, state: 'ground', vy: 0, held: null, targetedBy: null, ph: Math.random() * 6.28
       });
     }
     if (!w.planetFall) {
@@ -2845,6 +2899,11 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
           var conv = 0;
           for (i = w.landers.length - 1; i >= 0; i--) {
             var Lf = w.landers[i];
+            if (Lf.target && Lf.target.targetedBy === Lf) {
+              Lf.target.targetedBy = null;
+              Lf.target.held = null;
+            }
+            Lf.target = null;
             w.mutants.push({
               wx: Lf.wx, y: Lf.y, ph: Math.random() * 6.28, gone: false
             });
@@ -2880,7 +2939,7 @@ if (Mo.dropCd <= 0 && w.landers.length < 9) {
       for (i = 0; i < 9; i++) {
         w.hums.push({
           wx: w.worldX + 24 + Math.random() * w.cols * 2.4,
-          y: 0, state: 'ground', vy: 0, held: null, ph: Math.random() * 6.28
+          y: 0, state: 'ground', vy: 0, held: null, targetedBy: null, ph: Math.random() * 6.28
         });
       }
       w.humCd = 4200;
@@ -3548,8 +3607,17 @@ if (w.mother) {
       var spr2 = tractor
         ? ((Math.floor(w.t / 260) + i) % 2 ? SPR_LANDER_T2 : SPR_LANDER_T)
         : ((Math.floor(w.t / 260) + i) % 2 ? SPR_LANDER2 : SPR_LANDER);
-      drawSpr(g, spr2, lxDraw, Math.round(L.y), tractor ? LANDER_LEG_T : LANDER_LEG);
-      if (tractor) { drawTractorRotor(g, lxDraw + 7, Math.round(L.y) + 6, w.t); }
+      var tmAge = L.state === 'transmute' ? (w.t - L.tmAt) : 0;
+      if (L.state === 'transmute' && tmAge >= 950) {
+        if (Math.floor(w.t / 60) % 2) {
+          drawSpr(g, spr2, lxDraw, Math.round(L.y), tractor ? LANDER_LEG_T : LANDER_LEG);
+        }
+      } else {
+        drawSpr(g, spr2, lxDraw, Math.round(L.y), tractor ? LANDER_LEG_T : LANDER_LEG);
+      }
+      if (tractor && (L.state !== 'transmute' || tmAge < 950)) {
+        drawTractorRotor(g, lxDraw + 7, Math.round(L.y) + 6, w.t);
+      }
       if (beamOn && L.state === 'beam' && !L.reachAt && L.hoverUntil && L.target.state === 'ground') {
         /* the settle beat: the emitter warms before the reach — a single
            violet glint beating INSIDE the belly, born in the hull */
@@ -3564,8 +3632,8 @@ if (w.mother) {
     for (i = 0; i < w.landers.length; i++) {
       var Lz = w.landers[i];
       if (Lz.state !== 'transmute' || !Lz.target || Lz.target.gone) { continue; }
-      var tzx = Math.round(Lz.target.wx - w.worldX);
-      var tzy = Math.round(Lz.target.y);
+      var tzx = Math.round(Lz.wx - w.worldX);
+      var tzy = Math.round(Lz.y + 7);
       var ageZ = w.t - Lz.tmAt;
       if (ageZ < 450) {
         /* charge: violet sparks spiral inward and tighten on the soul */
@@ -4307,6 +4375,7 @@ if (w.mother) {
       },
       pause: function () { togglePause(); },
       isPaused: function () { return paused; },
+      spawnLander: function () { spawnLander(); },
       /* round 5 hatches: force the idle show, read the ledger,
          wound the mother into rage, read the players' ledger */
       show: function (k) { openAttractShow(k); },
