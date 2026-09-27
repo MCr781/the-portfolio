@@ -2070,13 +2070,15 @@ var moX = Math.round(M.sx);
     w.rings.push({ x: S.x + 15, y: S.y + 6, r: 1, life: 430, max: 430 });
     /* the machine's farewell: the full walk-down arrangement once the
        wreck has settled — the oldest sad phrase on the glass */
-    setTimeout(function () { sfx('gameover'); }, 780);
-    w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15, keepText: true, dim: true };
+    if (w.humanRun) {
+      setTimeout(function () { sfx('gameover'); }, 780);
+      w.banner = { l1: 'GAME OVER', l2: 'INSERT COIN', until: 1e15, keepText: true, dim: true };
+      playT = 0; coinGrace = 0;
+      html.classList.remove('coin-hidden');
+      paintCredit(); paintCoinLabel();
+    }
     sfx('boomL');
     rumble(1, 0.55, 420);   /* the pad gasps with her */
-    playT = 0; coinGrace = 0;
-    html.classList.remove('coin-hidden');
-    paintCredit(); paintCoinLabel();
   }
 
   /* the unibeam: one strike of the infinite lance — every hull in the
@@ -3477,12 +3479,6 @@ if (w.mother) {
 	           g.fillStyle = (Math.floor(t / (rageMo ? 110 : 240)) % 2) ? PC.redHi : PC.red;
 	           g.fillRect(moRX + 24, moRY + 10, 12, 4);
 	         }
-	         if (MoR.hitFlash > 0 && (Math.floor(t / 40) % 2) === 0) {
-	           g.globalAlpha = 0.55;
-	           g.fillStyle = '#ffffff';
-	           g.fillRect(moRX, moRY, MOTHER_DRAW_W, MOTHER_DRAW_H);
-	           g.globalAlpha = 1;
-	         }
 	       }
 	     }
 
@@ -4071,18 +4067,13 @@ if (w.mother) {
     /* CRT vignette — pre-rendered dither, over the world but UNDER
        the glass text: the score row must never be eaten by it */
     g.drawImage(vigCv, 0, 0);
-    /* persistent golden screen surge while paused with coin */
-    if (paused && pauseGold && mode === 'hero') {
-      g.fillStyle = PC.gold;
-      g.fillRect(0, 0, cols, rows);
-    }
     if (mode === 'hero') { drawAttractChrome(g, cols, rows, w); }
     /* the idle show draws last: its wash + card sit over everything
        on the tube (the DOM copy has receded via html.attract-show) */
     if (mode === 'hero' && attractShow) { drawAttractCard(g, cols, rows, t); }
 
     /* coin surge — the whole tube glitters gold for a beat (dithered) */
-    if (w.flash > 0 && mode === 'hero') {
+    if (!paused && w.flash > 0 && mode === 'hero') {
       var lvl = w.flash > 600 ? 2 : (w.flash > 300 ? 1 : 0);
       g.drawImage(flashCvs[lvl], 0, 0);
     }
@@ -4110,12 +4101,11 @@ if (w.mother) {
           pauseY = Math.round((rSub.bottom - rCv.top) / PXG) + 5;
         }
       }
-      if (pauseGold) {
-        drawMText(g, 'PAUSE', Math.round(cols / 2 - mW('PAUSE') / 2) + 1, pauseY + 1, '#ffffff', 2);
-        drawMText(g, 'PAUSE', Math.round(cols / 2 - mW('PAUSE') / 2), pauseY, '#05050a', 2);
-      } else {
-        drawMText(g, 'PAUSE', Math.round(cols / 2 - mW('PAUSE') / 2), pauseY, PC.gold, 2);
-      }
+      var pauseScale = 2;
+      var pauseW = (5 * 4 - 1) * pauseScale; /* 38px at scale 2 */
+      var pauseX = Math.round(cols / 2 - pauseW / 2);
+      drawMText(g, 'PAUSE', pauseX + 1, pauseY + 1, PC.goldDk, pauseScale);
+      drawMText(g, 'PAUSE', pauseX, pauseY, PC.gold, pauseScale);
     }
     drawMText(g, '1P', 5, y1, curPlayer === 1 ? PC.gold : chrome, sc);
     if (sc === 2 && !w) { drawMText(g, '00', 5, y2, chrome, sc); }   /* attract placeholder */
@@ -4316,6 +4306,7 @@ if (w.mother) {
         return 'reaped';
       },
       pause: function () { togglePause(); },
+      isPaused: function () { return paused; },
       /* round 5 hatches: force the idle show, read the ledger,
          wound the mother into rage, read the players' ledger */
       show: function (k) { openAttractShow(k); },
@@ -4423,7 +4414,7 @@ if (w.mother) {
     var g = goCv.getContext('2d');
     g.imageSmoothingEnabled = false;
     if (hiEntry) { paintEntryFace(g); return; }
-    var bl1 = 'GAME OVER', bl2 = 'INSERT COIN';
+    var bl1 = 'GAME OVER', blRevive = 'PRESS ANY KEY TO REVIVE';
     /* the champion: when both pilots of the match have finished a
        run, the plate crowns the winner — the classic two-coin feud */
     var champ = null, c1 = 0, c2 = 0;
@@ -4442,12 +4433,7 @@ if (w.mother) {
     var bl5 = champ === null ? null
       : 'P1 ' + pad7(c1) + ' · P2 ' + pad7(c2);
     /* the pilot rank: the machine rates the run it just watched —
-       a row of gold chevrons and a title under INSERT COIN. Humans
-       only (the demo pilot flies for nobody), and the two-pilot
-       podium outranks it: a settled feud tells its own story.
-       Round 11: the badge reads the ODOMETER, not the kept score —
-       the chevrons tick up one by one while the final count rolls
-       in, the way the glass itself is still counting. */
+       a row of gold chevrons and a title under the continue prompt */
     var liveScore = (champ === null && world && world.dispScore != null &&
                      world.dispScore < world.score)
       ? world.dispScore : (world ? (world.score || 0) : 0);
@@ -4456,8 +4442,8 @@ if (w.mother) {
     var rankBadgeW = rank ? (rank.tier >= 6 ? 7 : rank.tier * 6 - 1) : 0;
     var rankText = rank ? 'RANK ' + rank.t : '';
     var rw = rank ? (rankBadgeW + 4 + textW(rankText)) : 0;
-    var bw = Math.max(textW(bl1, 2), textW(bl2), bl5 ? textW(bl5) : 0, rw) + 16;
-    var bh0 = bl4 ? 64 : (bl3 && rank ? 64 : (bl3 || rank ? 54 : 42));
+    var bw = Math.max(textW(bl1, 2), textW(blRevive), bl5 ? textW(bl5) : 0, rw) + 24;
+    var bh0 = bl4 ? 80 : (bl3 && rank ? 80 : (bl3 || rank ? 70 : 60));
     goCv.width = bw; goCv.height = bh0;
     goCv.className = 'go-cv pxcv';
     g.clearRect(0, 0, bw, bh0);
@@ -4473,14 +4459,34 @@ if (w.mother) {
     for (var pgx = 3; pgx < bw - 3; pgx += 3) { g.fillRect(pgx, 2, 1, 1); }
     drawText(g, bl1, Math.round(bw / 2 - textW(bl1, 2) / 2) + 1, 9, PC.goldDk, 2);
     drawText(g, bl1, Math.round(bw / 2 - textW(bl1, 2) / 2), 8, PC.score, 2);
-    drawText(g, bl2, Math.round(bw / 2 - textW(bl2) / 2), 28, PC.start, 1);
+
+    /* prominent coin slot badge centered directly in front of player */
+    var cx = Math.round(bw / 2);
+    var coinFlash = (Math.floor(performance.now() / 250) % 2) === 0;
+    g.fillStyle = PC.metalBd;
+    g.fillRect(cx - 10, 24, 20, 10);
+    g.fillStyle = PC.metal;
+    g.fillRect(cx - 9, 25, 18, 8);
+    g.fillStyle = PC.metalHi;
+    g.fillRect(cx - 9, 25, 18, 1);
+    g.fillStyle = PC.metalDk;
+    g.fillRect(cx - 9, 32, 18, 1);
+    g.fillStyle = PC.ink;
+    g.fillRect(cx - 5, 26, 3, 6);
+    g.fillRect(cx + 2, 26, 3, 6);
+    g.fillStyle = coinFlash ? PC.gold : PC.goldHi;
+    g.fillRect(cx - 4, 27, 1, 4);
+    g.fillRect(cx + 3, 27, 1, 4);
+
+    var rxKey = Math.round(bw / 2 - textW(blRevive) / 2);
+    drawText(g, blRevive, rxKey + 1, 39, PC.goldDk, 1);
+    drawText(g, blRevive, rxKey, 38, coinFlash ? PC.gold : PC.white, 1);
+
     if (bl3 && !bl4) {
-      drawText(g, bl3, Math.round(bw / 2 - textW(bl3) / 2), 42, PC.slateHi, 1);
+      drawText(g, bl3, Math.round(bw / 2 - textW(bl3) / 2), 50, PC.slateHi, 1);
     }
     if (rank) {
-      /* the badge: chevrons left of the title, both centered as one
-         row — five pairs of wings, or the lone star above them all */
-      var ry = bl3 ? 53 : 43;
+      var ry = bl3 ? 61 : 50;
       var rx = Math.round(bw / 2 - rw / 2);
       if (rank.tier >= 6) {
         drawSpr(g, SPR_STAR, rx, ry, STAR_LEG);
@@ -4495,9 +4501,9 @@ if (w.mother) {
       /* the crown: a pixel cup, a gold verdict, and the two scores
          that settled it — the plate becomes the podium */
       var tx = Math.round(bw / 2 - textW(bl4) / 2 - 14);
-      drawSpr(g, SPR_TROPHY, tx, 42, TROPHY_LEG);
-      drawText(g, bl4, Math.round(bw / 2 - textW(bl4) / 2), 44, PC.gold, 1);
-      drawText(g, bl5, Math.round(bw / 2 - textW(bl5) / 2), 54, PC.shellDk, 1);
+      drawSpr(g, SPR_TROPHY, tx, 50, TROPHY_LEG);
+      drawText(g, bl4, Math.round(bw / 2 - textW(bl4) / 2), 52, PC.gold, 1);
+      drawText(g, bl5, Math.round(bw / 2 - textW(bl5) / 2), 62, PC.shellDk, 1);
     }
     goCv.style.width = (bw * PXG) + 'px';
     goCv.style.height = (bh0 * PXG) + 'px';
@@ -4599,12 +4605,17 @@ if (w.mother) {
   /* the plate itself takes taps during the signing (thumbs on a
      phone): left third moves the slot, the middle scrolls it */
   if (goCv) {
-    goCv.addEventListener('pointerdown', function (e) {
-      if (!hiEntry) { return; }
-      var r = goCv.getBoundingClientRect();
-      if (!r.width) { return; }
-      var fx = (e.clientX - r.left) / r.width;
-      entryKey(fx < 0.33 ? 'KeyA' : (fx > 0.67 ? 'KeyD' : 'KeyW'));
+    (goCv.parentElement || goCv).addEventListener('pointerdown', function (e) {
+      if (hiEntry) {
+        var r = goCv.getBoundingClientRect();
+        if (!r.width) { return; }
+        var fx = (e.clientX - r.left) / r.width;
+        entryKey(fx < 0.33 ? 'KeyA' : (fx > 0.67 ? 'KeyD' : 'KeyW'));
+        return;
+      }
+      if (world && world.shipDead) {
+        if (coinBtn) { coinBtn.click(); }
+      }
     });
   }
 
@@ -5377,6 +5388,9 @@ if (w.mother) {
   if (hero && cv) {
     new IntersectionObserver(function (entries) {
       heroVisible = entries[0].isIntersecting;
+      if (!entries[0].isIntersecting && world && !paused) {
+        paused = true;
+      }
     }, { threshold: 0 }).observe(hero);
     buildWorld();
     fieldOn = true;
@@ -5450,16 +5464,14 @@ if (w.mother) {
   /* the service switch: P freezes the sim, the glass blinks PAUSE,
      the coin door keeps its promises until you flip back */
   var paused = false;
-  var pauseGold = false;
   function togglePause() {
     paused = !paused;
-    if (!paused) { pauseGold = false; }
     blip(paused ? 392 : 523, 90);
   }
   document.addEventListener('pointerdown', function (e) {
     if (paused) {
       if (coinBtn && (e.target === coinBtn || coinBtn.contains(e.target))) {
-        return; /* let coinBtn handle coin insertion and turn screen golden */
+        return; /* let coinBtn handle coin insertion */
       }
       togglePause();
     }
@@ -5485,11 +5497,27 @@ if (w.mother) {
     /* the signature owns every key while the entry is up */
     if (hiEntry) { entryKey(e.code); e.preventDefault(); return; }
     if (paused) {
+      if (/^(Alt|Control|Shift|Meta|Tab|CapsLock|Escape|ContextMenu|F\d+)$/.test(e.key) ||
+          /^(Alt|Control|Shift|Meta|Tab|CapsLock|Escape|F\d+)/.test(e.code)) {
+        return; /* ignore system/modifier keys */
+      }
       togglePause();
       e.preventDefault();
       return;
     }
     if (e.code === 'KeyP') { togglePause(); e.preventDefault(); return; }
+    /* when dead, press any key to revive */
+    if (world && world.shipDead) {
+      if (/^(Alt|Control|Shift|Meta|Tab|CapsLock|Escape|ContextMenu|F\d+)$/.test(e.key) ||
+          /^(Alt|Control|Shift|Meta|Tab|CapsLock|Escape|F\d+)/.test(e.code)) {
+        return; /* ignore system/modifier keys */
+      }
+      if (coinBtn) {
+        coinBtn.click();
+        e.preventDefault();
+        return;
+      }
+    }
     var k = KEYMAP[e.code];
     if (k) {
       keys[k] = true;
@@ -6485,38 +6513,9 @@ if (w.mother) {
       /* the signature owns the deck first: START while the entry is
          up commits the three letters and goes no further */
       if (hiEntry) { commitHiEntry(); return; }
-      /* a wreck waits for the DOOR, not the keyboard: START never
-         spends, never continues — it only opens world one */
+      /* when dead, pressing START revives immediately via continue without scrolling away */
       if (world && world.shipDead) {
-        /* the alternation: a finished run hands the deck to the other
-           pilot — fresh score, fresh luck, the idle tube wakes up.
-           (a COIN instead keeps the same pilot: the classic continue) */
-        if (world.nextPlayer && world.nextPlayer !== curPlayer) {
-          curPlayer = world.nextPlayer;
-          pScores[curPlayer] = 0;
-          pPlayed[curPlayer] = false;   /* a fresh run earns a fresh crown */
-          world.score = 0;
-          world.kills = 0;
-          world.chain = 0;
-          world.chainUntil = 0;
-          world.sector = 1;             /* a new pilot starts the ladder over */
-          world.sectorKills = 0;
-          world.rankTier = 1;           /* and wears ROOKIE until it climbs */
-          /* round 14: the new pilot's patronage is locked HERE, the
-             instant START landed — the scroll below would otherwise
-             hand their record to world one */
-          world.runWorld = currentWorld || lastWorld || '';
-          world.planetFall = false;     /* a new pilot inherits a whole world */
-          world.zeroHumsT = 0;
-          world.hiAtRunStart = hiScore;
-          world.runStartT = world.t;
-          world.humanRun = true;
-          world.banner = { l1: 'PLAYER ' + curPlayer, l2: 'GOOD LUCK!', until: performance.now() + 1700 };
-        }
-        var w0b = $('.w01');
-        if (w0b && w0b.scrollIntoView) {
-          w0b.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
-        }
+        if (coinBtn) { coinBtn.click(); }
         return;
       }
       /* a kept coin is spent on the way in; without one, entry is
@@ -6558,7 +6557,6 @@ if (w.mother) {
       credits = Math.min(99, credits + 1);
       saveCredits();
       sfx('coin');
-      if (paused) { pauseGold = true; }
       /* the coin drops through the slot and into your hand: one solid
          clunk of haptic, only where the hardware offers it */
       if (typeof navigator !== 'undefined' && navigator.vibrate) { navigator.vibrate(14); }
@@ -6579,7 +6577,7 @@ if (w.mother) {
          people throw their arms up, the ship rolls, and one permanent
          gold star joins the sky — a receipt you can see from space */
       if (world) {
-        world.flash = 900;
+        if (!paused) { world.flash = 900; }
         world.hiBeaten = false;   /* a new run earns its own ceremony */
         rumble(0.15, 0.5, 140);   /* the door thanks you */
         if (world.shipDead) {
@@ -6733,12 +6731,9 @@ if (w.mother) {
       html.classList.toggle('gameover-dim', dimOn);
       if (dimOn) { paintGoPlate(); }
     }
-    /* round 11: while the final count rolls in under a plate, the
-       rank badge re-stamps itself so the chevrons climb with the
-       odometer — the plate earns its title in public */
+    /* while the plate is up, repaint regularly so continue prompt and coin glint blink */
     if (dimOn && world && world.humanRun && !hiEntry &&
-        world.dispScore != null && world.dispScore !== world.score &&
-        t - goTickPt > 140) {
+        ((world.dispScore != null && world.dispScore !== world.score) || t - goTickPt > 240)) {
       goTickPt = t;
       paintGoPlate();
     }

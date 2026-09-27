@@ -349,11 +349,11 @@ html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
    opacity in the cascade) */
 html.banner-on .hero-inner,
 html.banner-on .hero-cue,
-html.human-run .hero-cue { visibility: hidden; }
+html.human-run .hero-cue,
+html.gameover-dim .hero-cue { visibility: hidden; }
 /* GAME OVER: the marquee recedes to under half of itself — present at
    the edges, ghosted behind the plate, never glyph-on-glyph */
-html.gameover-dim .hero-inner,
-html.gameover-dim .hero-cue { animation: none; opacity: .45; }
+html.gameover-dim .hero-inner { animation: none; opacity: .45; }
 /* the idle show: the tube owns the glass. The copy steps off entirely
    (visibility, same recipe as banner-on — an attract screen replaces
    the page the way it replaced the play) and the cue steps away too */
@@ -440,7 +440,7 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
   align-items: flex-end;
   justify-content: center;
   gap: clamp(1.4rem, 4.5vw, 3.2rem);
-  margin-top: clamp(14px, 2.5vh, 28px);
+  margin-top: clamp(28px, 4.2vh, 42px);
   width: 100%;
   /* a control panel is hardware, not prose: stick on the player's left,
      action buttons on the right — even though the page reads RTL */
@@ -467,7 +467,12 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
 }
 html[data-show] .hero-deck { animation: deckdim 320ms steps(3, end) forwards; }
 html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
-.joy { position: relative; flex: none; }
+.joy {
+  position: relative;
+  flex: none;
+  transform: scale(1.25);
+  transform-origin: center bottom;
+}
 .pstart {
   display: flex;
   flex-direction: column;
@@ -524,7 +529,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .coin-row {
   position: absolute;
   left: clamp(16px, 2.8vw, 32px);
-  bottom: clamp(3.2rem, 5.6vh, 4.2rem);
+  bottom: calc(clamp(3.2rem, 5.6vh, 4.2rem) + 5px);
   z-index: 4;
   display: flex;
   align-items: center;
