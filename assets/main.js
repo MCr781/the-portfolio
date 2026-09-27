@@ -3892,14 +3892,7 @@ function farRow(wx, rows) {
           drawSpr(g, SPR_MOTHER, moRX + 8, moRY + 6, MOTHER_LEG, 0, 4);
         }
 
-        /* 4. Hit Flash Overlay */
-        if (MoR.hitFlash > 0 && Math.floor(t / 40) % 2 === 0) {
-          g.save();
-          g.globalCompositeOperation = 'lighter';
-          g.fillStyle = MoR.shield > 0 ? '#38bdf8' : '#ffffff';
-          g.fillRect(moRX + 6, moRY + 4, mw - 12, mh - 8);
-          g.restore();
-        }
+
 
         /* 5. Ion Shield Barrier Aura */
         if (MoR.shield > 0) {
@@ -4773,10 +4766,7 @@ function farRow(wx, rows) {
             g.fillStyle = '#ffffff';
             g.fillRect(shimX, barY, 2, barH);
           }
-          if (MoH.hitFlash > 0 && Math.floor(t / 40) % 2) {
-            g.fillStyle = '#ffffff';
-            g.fillRect(barX, barY, barW, barH);
-          }
+
           g.restore();
         }
       }
