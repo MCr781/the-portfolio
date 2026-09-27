@@ -58,7 +58,7 @@
      frame clock), so chains stay sample-accurate even mid-firefight.
      Square leads with hard envelopes, a triangle for warmth, noise
      through a falling lowpass for bursts. Opt-in, always. */
-  var soundOn = store('fw-sound') === '1';
+  var soundOn = store('fw-sound') !== '0';
   var actx = null;
   var master = null;
 
@@ -66,16 +66,20 @@
     if (!actx) {
       try {
         var AC = window.AudioContext || window.webkitAudioContext;
-        actx = new AC();
-        master = actx.createGain();
-        master.gain.value = 0.5;
-        var comp = actx.createDynamicsCompressor();   /* squares never bite */
-        comp.threshold.value = -16; comp.knee.value = 22; comp.ratio.value = 5;
-        master.connect(comp);
-        comp.connect(actx.destination);
+        if (AC) {
+          actx = new AC();
+          master = actx.createGain();
+          master.gain.value = 0.5;
+          var comp = actx.createDynamicsCompressor();   /* squares never bite */
+          comp.threshold.value = -16; comp.knee.value = 22; comp.ratio.value = 5;
+          master.connect(comp);
+          comp.connect(actx.destination);
+        }
       } catch (e) { actx = null; }
     }
-    if (actx && actx.state === 'suspended') { actx.resume(); }
+    if (actx && actx.state === 'suspended') {
+      try { actx.resume(); } catch (e) {}
+    }
   }
 
   /* the legacy voice — kept for the small ui ticks */
@@ -85,7 +89,9 @@
 
   /* one scheduled micro-note on the chip */
   function tone(o) {
-    if (!soundOn || !actx) { return; }
+    if (!soundOn) { return; }
+    if (!actx || actx.state === 'suspended') { ensureCtx(); }
+    if (!actx || actx.state === 'suspended') { return; }
     var t0 = actx.currentTime + (o.at || 0);
     var d = Math.max(0.02, o.d || 0.1);
     var osc = actx.createOscillator();
@@ -114,7 +120,9 @@
 
   /* one scheduled slice of white noise through a swept filter */
   function noiseHit(o) {
-    if (!soundOn || !actx) { return; }
+    if (!soundOn) { return; }
+    if (!actx || actx.state === 'suspended') { ensureCtx(); }
+    if (!actx || actx.state === 'suspended') { return; }
     var t0 = actx.currentTime + (o.at || 0);
     var d = Math.max(0.03, o.d || 0.2);
     var buf = actx.createBuffer(1, Math.ceil(actx.sampleRate * d), actx.sampleRate);
@@ -403,9 +411,12 @@
   });
   paintSound();
 
-  doc.addEventListener('pointerdown', function () {
+  function unlockAudio() {
     if (soundOn) { ensureCtx(); }
-  }, { passive: true });
+  }
+  ['keydown', 'pointerdown', 'mousedown', 'touchstart', 'click'].forEach(function (ev) {
+    window.addEventListener(ev, unlockAudio, { passive: true });
+  });
   doc.addEventListener('click', function (e) {
     if (e.target.closest('a, button')) { blip(880, 90, 440); }
   });
@@ -2511,15 +2522,15 @@ function farRow(wx, rows) {
           var bCenX = Mo.sx + Math.round(mw / 2);
           var bCenY = Mo.y + mh - 8;
           if (phase3) {
-            w.bombs.push({ x: bCenX - 35, y: bCenY, vx: -3, vy: 5, kind: 'incendiary', gone: false });
-            w.bombs.push({ x: bCenX, y: bCenY + 2, vx: 0, vy: 6, kind: 'incendiary', gone: false });
-            w.bombs.push({ x: bCenX + 35, y: bCenY, vx: 3, vy: 5, kind: 'incendiary', gone: false });
+            w.bombs.push({ x: bCenX - 35, y: bCenY, vx: -3, vy: 5, kind: 'incendiary', noHoming: true, gone: false });
+            w.bombs.push({ x: bCenX, y: bCenY + 2, vx: 0, vy: 6, kind: 'incendiary', noHoming: true, gone: false });
+            w.bombs.push({ x: bCenX + 35, y: bCenY, vx: 3, vy: 5, kind: 'incendiary', noHoming: true, gone: false });
           } else if (phase2) {
-            w.bombs.push({ x: bCenX - 30, y: bCenY, vx: -2.5, vy: 6, kind: 'heavy', gone: false });
-            w.bombs.push({ x: bCenX, y: bCenY + 2, vx: 0, vy: 9, kind: 'penetrator', gone: false });
-            w.bombs.push({ x: bCenX + 30, y: bCenY, vx: 2.5, vy: 6, kind: 'incendiary', gone: false });
+            w.bombs.push({ x: bCenX - 30, y: bCenY, vx: -2.5, vy: 6, kind: 'heavy', noHoming: true, gone: false });
+            w.bombs.push({ x: bCenX, y: bCenY + 2, vx: 0, vy: 9, kind: 'penetrator', noHoming: true, gone: false });
+            w.bombs.push({ x: bCenX + 30, y: bCenY, vx: 2.5, vy: 6, kind: 'incendiary', noHoming: true, gone: false });
           } else {
-            w.bombs.push({ x: bCenX, y: bCenY, vx: (Math.random() - 0.5) * 3, vy: 6.5, kind: 'heavy', gone: false });
+            w.bombs.push({ x: bCenX, y: bCenY, vx: (Math.random() - 0.5) * 3, vy: 6.5, kind: 'heavy', noHoming: true, gone: false });
           }
           blip(220, 80, 180);
         }
@@ -2814,10 +2825,12 @@ function farRow(wx, rows) {
       w.bombCd = btune.bombCd + Math.random() * btune.bombRnd;
       var thrower = w.landers[Math.floor(Math.random() * w.landers.length)];
       if (thrower) {
-        /* pick the nearest person — bombs are aimed at the people */
-        var tgtH = null, td = 1e9;
+        /* pick the nearest person — only if they are visible ON-SCREEN within range */
+        var tgtH = null, td = 100;
         for (j = 0; j < w.hums.length; j++) {
           if (w.hums[j].state !== 'ground') { continue; }
+          var hxs0 = w.hums[j].wx - w.worldX;
+          if (hxs0 < 12 || hxs0 > w.cols - 12) { continue; }
           var dd = Math.abs(w.hums[j].wx - thrower.wx);
           if (dd < td) { td = dd; tgtH = w.hums[j]; }
         }
@@ -2831,7 +2844,7 @@ function farRow(wx, rows) {
         var vyMult = bKind === 'penetrator' ? 1.45 : (bKind === 'incendiary' ? 0.9 : 1.0);
         w.bombs.push({
           x: thrower.wx - w.worldX, y: thrower.y + 7,
-          vx: (Math.random() - 0.5) * 6,
+          vx: (Math.random() - 0.5) * 4,
           vy: 7 * btune.bombV * vyMult,
           tgt: tgtH || null,
           kind: bKind,
@@ -2843,29 +2856,53 @@ function farRow(wx, rows) {
     var bAim = bTune.aim;
     for (i = 0; i < w.bombs.length; i++) {
       var bo = w.bombs[i];
+      var bKind = bo.kind || 'heavy';
       bo.vy += 7 * bTune.bombV * ds;
-      if (bo.txw != null) {
-        var txs = bo.txw - w.worldX;
-        bo.vx += Math.max(-6 * bAim, Math.min(6 * bAim, (txs - bo.x) * 0.55)) * ds * 3;
-      }
-      /* the aim: re-pick if the mark dies or flees, steer harder */
-      if (bo.tgt && (bo.tgt.gone || bo.tgt.state !== 'ground')) { bo.tgt = null; }
-      if (!bo.tgt) {
-        var nb2 = null, nd2 = 1e9;
-        for (j = 0; j < w.hums.length; j++) {
-          var Hg = w.hums[j];
-          if (Hg.gone || Hg.state !== 'ground') { continue; }
-          var dg2 = Math.abs(Hg.wx - (bo.x + w.worldX));
-          if (dg2 < nd2) { nd2 = dg2; nb2 = Hg; }
+
+      if (!bo.noHoming) {
+        if (bo.txw != null) {
+          var txs = bo.txw - w.worldX;
+          if (txs >= 10 && txs <= w.cols - 10) {
+            bo.vx += Math.max(-4 * bAim, Math.min(4 * bAim, (txs - bo.x) * 0.4)) * ds * 2;
+          }
         }
-        bo.tgt = nb2;
+        /* the aim: re-pick if the mark dies, flees, or moves off-screen */
+        if (bo.tgt) {
+          if (bo.tgt.gone || bo.tgt.state !== 'ground') {
+            bo.tgt = null;
+          } else {
+            var txsCur = bo.tgt.wx - w.worldX;
+            if (txsCur < 10 || txsCur > w.cols - 10) { bo.tgt = null; }
+          }
+        }
+        if (!bo.tgt) {
+          var nb2 = null, nd2 = 80;
+          for (j = 0; j < w.hums.length; j++) {
+            var Hg = w.hums[j];
+            if (Hg.gone || Hg.state !== 'ground') { continue; }
+            var hxScr = Hg.wx - w.worldX;
+            if (hxScr < 12 || hxScr > w.cols - 12) { continue; }
+            var dg2 = Math.abs(hxScr - bo.x);
+            if (dg2 < nd2) { nd2 = dg2; nb2 = Hg; }
+          }
+          bo.tgt = nb2;
+        }
+        if (bo.tgt) {
+          var txs2 = bo.tgt.wx - w.worldX;
+          var steerForce = Math.max(-5 * bAim, Math.min(5 * bAim, (txs2 - bo.x) * 0.5));
+          bo.vx += steerForce * ds * 2.2;
+        }
       }
-      if (bo.tgt) {
-        var txs2 = bo.tgt.wx - w.worldX;
-        bo.vx += Math.max(-9 * bAim, Math.min(9 * bAim, (txs2 - bo.x) * 1.1)) * ds * 3;
-      }
+
+      /* strictly clamp horizontal velocity so bombs drop into terrain, not off-screen */
+      var maxVx = bKind === 'penetrator' ? 1.8 : (bKind === 'incendiary' ? 4.0 : 3.5);
+      bo.vx = Math.max(-maxVx, Math.min(maxVx, bo.vx));
+
       bo.x += bo.vx * ds;
       bo.y += bo.vy * ds;
+
+      /* despawn if drifting off left or right screen edges */
+      if (bo.x < -24 || bo.x > w.cols + 24) { bo.gone = true; continue; }
       /* a bomb that reaches a person bursts — and the burst has a
          radius: impact damage, not a single-tag kill */
       for (j = 0; j < w.hums.length; j++) {
@@ -4734,12 +4771,13 @@ function farRow(wx, rows) {
         var barW = 160;
         var barH = 5;
         var barX = Math.round(cols / 2 - barW / 2);
-        var barY = y3 + 2;
+        var titleY = Math.round(y3 + 1);
+        var barY = Math.round(y3 + 9);
         if (barY < rows * 0.28) {
           g.save();
           var bTitle = MoH.hp <= 10 ? '◆ DREADNOUGHT CRITICAL ◆' : (MoH.shield > 0 ? '◆ DREADNOUGHT SHIELDED ◆' : '◆ DREADNOUGHT CORE EXPOSED ◆');
           var tCol = MoH.hp <= 10 ? PC.redHi : (MoH.shield > 0 ? '#38bdf8' : '#f59e0b');
-          drawMText(g, bTitle, Math.round(cols / 2 - mW(bTitle) / 2), barY - 6, tCol, 1);
+          drawMText(g, bTitle, Math.round(cols / 2 - mW(bTitle) / 2), titleY, tCol, 1);
 
           /* Frame */
           g.fillStyle = '#090d16';
@@ -4852,6 +4890,8 @@ function farRow(wx, rows) {
   if (typeof location !== 'undefined' && /fwdebug/.test(location.hash || '')) {
     window.__fw = {
       world: function () { return world; },
+      actx: function () { return actx; },
+      soundOn: function () { return soundOn; },
       kill: function () { killShip(null); },
       coin: function () { if (coinBtn) { coinBtn.click(); } },
       charge: function (n) { if (world) { world.kills = n; paintPBtns(); } },

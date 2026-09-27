@@ -391,7 +391,7 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
   text-align: center;
   max-width: 44rem;
   margin-inline: auto;
-  margin-top: clamp(0.6rem, 1.8vh, 1.2rem);
+  margin-top: clamp(2.2rem, 4.2vh, 3.2rem);
   width: 100%;
 }
 /* the pixel canvases carry their own heights; the gaps below just keep
