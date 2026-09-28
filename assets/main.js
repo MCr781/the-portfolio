@@ -201,19 +201,19 @@
     }
   }
 
-  /* Soft, delightful bubble pop (60ms) — gentle, non-fatiguing, and satisfying */
+  /* Delicate retro arcade bubble pop (45ms) — higher-pitched, sweet, and feather-light */
   function playArcadeExplosion(vol, pitchScale) {
     if (!soundOn || !actx) { return; }
     if (actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
-    var p = pitchScale || (0.95 + Math.random() * 0.12);
-    var v = (vol == null ? 0.20 : vol);
+    var p = pitchScale || (0.98 + Math.random() * 0.08);
+    var v = (vol == null ? 0.15 : vol);
     if (playSample('boom', v, false, p)) {
       return;
     }
-    /* Fallback soft bubble pop synthesis: gentle upward flick then sweet resonant sine drop */
-    tone({ f: 680 * p, f1: 960 * p, d: 0.015, v: v * 0.45, type: 'sine' });
-    tone({ f: 740 * p, f1: 220 * p, d: 0.050, v: v * 0.85, at: 0.008, type: 'sine', exp: true });
-    noiseHit({ f: 3200, hp: true, d: 0.010, v: v * 0.20 });
+    /* Fallback delicate retro chiptune bubble pop: 1046Hz -> 1380Hz flick -> 820Hz release */
+    tone({ f: 1046 * p, f1: 1380 * p, d: 0.012, v: v * 0.50, type: 'sine' });
+    tone({ f: 1380 * p, f1: 820 * p, d: 0.038, v: v * 0.70, at: 0.008, type: 'sine', exp: true });
+    tone({ f: 1220 * p, f1: 760 * p, d: 0.030, v: v * 0.15, at: 0.010, type: 'triangle', exp: true });
   }
 
   /* the legacy voice — kept for the small ui ticks */
@@ -312,19 +312,19 @@
       noiseHit({ f: 5200, hp: true, d: 0.05, v: 0.03 });
     },
     boomS: function () {
-      /* Crisp, bright bubble pop for mutants */
-      playArcadeExplosion(0.19, 1.08 + Math.random() * 0.08);
+      /* Crisp, higher-toned retro bubble pop for mutants */
+      playArcadeExplosion(0.14, 1.12 + Math.random() * 0.06);
     },
     boomL: function () {
-      /* Cascading soft bubble pops for ship destruction */
-      playArcadeExplosion(0.28, 0.90);
-      setTimeout(function () { playArcadeExplosion(0.22, 1.08); }, 45);
-      setTimeout(function () { playArcadeExplosion(0.18, 1.25); }, 90);
-      noiseHit({ f: 800, f1: 60, d: 0.28, v: 0.06, at: 0.04 });
+      /* Cascading delicate bubble pops for ship destruction */
+      playArcadeExplosion(0.22, 0.95);
+      setTimeout(function () { playArcadeExplosion(0.17, 1.10); }, 35);
+      setTimeout(function () { playArcadeExplosion(0.13, 1.25); }, 70);
+      noiseHit({ f: 900, f1: 80, d: 0.22, v: 0.04, at: 0.03 });
     },
     boomLander: function () {
-      /* Soft, satisfying bubble pop (60ms) */
-      playArcadeExplosion(0.21, 0.96 + Math.random() * 0.10);
+      /* Delicate, higher-pitched retro arcade bubble pop (45ms) */
+      playArcadeExplosion(0.15, 0.98 + Math.random() * 0.08);
     },
     bombDrop: function () {
       /* Releasing of bombs is silent per user request to avoid overwhelming repetitive whistling */
