@@ -287,8 +287,10 @@
       noiseHit({ f: 5200, hp: true, d: 0.05, v: 0.03 });
     },
     boomS: function () {
-      noiseHit({ f: 2900, f1: 260, d: 0.19, v: 0.11 });
-      tone({ f: 200, f1: 52, d: 0.13, v: 0.055, exp: true });
+      var p = 0.95 + Math.random() * 0.1;
+      tone({ f: 340 * p, f1: 45 * p, d: 0.075, v: 0.17, type: 'triangle', exp: true });
+      tone({ f: 240 * p, f1: 60 * p, d: 0.05, v: 0.09, type: 'sawtooth', exp: true, lp: 950 });
+      noiseHit({ f: 3600, f1: 300, d: 0.065, v: 0.13, q: 1.0 });
     },
     boomL: function () {
       noiseHit({ f: 2300, f1: 90, d: 0.55, v: 0.15 });
@@ -297,14 +299,13 @@
       tone({ f: 70, f1: 40, d: 0.3, v: 0.05, type: 'sine', exp: true, at: 0.09 });
     },
     boomLander: function () {
-      var p = 0.96 + Math.random() * 0.08;
-      tone({ f: 740 * p, f1: 130 * p, d: 0.18, v: 0.065, type: 'square', exp: true });
-      noiseHit({ f: 1600, f1: 420, d: 0.15, v: 0.08 });
-      tone({ f: 95 * p, d: 0.09, v: 0.05, type: 'triangle' });
+      var p = 0.95 + Math.random() * 0.1;
+      tone({ f: 300 * p, f1: 42 * p, d: 0.075, v: 0.18, type: 'triangle', exp: true });
+      tone({ f: 220 * p, f1: 50 * p, d: 0.045, v: 0.09, type: 'square', exp: true, lp: 850 });
+      noiseHit({ f: 3200, f1: 260, d: 0.065, v: 0.13, q: 1.0 });
     },
     bombDrop: function () {
-      var p = 0.95 + Math.random() * 0.1;
-      tone({ f: 1250 * p, f1: 460 * p, d: 0.12, v: 0.035, type: 'sine', exp: true });
+      /* Releasing of bombs is silent per user request to avoid overwhelming repetitive whistling */
     },
     blastPenetrator: function () {
       tone({ f: 110, f1: 32, d: 0.28, v: 0.08, type: 'sine', exp: true });
@@ -2383,7 +2384,6 @@ function farRow(wx, rows) {
     boomAt(Math.round(mu.wx - w.worldX + 5), Math.round(mu.y + 3), 12);
     w.rings.push({ x: mu.wx - w.worldX + 5, y: mu.y + 3, r: 1, life: 360, max: 360 });
     sfx('boomS');
-    tone({ f: 740, f1: 180, d: 0.16, v: 0.045, type: 'sawtooth', exp: true });
   }
 
   /* four kills charge the special; the button calls the plumber,
@@ -2803,7 +2803,6 @@ function farRow(wx, rows) {
           } else {
             w.bombs.push({ x: bCenX, y: bCenY, vx: (Math.random() - 0.5) * 3, vy: 6.5, kind: 'heavy', noHoming: true, gone: false });
           }
-          sfx('bombDrop');
         }
 
         /* Escort Deployment */
@@ -3121,7 +3120,6 @@ function farRow(wx, rows) {
           kind: bKind,
           gone: false
         });
-        sfx('bombDrop');
       }
     }
     var bTune = sectorTune(w);
