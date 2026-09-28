@@ -62,6 +62,122 @@
   var actx = null;
   var master = null;
 
+  var audioBuffers = {};
+  var bossMusicSource = null;
+  var bossGain = null;
+
+  function b64ToBuf(b64) {
+    var bin = window.atob(b64);
+    var len = bin.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) { bytes[i] = bin.charCodeAt(i); }
+    return bytes.buffer;
+  }
+
+  function loadAudioSample(key, url, cb) {
+    if (audioBuffers[key]) { if (cb) cb(); return; }
+    if (!actx) { ensureCtx(); }
+    if (!actx) { return; }
+    if (window.__AUDIO_DATA && window.__AUDIO_DATA[key]) {
+      try {
+        var buf = b64ToBuf(window.__AUDIO_DATA[key]);
+        actx.decodeAudioData(buf, function (decoded) {
+          audioBuffers[key] = decoded;
+          if (cb) cb();
+        }, function () {});
+        return;
+      } catch (e) {}
+    }
+    try {
+      fetch(url)
+        .then(function (res) { return res.arrayBuffer(); })
+        .then(function (buf) { return actx.decodeAudioData(buf); })
+        .then(function (decoded) {
+          audioBuffers[key] = decoded;
+          if (cb) cb();
+        })
+        .catch(function () {});
+    } catch (e) {}
+  }
+
+  function preloadSamples() {
+    if (!actx) { return; }
+    loadAudioSample('mario', 'assets/audio/smb_theme_cameo.mp3');
+    loadAudioSample('powerup', 'assets/audio/smb_powerup.mp3');
+    loadAudioSample('coin', 'assets/audio/smb_coin.mp3');
+    loadAudioSample('boss', 'assets/audio/ost_boss.mp3');
+  }
+
+  function playSample(key, vol, loop, rate) {
+    if (!soundOn) { return null; }
+    if (!actx) { ensureCtx(); }
+    if (!actx) { return null; }
+    if (actx.state === 'suspended') {
+      try { actx.resume(); } catch (e) {}
+    }
+    if (!audioBuffers[key]) {
+      loadAudioSample(key, 'assets/audio/' + (key === 'mario' ? 'smb_theme_cameo.mp3' : (key === 'powerup' ? 'smb_powerup.mp3' : (key === 'coin' ? 'smb_coin.mp3' : 'ost_boss.mp3'))));
+      return null;
+    }
+    try {
+      var src = actx.createBufferSource();
+      src.buffer = audioBuffers[key];
+      src.loop = !!loop;
+      if (rate) { src.playbackRate.value = rate; }
+      var g = actx.createGain();
+      g.gain.value = (vol == null ? 1 : vol);
+      src.connect(g);
+      g.connect(master);
+      src.start(actx.currentTime);
+      return { src: src, gain: g };
+    } catch (e) { return null; }
+  }
+
+  function startBossMusic() {
+    if (!soundOn || bossMusicSource) { return; }
+    if (!actx) { ensureCtx(); }
+    if (!actx) { return; }
+    if (actx.state === 'suspended') {
+      try { actx.resume(); } catch (e) {}
+    }
+    if (!audioBuffers['boss']) {
+      loadAudioSample('boss', 'assets/audio/ost_boss.mp3', function () {
+        if (!bossMusicSource && soundOn && world && world.mother && world.mother.state !== 'dying') {
+          startBossMusic();
+        }
+      });
+      return;
+    }
+    try {
+      bossMusicSource = actx.createBufferSource();
+      bossMusicSource.buffer = audioBuffers['boss'];
+      bossMusicSource.loop = true;
+      bossGain = actx.createGain();
+      bossGain.gain.setValueAtTime(0.001, actx.currentTime);
+      bossGain.gain.linearRampToValueAtTime(0.14, actx.currentTime + 0.4);
+      bossMusicSource.connect(bossGain);
+      bossGain.connect(master);
+      bossMusicSource.start(actx.currentTime);
+    } catch (e) { bossMusicSource = null; bossGain = null; }
+  }
+
+  function stopBossMusic(fadeMs) {
+    if (!bossMusicSource) { return; }
+    try {
+      if (bossGain && actx && fadeMs) {
+        bossGain.gain.linearRampToValueAtTime(0.001, actx.currentTime + (fadeMs / 1000));
+        var bsrc = bossMusicSource;
+        setTimeout(function () {
+          try { bsrc.stop(); } catch (e) {}
+        }, fadeMs);
+      } else {
+        bossMusicSource.stop();
+      }
+    } catch (e) {}
+    bossMusicSource = null;
+    bossGain = null;
+  }
+
   function ensureCtx() {
     if (!actx) {
       try {
@@ -74,11 +190,12 @@
           comp.threshold.value = -16; comp.knee.value = 22; comp.ratio.value = 5;
           master.connect(comp);
           comp.connect(actx.destination);
+          preloadSamples();
         }
       } catch (e) { actx = null; }
     }
     if (actx && actx.state === 'suspended') {
-      try { actx.resume(); } catch (e) {}
+      try { actx.resume(); preloadSamples(); } catch (e) {}
     }
   }
 
@@ -90,8 +207,11 @@
   /* one scheduled micro-note on the chip */
   function tone(o) {
     if (!soundOn) { return; }
-    if (!actx || actx.state === 'suspended') { ensureCtx(); }
-    if (!actx || actx.state === 'suspended') { return; }
+    if (!actx) { ensureCtx(); }
+    if (!actx) { return; }
+    if (actx.state === 'suspended') {
+      try { actx.resume(); } catch (e) {}
+    }
     var t0 = actx.currentTime + (o.at || 0);
     var d = Math.max(0.02, o.d || 0.1);
     var osc = actx.createOscillator();
@@ -121,8 +241,11 @@
   /* one scheduled slice of white noise through a swept filter */
   function noiseHit(o) {
     if (!soundOn) { return; }
-    if (!actx || actx.state === 'suspended') { ensureCtx(); }
-    if (!actx || actx.state === 'suspended') { return; }
+    if (!actx) { ensureCtx(); }
+    if (!actx) { return; }
+    if (actx.state === 'suspended') {
+      try { actx.resume(); } catch (e) {}
+    }
     var t0 = actx.currentTime + (o.at || 0);
     var d = Math.max(0.03, o.d || 0.2);
     var buf = actx.createBuffer(1, Math.ceil(actx.sampleRate * d), actx.sampleRate);
@@ -146,11 +269,12 @@
   /* ── the score book · every event gets its own little piece ── */
   var SFX = {
     coin: function () {
-      /* the two-note drop every hand knows: B5 → E6, plus a shimmer */
-      tone({ f: 988, d: 0.085, v: 0.075 });
-      tone({ f: 1319, d: 0.42, v: 0.075, at: 0.083, hold: false });
-      tone({ f: 2637, d: 0.34, v: 0.02, at: 0.09, type: 'triangle' });
-      tone({ f: 3949, d: 0.22, v: 0.012, at: 0.13, type: 'triangle' });
+      noiseHit({ f: 4800, hp: true, d: 0.04, v: 0.04 });
+      if (!playSample('coin', 0.32)) {
+        tone({ f: 988, d: 0.085, v: 0.075 });
+        tone({ f: 1319, d: 0.42, v: 0.075, at: 0.083 });
+        tone({ f: 2637, d: 0.34, v: 0.02, at: 0.09, type: 'triangle' });
+      }
     },
     fire: function () {
       tone({ f: 960, f1: 130, d: 0.085, v: 0.05, exp: true });
@@ -171,6 +295,132 @@
       tone({ f: 105, f1: 34, d: 0.42, v: 0.1, type: 'sine', exp: true });
       noiseHit({ f: 4600, hp: true, d: 0.06, v: 0.05, at: 0.015 });
       tone({ f: 70, f1: 40, d: 0.3, v: 0.05, type: 'sine', exp: true, at: 0.09 });
+    },
+    boomLander: function () {
+      var p = 0.96 + Math.random() * 0.08;
+      tone({ f: 740 * p, f1: 130 * p, d: 0.18, v: 0.065, type: 'square', exp: true });
+      noiseHit({ f: 1600, f1: 420, d: 0.15, v: 0.08 });
+      tone({ f: 95 * p, d: 0.09, v: 0.05, type: 'triangle' });
+    },
+    bombDrop: function () {
+      var p = 0.95 + Math.random() * 0.1;
+      tone({ f: 1250 * p, f1: 460 * p, d: 0.12, v: 0.035, type: 'sine', exp: true });
+    },
+    blastPenetrator: function () {
+      tone({ f: 110, f1: 32, d: 0.28, v: 0.08, type: 'sine', exp: true });
+      noiseHit({ f: 450, f1: 80, d: 0.32, v: 0.09 });
+    },
+    blastHeavy: function () {
+      noiseHit({ f: 2200, f1: 350, d: 0.25, v: 0.09 });
+      tone({ f: 180, f1: 42, d: 0.20, v: 0.07, type: 'triangle', exp: true });
+      noiseHit({ f: 800, f1: 120, d: 0.30, v: 0.07, at: 0.05 });
+    },
+    blastIncendiary: function () {
+      noiseHit({ f: 3600, f1: 800, d: 0.26, v: 0.07 });
+      tone({ f: 220, f1: 330, d: 0.24, v: 0.045, type: 'sawtooth' });
+    },
+    humanScream: function () {
+      tone({ f: 880, f1: 180, d: 0.22, v: 0.05, type: 'square', exp: true });
+      tone({ f: 440, f1: 220, d: 0.18, v: 0.035, type: 'sawtooth', at: 0.04 });
+    },
+    humanFall: function () {
+      tone({ f: 1600, f1: 600, d: 0.35, v: 0.03, type: 'sine', exp: true });
+    },
+    chainTick: function (chain) {
+      var pent = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77, 1108.73, 1318.51];
+      var idx = Math.min(pent.length - 1, Math.max(0, (chain || 1) - 1));
+      tone({ f: pent[idx], d: 0.08, v: 0.045, type: 'triangle' });
+      tone({ f: pent[idx] * 2, d: 0.05, v: 0.02, at: 0.02 });
+    },
+    thruster: function () {
+      noiseHit({ f: 380, f1: 140, d: 0.06, v: 0.025 });
+    },
+    bossRam: function () {
+      tone({ f: 90, f1: 40, d: 0.35, v: 0.09, type: 'sawtooth', exp: true });
+      noiseHit({ f: 1800, f1: 220, d: 0.4, v: 0.12 });
+    },
+    switchOff: function () {
+      blip(180, 35, 60);
+      noiseHit({ f: 600, f1: 140, d: 0.03, v: 0.03 });
+    },
+    startClick: function () {
+      tone({ f: 1100, f1: 220, d: 0.035, v: 0.05, type: 'square', exp: true });
+    },
+    cartSnap: function () {
+      tone({ f: 820, d: 0.035, v: 0.04, type: 'square' });
+      noiseHit({ f: 2800, hp: true, d: 0.025, v: 0.03 });
+    },
+    exploreSlide: function () {
+      tone({ f: 440, f1: 220, d: 0.35, v: 0.045, type: 'triangle', exp: true });
+      tone({ f: 880, f1: 440, d: 0.28, v: 0.025, type: 'sine', exp: true, at: 0.05 });
+      noiseHit({ f: 1400, f1: 200, d: 0.3, v: 0.035 });
+    },
+    shutterClose: function () {
+      tone({ f: 440, f1: 220, d: 0.05, v: 0.04, exp: true });
+      noiseHit({ f: 1200, f1: 400, d: 0.04, v: 0.03 });
+    },
+    /* ── terrarium creature voices ── */
+    sekkehWake: function () {
+      tone({ f: 1318.5, f1: 1975.5, d: 0.07, v: 0.035, type: 'sine' });
+    },
+    sekkehFlip: function () {
+      tone({ f: 2400, f1: 3600, d: 0.11, v: 0.035, type: 'triangle' });
+      tone({ f: 4800, d: 0.06, v: 0.015, at: 0.05 });
+    },
+    sekkehMelt: function () {
+      tone({ f: 330, f1: 440, d: 0.25, v: 0.03, type: 'sine' });
+      tone({ f: 220, f1: 165, d: 0.3, v: 0.025, type: 'triangle', at: 0.1 });
+    },
+    sekkehDeposit: function () {
+      tone({ f: 1760, d: 0.05, v: 0.035 });
+      tone({ f: 2637, d: 0.08, v: 0.025, at: 0.04 });
+    },
+    almasPrism: function () {
+      var notes = [1318.5, 1567.98, 1975.5, 2637];
+      for (var pi = 0; pi < notes.length; pi++) {
+        tone({ f: notes[pi], d: 0.09, v: 0.025, type: 'sine', at: pi * 0.04 });
+      }
+    },
+    almasSpin: function () {
+      var bells = [1046.5, 1318.5, 1567.98, 2093];
+      for (var bi = 0; bi < bells.length; bi++) {
+        tone({ f: bells[bi], d: 0.12, v: 0.025, type: 'triangle', at: bi * 0.07 });
+      }
+    },
+    almasPearl: function () {
+      tone({ f: 2093, f1: 3136, d: 0.08, v: 0.03, type: 'sine' });
+    },
+    almasCrown: function () {
+      tone({ f: 1567.98, d: 0.08, v: 0.03, type: 'sine' });
+      tone({ f: 2093, d: 0.15, v: 0.03, at: 0.06 });
+    },
+    naghshDraft: function () {
+      noiseHit({ f: 3200, hp: true, d: 0.03, v: 0.025 });
+      tone({ f: 440, d: 0.025, v: 0.02, at: 0.02 });
+    },
+    naghshStamp: function () {
+      tone({ f: 120, f1: 45, d: 0.15, v: 0.06, type: 'triangle', exp: true });
+      noiseHit({ f: 600, f1: 120, d: 0.12, v: 0.05 });
+    },
+    naghshSubmit: function () {
+      tone({ f: 554, f1: 880, d: 0.1, v: 0.03, type: 'triangle' });
+    },
+    naghshPlumb: function () {
+      tone({ f: 660, d: 0.04, v: 0.025, type: 'sine' });
+    },
+    yasBloom: function () {
+      tone({ f: 523.25, f1: 783.99, d: 0.22, v: 0.035, type: 'triangle' });
+      tone({ f: 1046.5, d: 0.18, v: 0.02, type: 'sine', at: 0.08 });
+    },
+    yasWater: function () {
+      noiseHit({ f: 1800, f1: 3200, hp: true, d: 0.25, v: 0.03 });
+    },
+    yasPetal: function () {
+      tone({ f: 783.99, f1: 1046.5, d: 0.12, v: 0.03, type: 'triangle' });
+    },
+    yasBask: function () {
+      tone({ f: 880, d: 0.25, v: 0.025, type: 'sine' });
+      tone({ f: 1318.5, d: 0.25, v: 0.02, type: 'sine', at: 0.12 });
     },
     catchChirp: function () {
       tone({ f: 920, f1: 1560, d: 0.09, v: 0.05 });
@@ -213,11 +463,12 @@
       tone({ f: 540, f1: 310, d: 0.13, v: 0.045, at: 0.095 });
     },
     powerup: function () {
-      /* the mushroom's promise: a three-octave major run, accelerating */
-      var run = [523.25, 659.26, 783.99, 1046.5, 1318.5, 1567.98, 2093, 2637, 3135.96];
-      for (var i = 0; i < run.length; i++) {
-        tone({ f: run[i], d: i === run.length - 1 ? 0.26 : 0.052, v: 0.055, at: i * 0.048 });
-        tone({ f: run[i] / 2, d: 0.05, v: 0.02, type: 'triangle', at: i * 0.048 });
+      if (!playSample('powerup', 0.32)) {
+        var run = [523.25, 659.26, 783.99, 1046.5, 1318.5, 1567.98, 2093, 2637, 3135.96];
+        for (var i = 0; i < run.length; i++) {
+          tone({ f: run[i], d: i === run.length - 1 ? 0.26 : 0.052, v: 0.055, at: i * 0.048 });
+          tone({ f: run[i] / 2, d: 0.05, v: 0.02, type: 'triangle', at: i * 0.048 });
+        }
       }
     },
     oneUp: function () {
@@ -225,29 +476,31 @@
       for (var i = 0; i < seq.length; i++) { tone({ f: seq[i], d: 0.11, v: 0.055, at: i * 0.088 }); }
     },
     mario: function () {
-      /* the overworld intro, played on the chip as he walks in —
-         triplet E's, the drop to the low G, then the answer phrase.
-         A triangle bass keeps his steps honest underneath. */
-      var sq = 0, tr = 0;
-      var lead = [
-        [659.26, 0.00, 0.10], [659.26, 0.135, 0.10], [659.26, 0.270, 0.10],
-        [523.25, 0.460, 0.12], [659.26, 0.600, 0.17], [783.99, 0.780, 0.44],
-        [392.00, 1.300, 0.34],
-        [523.25, 1.860, 0.10], [523.25, 1.995, 0.10], [523.25, 2.130, 0.10],
-        [392.00, 2.320, 0.12], [523.25, 2.460, 0.17], [659.26, 2.640, 0.44],
-        [392.00, 3.180, 0.36]
-      ];
-      var bass = [
-        [130.81, 0.00], [130.81, 0.29], [130.81, 0.58], [98.00, 0.87],
-        [130.81, 1.30], [98.00, 1.60],
-        [130.81, 1.86], [130.81, 2.15], [130.81, 2.44], [98.00, 2.73],
-        [130.81, 3.16], [98.00, 3.46]
-      ];
-      for (sq = 0; sq < lead.length; sq++) {
-        tone({ f: lead[sq][0], d: lead[sq][2], v: 0.06, at: lead[sq][1] });
-      }
-      for (tr = 0; tr < bass.length; tr++) {
-        tone({ f: bass[tr][0], d: 0.14, v: 0.038, type: 'triangle', at: bass[tr][1] });
+      /* authentic 1985 Super Mario Bros overworld theme */
+      if (!playSample('mario', 0.30)) {
+        var lead = [
+          [659.26, 0.00, 0.10], [659.26, 0.15, 0.10], [659.26, 0.36, 0.10],
+          [523.25, 0.51, 0.10], [659.26, 0.66, 0.10], [783.99, 0.96, 0.20],
+          [392.00, 1.41, 0.20],
+          [523.25, 1.86, 0.22], [392.00, 2.16, 0.14], [329.63, 2.46, 0.22],
+          [440.00, 2.76, 0.14], [493.88, 3.06, 0.14], [466.16, 3.36, 0.10],
+          [440.00, 3.51, 0.14], [392.00, 3.81, 0.18], [659.26, 4.05, 0.18],
+          [783.99, 4.29, 0.18], [880.00, 4.53, 0.18], [698.46, 4.83, 0.14],
+          [783.99, 5.04, 0.14], [659.26, 5.34, 0.18], [523.25, 5.58, 0.14],
+          [587.33, 5.76, 0.14], [493.88, 5.94, 0.20]
+        ];
+        var bass = [
+          [130.81, 0.00], [130.81, 0.30], [130.81, 0.60], [98.00, 0.90],
+          [130.81, 1.41], [98.00, 1.65],
+          [130.81, 1.86], [98.00, 2.16], [164.81, 2.46], [220.00, 2.76],
+          [246.94, 3.06], [233.08, 3.36], [220.00, 3.51], [196.00, 3.81]
+        ];
+        for (var sq = 0; sq < lead.length; sq++) {
+          tone({ f: lead[sq][0], d: lead[sq][2], v: 0.06, at: lead[sq][1] });
+        }
+        for (var tr = 0; tr < bass.length; tr++) {
+          tone({ f: bass[tr][0], d: 0.14, v: 0.038, type: 'triangle', at: bass[tr][1] });
+        }
       }
     },
     rescue: function () {
@@ -284,6 +537,7 @@
       noiseHit({ f: 2600, hp: true, d: 0.07, v: 0.055 });
     },
     motherDown: function () {
+      stopBossMusic();
       SFX.boomL();
       SFX.oneUp();
       noiseHit({ f: 1600, f1: 100, d: 0.9, v: 0.09, at: 0.12 });
@@ -363,7 +617,8 @@
       }
     }
   };
-  function sfx(name) { if (SFX[name]) { SFX[name](); } }
+  function sfx(name, arg) { if (SFX[name]) { SFX[name](arg); } }
+  window.__fw_sfx = function (name, arg) { sfx(name, arg); };
 
   /* ── the keepers' voices ── every resident answers the hand in
      their own timbre: the ingot warm and low, the ruby a crystal
@@ -407,6 +662,7 @@
     soundOn = !soundOn;
     store('fw-sound', soundOn ? '1' : '0');
     if (soundOn) { ensureCtx(); blip(660, 60); }
+    else { sfx('switchOff'); stopBossMusic(); }
     paintSound();
   });
   paintSound();
@@ -1848,6 +2104,7 @@ function farRow(wx, rows) {
     w.bossWarning = 2400;
     sfx('bossAlarm');
     sfx('mother');
+    startBossMusic();
   }
 
   function hitMother(M, hx, hy) {
@@ -1876,6 +2133,7 @@ function farRow(wx, rows) {
       M.dieT = 2500;
       w.shake = 750;
       sfx('boomL');
+      stopBossMusic(2400);
       popAt(w, Math.round(M.sx + M.w / 2 - 16), Math.round(M.y), 'CRITICAL!');
     } else {
       boomAt(Math.round(hx), Math.round(hy), 6);
@@ -1927,6 +2185,7 @@ function farRow(wx, rows) {
   function sectorLine(n) { return SECTOR_LINES[n] || 'DEEP SPACE'; }
   function awardKill(w, base, killBonus) {
     w.chain = Math.min(9, (w.chain || 0) + 1);
+    if (w.chain > 1) { sfx('chainTick', w.chain); }
     w.chainUntil = w.t + 2400;
     w.kills = (w.kills || 0) + (killBonus || 1);
     /* the dome charges in secret: the fourth kill gets a small chime */
@@ -2065,10 +2324,12 @@ function farRow(wx, rows) {
     var boomN = 22, ringR = 3, ringLife = 560;
 
     if (kind === 'penetrator') {
+      sfx('blastPenetrator');
       cRad = 5; cDep = 18; cLip = 1;
       boomN = 18; ringR = 1; ringLife = 340;
       w.shake = Math.max(w.shake, 180);
     } else if (kind === 'incendiary') {
+      sfx('blastIncendiary');
       cRad = 9; cDep = 6; cLip = 1.5;
       boomN = 12; ringR = 2; ringLife = 520;
       w.shake = Math.max(w.shake, 150);
@@ -2082,6 +2343,7 @@ function farRow(wx, rows) {
         });
       }
     } else {
+      sfx('blastHeavy');
       w.shake = Math.max(w.shake, 260);
     }
 
@@ -2104,6 +2366,7 @@ function farRow(wx, rows) {
       var hx = H.wx - w.worldX;
       if (Math.abs(hx + 2 - sx) < (cRad + 2) && Math.abs(H.y + 4 - sy) < (cDep + 6)) {
         H.gone = true;
+        sfx('humanScream');
         w.humsLost = (w.humsLost || 0) + 1;
         boomAt(Math.round(hx + 2), Math.round(H.y + 3), 6);
       }
@@ -2144,6 +2407,7 @@ function farRow(wx, rows) {
   function killShip(L) {
     var w = world;
     var S = w.ship;
+    stopBossMusic(500);
     if (L) { L.gone = true; boomAt(Math.round(L.wx - w.worldX + 4), Math.round(L.y + 3), 12); }
     w.shipDead = true;
     w.shipDeadAt = w.t;
@@ -2211,6 +2475,7 @@ function farRow(wx, rows) {
       var ahead = dir > 0 ? (lsx > S.x + 2 && lsx < hitX) : (lsx < S.x + sprW(SPR_SHIP) && lsx > hitX);
       if (ahead && lsx > -8 && lsx < w.cols + 8 && Math.abs(L.y + 3 - sy) < 6) {
         L.gone = true;
+        sfx('boomLander');
         var bpts = awardKill(w, L.type === 'tractor' ? 300 : 150);
         popAt(w, Math.round(lsx), Math.round(L.y) - 2, '+' + bpts);
         boomAt(Math.round(lsx + 5), Math.round(L.y + 3), 9);
@@ -2220,6 +2485,7 @@ function farRow(wx, rows) {
             L.target.state = 'fall';
             L.target.vy = 0;
             L.target.held = null;
+            sfx('humanFall');
           }
           L.target = null;
         }
@@ -2305,6 +2571,7 @@ function farRow(wx, rows) {
     if (!w) { return; }
     w.ship.x = Math.max(6, Math.min(w.cols * 0.62, w.ship.x + (right ? 9 : -9)));
     if (!right) { w.ship.flipUntil = w.t + 650; }
+    sfx('thruster');
   }
 
   function stepWorld(dt) {
@@ -2408,6 +2675,7 @@ function farRow(wx, rows) {
           rumble(1, 1.0, 850);
           sfx('motherDown');
           sfx('defstar');
+          stopBossMusic();
           for (var bi = 0; bi < w.bombs.length; bi++) {
             w.bombs[bi].gone = true;
             boomAt(Math.round(w.bombs[bi].x), Math.round(w.bombs[bi].y), 3);
@@ -2444,6 +2712,9 @@ function farRow(wx, rows) {
 
         /* Phase 3 Meltdown FX */
         if (phase3) {
+          if (bossMusicSource && bossMusicSource.playbackRate && bossMusicSource.playbackRate.value !== 1.15) {
+            try { bossMusicSource.playbackRate.value = 1.15; } catch (e) {}
+          }
           Mo.smokeCd = (Mo.smokeCd || 0) - dt;
           if (Mo.smokeCd <= 0) {
             Mo.smokeCd = 120 + Math.random() * 90;
@@ -2532,7 +2803,7 @@ function farRow(wx, rows) {
           } else {
             w.bombs.push({ x: bCenX, y: bCenY, vx: (Math.random() - 0.5) * 3, vy: 6.5, kind: 'heavy', noHoming: true, gone: false });
           }
-          blip(220, 80, 180);
+          sfx('bombDrop');
         }
 
         /* Escort Deployment */
@@ -2668,7 +2939,7 @@ function farRow(wx, rows) {
           L.hoverUntil = 0; L.reachAt = 0; L.laneY = 0;
           if (tg && tg.targetedBy === L) {
             tg.targetedBy = null;
-            if (tg.state === 'pulled') { tg.state = 'fall'; tg.vy = 0; tg.held = null; }
+            if (tg.state === 'pulled') { tg.state = 'fall'; tg.vy = 0; tg.held = null; sfx('humanFall'); }
           }
           L.target = null;
         } else if (tg.state === 'ground') {
@@ -2850,6 +3121,7 @@ function farRow(wx, rows) {
           kind: bKind,
           gone: false
         });
+        sfx('bombDrop');
       }
     }
     var bTune = sectorTune(w);
@@ -3004,7 +3276,10 @@ function farRow(wx, rows) {
       if (keys.d || padKeys.d) { mh += 1; }
       if (w.portal) { mv = 0; mh = 0; }   /* the gate holds her still */
       if (mv !== 0 || mh !== 0) { S.manualUntil = w.t + 2600; }
-      if (mh !== 0) { S.face = mh; }
+      if (mh !== 0) {
+        if (S.face !== mh) { sfx('thruster'); }
+        S.face = mh;
+      }
       if (w.t < (S.manualUntil || 0)) {
         S.x += mh * 70 * ds;
         S.y += mv * 46 * ds;
@@ -3099,12 +3374,14 @@ function farRow(wx, rows) {
           var lpts = awardKill(w, Ld.type === 'tractor' ? 300 : 150);
           popAt(w, Math.round(lsx), Math.round(Ld.y) - 2, '+' + lpts);
           boomAt(Math.round(lsx + 4), Math.round(Ld.y + 3), 9);
+          sfx('boomLander');
           if (Ld.target) {
             if (Ld.target.targetedBy === Ld) { Ld.target.targetedBy = null; }
             if (Ld.target.state === 'held' || Ld.target.state === 'pulled') {
               Ld.target.state = 'fall';
               Ld.target.vy = 0;
               Ld.target.held = null;
+              sfx('humanFall');
             }
             Ld.target = null;
           }
@@ -3147,7 +3424,7 @@ function farRow(wx, rows) {
         H.wx = H.held.wx;
       } else if (H.state === 'pulled') {
         /* the beam owns the ride; if its ship dies mid-pull, drop */
-        if (!H.held || H.held.gone) { H.state = 'fall'; H.vy = 0; H.held = null; }
+        if (!H.held || H.held.gone) { H.state = 'fall'; H.vy = 0; H.held = null; sfx('humanFall'); }
       } else if (H.state === 'fall') {
         H.vy += 30 * ds;
         H.y += H.vy * ds;
@@ -4892,6 +5169,8 @@ function farRow(wx, rows) {
       world: function () { return world; },
       actx: function () { return actx; },
       soundOn: function () { return soundOn; },
+      hasBossMusic: function () { return !!bossMusicSource; },
+      audioBuffers: function () { return audioBuffers; },
       kill: function () { killShip(null); },
       coin: function () { if (coinBtn) { coinBtn.click(); } },
       charge: function (n) { if (world) { world.kills = n; paintPBtns(); } },
@@ -6135,9 +6414,7 @@ function farRow(wx, rows) {
            gold on the glass and three rising notes */
         w.hiBeaten = true;
         w.hiFlashUntil = w.t + 9000;
-        blip(784, 110);
-        setTimeout(function () { blip(988, 110); }, 120);
-        setTimeout(function () { blip(1319, 220); }, 250);
+        sfx('hiScore');
       }
     }
   }
@@ -6699,6 +6976,7 @@ function farRow(wx, rows) {
       soundOn = !soundOn;
       store('fw-sound', soundOn ? '1' : '0');
       if (soundOn) { ensureCtx(); blip(660, 60); setTimeout(function () { blip(990, 70); }, 90); }
+      else { sfx('switchOff'); stopBossMusic(); }
       paintSound();
     });
   }
@@ -7083,7 +7361,11 @@ function farRow(wx, rows) {
     if (target !== hoverTarget) {
       hoverTarget = target;
       var now = Date.now();
-      if (target && now - lastBlipAt > 90) { lastBlipAt = now; blip(660, 40); }
+      if (target && now - lastBlipAt > 90) {
+        lastBlipAt = now;
+        if (cart) { sfx('cartSnap'); }
+        else { blip(660, 40); }
+      }
     }
 
     cartList.forEach(function (c) {
@@ -7193,6 +7475,7 @@ function farRow(wx, rows) {
   /* ── on-screen controls · START / coin / joystick ──── */
   if (startBtn) {
     startBtn.addEventListener('pointerdown', function () {
+      sfx('startClick');
       startState = 2;
       paintStart();
     });
@@ -7251,6 +7534,7 @@ function farRow(wx, rows) {
   var exploreBtn = $('#exploreBtn');
   if (exploreBtn) {
     exploreBtn.addEventListener('click', function () {
+      sfx('exploreSlide');
       var w1 = $('.w01');
       if (w1 && w1.scrollIntoView) {
         w1.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
@@ -7509,6 +7793,7 @@ function farRow(wx, rows) {
     setTimeout(function () { blip(880, 120, 440); }, 220);
   }
   function closeModal() {
+    sfx('shutterClose');
     modal.hidden = true;
     if (lastFocus && lastFocus.focus) { lastFocus.focus(); }
   }

@@ -581,6 +581,7 @@ function makeSekkeh(T) {
 
   /* ── the trick list ─────────────────────────────────────────── */
   function startMelt(tx) {
+    if (window.__fw_sfx) { window.__fw_sfx('sekkehMelt'); }
     st.melt = { ph: 'crouch', t: 0, tx: tx != null ? tx : restSpot(st.x), dripped: false };
     setMode('melt');
   }
@@ -609,6 +610,7 @@ function makeSekkeh(T) {
   }
   function goFlip() {
     st.cool.flip = T.time;
+    if (window.__fw_sfx) { window.__fw_sfx('sekkehFlip'); }
     st.melt = null; st.dep = null;          /* an interrupt tears the props down */
     st.sx = 1; st.sy = 1; st.tilt = 0;
     setMode('flip');
@@ -903,6 +905,7 @@ function makeSekkeh(T) {
       if (kt >= 1) {
         D.ph = 'pat'; D.t = 0;
         st.sy = 1;
+        if (window.__fw_sfx) { window.__fw_sfx('sekkehDeposit'); }
         var sc2 = SC;
         for (var i = 0; i < 5; i++) T.parts.spawn('spark', slot.cx + rand(-8, 8), slot.cy + rand(-4, 4), { up: 8 });
         T.parts.spawn('flash', slot.x, slot.y, { s: slot.w, life: .3 });
@@ -1168,6 +1171,7 @@ function makeSekkeh(T) {
         return;
       }
       setMode('wake');
+      if (window.__fw_sfx) { window.__fw_sfx('sekkehWake'); }
     },
     sleep: function () {
       if (st.mode === 'zzz') return;
@@ -1443,16 +1447,27 @@ function makeAlmas(T) {
   }
 
   /* ── the trick list ─────────────────────────────────────────── */
-  function goPrism() { st.cool.prism = T.time; st.prism = { t: 0, lit: false }; setMode('prism'); }
+  function goPrism() {
+    st.cool.prism = T.time;
+    if (window.__fw_sfx) { window.__fw_sfx('almasPrism'); }
+    st.prism = { t: 0, lit: false };
+    setMode('prism');
+  }
   function goSpin() {
     st.cool.spin = T.time;
+    if (window.__fw_sfx) { window.__fw_sfx('almasSpin'); }
     st.prism = null; st.pearl = null; st.crownA = null;   /* an interrupt tears the props down */
     st.glim = null; st.tilt = 0;
     st.spinT = 0; st.spin = 0; st.sparked = 0; st.sparked2 = 0;
     st.sx = 1; st.sy = 1;
     setMode('spin');
   }
-  function goCrown() { st.cool.crownA = T.time; st.crownA = { ph: 'descend', t: 0, cy: 0, a: 1 }; setMode('crown'); }
+  function goCrown() {
+    st.cool.crownA = T.time;
+    if (window.__fw_sfx) { window.__fw_sfx('almasCrown'); }
+    st.crownA = { ph: 'descend', t: 0, cy: 0, a: 1 };
+    setMode('crown');
+  }
   function goPearl() {
     st.cool.pearl = T.time;
     var slot = T.geo.slot;
@@ -1844,6 +1859,7 @@ function makeAlmas(T) {
       if (kt >= 1) {
         D.ph = 'admire'; D.t = 0;
         st.sy = 1;
+        if (window.__fw_sfx) { window.__fw_sfx('almasPearl'); }
         for (var i = 0; i < 4; i++) T.parts.spawn('gdust', slot.cx + rand(-8, 8), slot.cy + rand(-4, 4));
         T.parts.spawn('flash', slot.x, slot.y, { s: slot.w, life: .3 });
         T.parts.spawn('spark', slot.cx, slot.cy, { up: 8 });
@@ -2556,6 +2572,7 @@ function makeNaghsh(T) {
   }
   function goPlumb() {
     st.cool.plumb = T.time;
+    if (window.__fw_sfx) { window.__fw_sfx('naghshPlumb'); }
     goWalk(clamp(st.x + rand(-110, 110), 50, T.W - 50), 'plumbUp');
   }
   function goRoll() {
@@ -2915,6 +2932,7 @@ function makeNaghsh(T) {
     } else if (D.t >= .42 && !D.lit) {
       D.lit = 1;
       st.sy = 1; st.sx = 1;
+      if (window.__fw_sfx) { window.__fw_sfx('naghshDraft'); }
     }
     if (D.lit) {
       /* guides, then the strokes, then the blink, then the dust */
@@ -2955,6 +2973,7 @@ function makeNaghsh(T) {
       if (kt >= 1) {
         D.ph = 'admire'; D.t = 0;
         st.sy = 1;
+        if (window.__fw_sfx) { window.__fw_sfx('naghshSubmit'); }
         for (var i = 0; i < 4; i++) T.parts.spawn('gdust', slot.cx + rand(-8, 8), slot.cy + rand(-4, 4));
         T.parts.spawn('flash', slot.x, slot.y, { s: slot.w, life: .3 });
         T.parts.spawn('spark', slot.cx, slot.cy, { up: 8 });
@@ -2984,6 +3003,7 @@ function makeNaghsh(T) {
         C.ph = 'press'; C.t = 0;
         st.sy = .84; st.sx = 1.14;
         st.sealA = 1;
+        if (window.__fw_sfx) { window.__fw_sfx('naghshStamp'); }
         for (var i = 0; i < 4; i++) T.parts.spawn('gdust', st.x + rand(-14, 14), C.cy + rand(-2, 6));
         T.parts.spawn('dust', st.x - 10, C.cy + 6);
         T.parts.spawn('dust', st.x + 10, C.cy + 6);
@@ -3945,6 +3965,7 @@ function makeYas(T) {
   }
   function goBask() {
     st.cool.bask = T.time;
+    if (window.__fw_sfx) { window.__fw_sfx('yasBask'); }
     teardown();
     st.bT = 0;
     setMode('bask');
@@ -4266,6 +4287,7 @@ function makeYas(T) {
           G.s[i] = Math.min(1, G.s[i] + dt * 1.6);
           if (G.s[i] >= 1 && !G.pop[i]) {
             G.pop[i] = 1;
+            if (window.__fw_sfx) { window.__fw_sfx('yasBloom'); }
             T.parts.spawn('scent', G.xs[i] + rand(-4, 4), groundY() - 27);
             T.parts.spawn('spark', G.xs[i], groundY() - 25, { up: 6 });
           }
@@ -4274,6 +4296,7 @@ function makeYas(T) {
       }
       if (done && !G.heart) {
         G.heart = 1;
+        if (window.__fw_sfx) { window.__fw_sfx('yasBloom'); }
         var cxs = (G.xs[0] + G.xs[G.xs.length - 1]) / 2;
         T.parts.spawn('heart', cxs, groundY() - 46);
         T.parts.spawn('scent', cxs - 11, groundY() - 40);
@@ -4301,6 +4324,7 @@ function makeYas(T) {
     } else if (C.ph === 'hold') {
       if (C.t > .28) { C.ph = 'pour'; C.t = 0; }
     } else if (C.ph === 'pour') {
+      if (C.pour === 0 && window.__fw_sfx) { window.__fw_sfx('yasWater'); }
       C.pour = Math.min(1, C.pour + dt * 4);
       if (C.t < 1.15) {
         C.acc += dt;
@@ -4350,6 +4374,7 @@ function makeYas(T) {
       P.y = lerp(P.sy, slot.cy, kt) - Math.sin(kt * Math.PI) * 26;
       if (kt >= 1) {
         P.ph = 'pat'; P.t = 0;
+        if (window.__fw_sfx) { window.__fw_sfx('yasPetal'); }
         var i;
         for (i = 0; i < 5; i++) T.parts.spawn('spark', slot.cx + rand(-8, 8), slot.cy + rand(-4, 4), { up: 8 });
         T.parts.spawn('flash', slot.x, slot.y, { s: slot.w, life: .3 });
