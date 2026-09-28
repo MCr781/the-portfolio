@@ -106,6 +106,7 @@
     loadAudioSample('powerup', 'assets/audio/smb_powerup.mp3');
     loadAudioSample('coin', 'assets/audio/smb_coin.mp3');
     loadAudioSample('boss', 'assets/audio/ost_boss.mp3');
+    loadAudioSample('boom', 'assets/audio/arcade_explosion.mp3');
   }
 
   function playSample(key, vol, loop, rate) {
@@ -116,7 +117,8 @@
       try { actx.resume(); } catch (e) {}
     }
     if (!audioBuffers[key]) {
-      loadAudioSample(key, 'assets/audio/' + (key === 'mario' ? 'smb_theme_cameo.mp3' : (key === 'powerup' ? 'smb_powerup.mp3' : (key === 'coin' ? 'smb_coin.mp3' : 'ost_boss.mp3'))));
+      var sampleUrl = 'assets/audio/' + (key === 'mario' ? 'smb_theme_cameo.mp3' : (key === 'powerup' ? 'smb_powerup.mp3' : (key === 'coin' ? 'smb_coin.mp3' : (key === 'boom' ? 'arcade_explosion.mp3' : 'ost_boss.mp3'))));
+      loadAudioSample(key, sampleUrl);
       return null;
     }
     try {
@@ -199,6 +201,24 @@
     }
   }
 
+  /* Multi-Note Retro Arcade Explosions (3-note descending burst: High -> Mid -> Low + Sizzle)
+     Primary source: preloaded recorded multi-note arcade explosion sample ('boom').
+     Fallback: 3-stage synchronized retro square/saw notes with crisp high-passed crunch. */
+  function playArcadeExplosion(vol, pitchScale) {
+    if (!soundOn || !actx) { return; }
+    if (actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
+    var p = pitchScale || (0.97 + Math.random() * 0.06);
+    var v = vol || 0.32;
+    if (playSample('boom', v, false, p)) {
+      return;
+    }
+    /* Fallback multi-note chiptune explosion */
+    tone({ f: 784 * p, f1: 640 * p, d: 0.045, v: v * 0.50, type: 'square' });
+    tone({ f: 523 * p, f1: 390 * p, d: 0.065, v: v * 0.46, at: 0.035, type: 'square' });
+    tone({ f: 294 * p, f1: 180 * p, d: 0.095, v: v * 0.38, at: 0.075, type: 'sawtooth' });
+    noiseHit({ f: 3400, f1: 1200, hp: true, d: 0.16, v: v * 0.40 });
+  }
+
   /* the legacy voice — kept for the small ui ticks */
   function blip(freq, dur, sweepTo) {
     tone({ f: freq, f1: sweepTo, d: dur / 1000, v: 0.055, exp: true });
@@ -225,6 +245,9 @@
     var v = o.v || 0.06;
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.linearRampToValueAtTime(v, t0 + (o.a || 0.004));
+    if (o.sustain) {
+      g.gain.linearRampToValueAtTime(v * 0.45, t0 + o.sustain);
+    }
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
     osc.connect(g);
     if (o.lp) {
@@ -259,7 +282,12 @@
     if (o.f1) { f.frequency.exponentialRampToValueAtTime(Math.max(40, o.f1), t0 + d); }
     f.Q.value = o.q || 0.8;
     var g = actx.createGain();
-    g.gain.setValueAtTime(o.v || 0.09, t0);
+    var v = o.v || 0.09;
+    g.gain.setValueAtTime(o.a ? 0.0001 : v, t0);
+    if (o.a) { g.gain.linearRampToValueAtTime(v, t0 + o.a); }
+    if (o.sustain) {
+      g.gain.linearRampToValueAtTime(v * 0.45, t0 + o.sustain);
+    }
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
     src.connect(f); f.connect(g); g.connect(master);
     src.start(t0);
@@ -287,22 +315,17 @@
       noiseHit({ f: 5200, hp: true, d: 0.05, v: 0.03 });
     },
     boomS: function () {
-      var p = 0.95 + Math.random() * 0.1;
-      tone({ f: 340 * p, f1: 45 * p, d: 0.075, v: 0.17, type: 'triangle', exp: true });
-      tone({ f: 240 * p, f1: 60 * p, d: 0.05, v: 0.09, type: 'sawtooth', exp: true, lp: 950 });
-      noiseHit({ f: 3600, f1: 300, d: 0.065, v: 0.13, q: 1.0 });
+      /* Multi-note retro arcade explosion — 3-note descending burst (high bite) */
+      playArcadeExplosion(0.30, 1.04 + Math.random() * 0.05);
     },
     boomL: function () {
-      noiseHit({ f: 2300, f1: 90, d: 0.55, v: 0.15 });
-      tone({ f: 105, f1: 34, d: 0.42, v: 0.1, type: 'sine', exp: true });
-      noiseHit({ f: 4600, hp: true, d: 0.06, v: 0.05, at: 0.015 });
-      tone({ f: 70, f1: 40, d: 0.3, v: 0.05, type: 'sine', exp: true, at: 0.09 });
+      /* Massive destruction: multi-note arcade explosion + lowpass rumble wash */
+      playArcadeExplosion(0.44, 0.88);
+      noiseHit({ f: 1100, f1: 50, d: 0.42, v: 0.16, at: 0.04 });
     },
     boomLander: function () {
-      var p = 0.95 + Math.random() * 0.1;
-      tone({ f: 300 * p, f1: 42 * p, d: 0.075, v: 0.18, type: 'triangle', exp: true });
-      tone({ f: 220 * p, f1: 50 * p, d: 0.045, v: 0.09, type: 'square', exp: true, lp: 850 });
-      noiseHit({ f: 3200, f1: 260, d: 0.065, v: 0.13, q: 1.0 });
+      /* Multi-note retro arcade explosion — 3-note descending burst (784Hz -> 523Hz -> 294Hz) */
+      playArcadeExplosion(0.34, 0.97 + Math.random() * 0.06);
     },
     bombDrop: function () {
       /* Releasing of bombs is silent per user request to avoid overwhelming repetitive whistling */
@@ -327,11 +350,8 @@
     humanFall: function () {
       tone({ f: 1600, f1: 600, d: 0.35, v: 0.03, type: 'sine', exp: true });
     },
-    chainTick: function (chain) {
-      var pent = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77, 1108.73, 1318.51];
-      var idx = Math.min(pent.length - 1, Math.max(0, (chain || 1) - 1));
-      tone({ f: pent[idx], d: 0.08, v: 0.045, type: 'triangle' });
-      tone({ f: pent[idx] * 2, d: 0.05, v: 0.02, at: 0.02 });
+    chainTick: function () {
+      /* Silent: streaks award score multipliers without irritating escalating pitch */
     },
     thruster: function () {
       noiseHit({ f: 380, f1: 140, d: 0.06, v: 0.025 });
@@ -509,8 +529,7 @@
       tone({ f: 2093, d: 0.1, v: 0.025, type: 'triangle', at: 0.11 });
     },
     ready: function () {
-      tone({ f: 1318.5, d: 0.07, v: 0.04 });
-      tone({ f: 1975.5, d: 0.12, v: 0.04, at: 0.08 });
+      tone({ f: 440, f1: 554, d: 0.08, v: 0.022, type: 'triangle' });
     },
     portal: function () {
       tone({ f: 90, f1: 720, d: 0.85, v: 0.055, type: 'sine' });
@@ -620,6 +639,7 @@
   };
   function sfx(name, arg) { if (SFX[name]) { SFX[name](arg); } }
   window.__fw_sfx = function (name, arg) { sfx(name, arg); };
+  window.__fw_audioBuffers = function () { return audioBuffers; };
 
   /* ── the keepers' voices ── every resident answers the hand in
      their own timbre: the ingot warm and low, the ruby a crystal
@@ -2186,7 +2206,6 @@ function farRow(wx, rows) {
   function sectorLine(n) { return SECTOR_LINES[n] || 'DEEP SPACE'; }
   function awardKill(w, base, killBonus) {
     w.chain = Math.min(9, (w.chain || 0) + 1);
-    if (w.chain > 1) { sfx('chainTick', w.chain); }
     w.chainUntil = w.t + 2400;
     w.kills = (w.kills || 0) + (killBonus || 1);
     /* the dome charges in secret: the fourth kill gets a small chime */
