@@ -201,22 +201,19 @@
     }
   }
 
-  /* Multi-Note Retro Arcade Explosions (3-note descending burst: High -> Mid -> Low + Sizzle)
-     Primary source: preloaded recorded multi-note arcade explosion sample ('boom').
-     Fallback: 3-stage synchronized retro square/saw notes with crisp high-passed crunch. */
+  /* Soft, delightful bubble pop (60ms) — gentle, non-fatiguing, and satisfying */
   function playArcadeExplosion(vol, pitchScale) {
     if (!soundOn || !actx) { return; }
     if (actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
-    var p = pitchScale || (0.97 + Math.random() * 0.06);
-    var v = vol || 0.32;
+    var p = pitchScale || (0.95 + Math.random() * 0.12);
+    var v = (vol == null ? 0.20 : vol);
     if (playSample('boom', v, false, p)) {
       return;
     }
-    /* Fallback multi-note chiptune explosion */
-    tone({ f: 784 * p, f1: 640 * p, d: 0.045, v: v * 0.50, type: 'square' });
-    tone({ f: 523 * p, f1: 390 * p, d: 0.065, v: v * 0.46, at: 0.035, type: 'square' });
-    tone({ f: 294 * p, f1: 180 * p, d: 0.095, v: v * 0.38, at: 0.075, type: 'sawtooth' });
-    noiseHit({ f: 3400, f1: 1200, hp: true, d: 0.16, v: v * 0.40 });
+    /* Fallback soft bubble pop synthesis: gentle upward flick then sweet resonant sine drop */
+    tone({ f: 680 * p, f1: 960 * p, d: 0.015, v: v * 0.45, type: 'sine' });
+    tone({ f: 740 * p, f1: 220 * p, d: 0.050, v: v * 0.85, at: 0.008, type: 'sine', exp: true });
+    noiseHit({ f: 3200, hp: true, d: 0.010, v: v * 0.20 });
   }
 
   /* the legacy voice — kept for the small ui ticks */
@@ -315,17 +312,19 @@
       noiseHit({ f: 5200, hp: true, d: 0.05, v: 0.03 });
     },
     boomS: function () {
-      /* Multi-note retro arcade explosion — 3-note descending burst (high bite) */
-      playArcadeExplosion(0.30, 1.04 + Math.random() * 0.05);
+      /* Crisp, bright bubble pop for mutants */
+      playArcadeExplosion(0.19, 1.08 + Math.random() * 0.08);
     },
     boomL: function () {
-      /* Massive destruction: multi-note arcade explosion + lowpass rumble wash */
-      playArcadeExplosion(0.44, 0.88);
-      noiseHit({ f: 1100, f1: 50, d: 0.42, v: 0.16, at: 0.04 });
+      /* Cascading soft bubble pops for ship destruction */
+      playArcadeExplosion(0.28, 0.90);
+      setTimeout(function () { playArcadeExplosion(0.22, 1.08); }, 45);
+      setTimeout(function () { playArcadeExplosion(0.18, 1.25); }, 90);
+      noiseHit({ f: 800, f1: 60, d: 0.28, v: 0.06, at: 0.04 });
     },
     boomLander: function () {
-      /* Multi-note retro arcade explosion — 3-note descending burst (784Hz -> 523Hz -> 294Hz) */
-      playArcadeExplosion(0.34, 0.97 + Math.random() * 0.06);
+      /* Soft, satisfying bubble pop (60ms) */
+      playArcadeExplosion(0.21, 0.96 + Math.random() * 0.10);
     },
     bombDrop: function () {
       /* Releasing of bombs is silent per user request to avoid overwhelming repetitive whistling */
