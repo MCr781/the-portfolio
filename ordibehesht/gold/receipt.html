@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>رسید تراکنش | قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <meta name="theme-color" content="#d4af37">
+  <style>
+    body { background-color: #f3f4f6; }
+    .receipt-container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      overflow: hidden;
+      position: relative;
+    }
+    .receipt-header {
+      background: var(--gold-500);
+      color: white;
+      padding: 32px 24px;
+      text-align: center;
+      position: relative;
+    }
+    .receipt-header::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: white;
+      border-radius: 20px 20px 0 0;
+    }
+    .receipt-icon {
+      width: 64px;
+      height: 64px;
+      background: white;
+      color: var(--gold-600);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .receipt-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .receipt-subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .receipt-body {
+      padding: 24px;
+    }
+    .receipt-amount {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .receipt-amount-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .receipt-amount-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--gold-600);
+    }
+    .receipt-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed #e5e7eb;
+      font-size: 14px;
+    }
+    .receipt-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .receipt-row-label {
+      color: var(--text-secondary);
+    }
+    .receipt-row-value {
+      font-weight: 700;
+      color: var(--text);
+    }
+    .receipt-actions {
+      padding: 24px;
+      background: #fdfbf7;
+      display: flex;
+      gap: 12px;
+      border-top: 1px dashed #e5e7eb;
+    }
+    .btn-download {
+      flex: 1;
+      background: white;
+      border: 1px solid var(--gold-500);
+      color: var(--gold-600);
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .btn-home {
+      flex: 1;
+      background: var(--gold-500);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    @media (max-width: 768px) {
+      .receipt-container { margin: 16px; border-radius: 16px; }
+      body { background-color: white; }
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-badge.success { background: #d1fae5; color: #065f46; }
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+  </style>
+</head>
+<body>
+
+  <div class="receipt-container" id="receipt">
+    <div class="receipt-header">
+      <div class="receipt-icon"><i class='bx bx-check'></i></div>
+      <div class="receipt-title" id="r-title">رسید تراکنش</div>
+      <div class="receipt-subtitle" id="r-date">...</div>
+    </div>
+    <div class="receipt-body">
+      <div class="receipt-amount">
+        <div class="receipt-amount-label">مبلغ کل</div>
+        <div class="receipt-amount-value" id="r-amount">۰ تومان</div>
+      </div>
+      <div class="receipt-rows" id="r-rows">
+        <!-- Dynamic rows -->
+      </div>
+    </div>
+    <div class="receipt-actions sticky-footer">
+      <button class="btn-download" onclick="window.print()"><i class='bx bx-download'></i> دانلود PDF</button>
+      <a href="index.html" class="btn-home"><i class='bx bx-home-alt'></i> بازگشت</a>
+    </div>
+  </div>
+
+  <script src="../js/gold-trading.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type') || 'buy';
+
+    // Auto-generate some dummy values if not provided via URL
+    const now = new Date();
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+    document.getElementById('r-date').textContent = new Intl.DateTimeFormat('fa-IR', options).format(now);
+
+    const trackingCode = params.get('tracking') || Math.floor(Math.random() * 9000000 + 1000000).toString();
+    const status = params.get('status') || 'success';
+    const amount = params.get('amount') || '5000000';
+    const weight = params.get('weight') || '1.250';
+    const fee = params.get('fee') || '0';
+    const vault = params.get('gholak') || params.get('vault') || 'قلک اصلی';
+    const bank = params.get('bank');
+    const holder = params.get('holder');
+    const iban = params.get('iban');
+    const gateway = params.get('gateway');
+    const gatewayTracking = params.get('gatewayTracking') || Math.floor(Math.random() * 9000000 + 1000000).toString();
+
+    document.getElementById('r-amount').textContent = toPersianNum(formatMoney(amount)) + ' تومان';
+
+    const rowsContainer = document.getElementById('r-rows');
+
+    let title = 'رسید تراکنش';
+    let rowsHtml = '';
+
+    const statusHtml = status === 'success'
+      ? '<span class="status-badge success"><i class="bx bx-check-circle"></i> موفق</span>'
+      : status === 'failed'
+      ? '<span class="status-badge failed"><i class="bx bx-x-circle"></i> ناموفق</span>'
+      : status === 'canceled'
+      ? '<span class="status-badge pending"><i class="bx bx-block"></i> لغو شده</span>'
+      : status === 'review'
+      ? '<span class="status-badge review"><i class="bx bx-search-alt-2"></i> نیازمند بررسی</span>'
+      : '<span class="status-badge pending"><i class="bx bx-time"></i> در انتظار</span>';
+
+    if (type === 'buy') {
+      title = 'رسید خرید طلا';
+      rowsHtml = `
+        <div class="receipt-row"><span class="receipt-row-label">وضعیت</span><span class="receipt-row-value">${statusHtml}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">شماره پیگیری</span><span class="receipt-row-value">B-${toPersianNum(trackingCode)}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">مقدار طلا</span><span class="receipt-row-value">${toPersianNum(weight)} گرم</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">قلک مقصد</span><span class="receipt-row-value">${vault}</span></div>
+        ${fee && fee !== '0' ? `<div class="receipt-row"><span class="receipt-row-label">کارمزد</span><span class="receipt-row-value">${toPersianNum(formatMoney(fee))} تومان</span></div>` : ''}
+        ${gateway ? `<div class="receipt-row"><span class="receipt-row-label">درگاه پرداخت</span><span class="receipt-row-value">${gateway}</span></div>` : ''}
+        <div class="receipt-row"><span class="receipt-row-label">کد پیگیری درگاه</span><span class="receipt-row-value">${toPersianNum(gatewayTracking)}</span></div>
+      `;
+    } else if (type === 'sell') {
+      title = 'رسید فروش طلا';
+      const rate = params.get('rate');
+      rowsHtml = `
+        <div class="receipt-row"><span class="receipt-row-label">وضعیت</span><span class="receipt-row-value">${statusHtml}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">شماره پیگیری</span><span class="receipt-row-value">S-${toPersianNum(trackingCode)}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">مقدار طلا</span><span class="receipt-row-value">${toPersianNum(weight)} گرم</span></div>
+        ${rate ? `<div class="receipt-row"><span class="receipt-row-label">نرخ فروش</span><span class="receipt-row-value">${toPersianNum(formatMoney(rate))} تومان</span></div>` : ''}
+        ${fee && fee !== '0' ? `<div class="receipt-row"><span class="receipt-row-label">کارمزد</span><span class="receipt-row-value">${toPersianNum(formatMoney(fee))} تومان</span></div>` : ''}
+        <div class="receipt-row"><span class="receipt-row-label">واریز به</span><span class="receipt-row-value">کیف پول داخلی</span></div>
+      `;
+    } else if (type === 'withdraw') {
+      title = 'رسید برداشت وجه';
+      const bankDisplay = bank ? bank + (holder ? ' - ' + holder : '') : 'بانک سامان - محمد رضایی';
+      const ibanDisplay = iban || 'IR1234***1234';
+      const feeDisplay = fee && fee !== '0' ? fee : '10000';
+      rowsHtml = `
+        <div class="receipt-row"><span class="receipt-row-label">وضعیت</span><span class="receipt-row-value">${statusHtml}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">شماره پیگیری</span><span class="receipt-row-value">W-${toPersianNum(trackingCode)}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">بانک مقصد</span><span class="receipt-row-value">${bankDisplay}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">شماره شبا</span><span class="receipt-row-value" style="font-size:12px; direction:ltr;">${ibanDisplay}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">کارمزد</span><span class="receipt-row-value">${toPersianNum(formatMoney(feeDisplay))} تومان</span></div>
+      `;
+    } else if (type === 'physical') {
+      title = 'رسید درخواست تحویل فیزیکی';
+      rowsHtml = `
+        <div class="receipt-row"><span class="receipt-row-label">وضعیت</span><span class="receipt-row-value">${statusHtml}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">شماره پیگیری</span><span class="receipt-row-value">P-${toPersianNum(trackingCode)}</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">مقدار طلا</span><span class="receipt-row-value">${toPersianNum(weight)} گرم</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">آدرس</span><span class="receipt-row-value" style="font-size:12px; text-align:left;">تهران، ونک، پلاک ۱۲</span></div>
+        <div class="receipt-row"><span class="receipt-row-label">زمان تحویل</span><span class="receipt-row-value">۳ روز کاری</span></div>
+      `;
+    }
+
+    document.getElementById('r-title').textContent = title;
+    rowsContainer.innerHTML = rowsHtml;
+  </script>
+</body>
+</html>

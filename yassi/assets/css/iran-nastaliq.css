@@ -1,0 +1,9 @@
+/* Iran Nastaliq - Persian calligraphic font for board preview text */
+@font-face {
+    font-family: 'IranNastaliq';
+    src: url('../fonts/IranNastaliq.woff2') format('woff2'),
+         url('../fonts/IranNastaliq.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}

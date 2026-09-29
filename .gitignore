@@ -1,2 +1,7 @@
 stuff/manager.py
 stuff/__pycache__/manager.cpython-314.pyc
+node_modules/
+**/node_modules/
+*.log
+**/*.log
+

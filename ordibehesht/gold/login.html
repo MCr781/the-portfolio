@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>ورود به قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <link rel="stylesheet" href="../css/auth.css">
+  <meta name="theme-color" content="#d4af37">
+</head>
+<body class="gold-auth-page">
+
+  <div class="auth-card">
+
+    <!-- Desktop Side Banner (auto-hidden on mobile via auth.css) -->
+    <div class="auth-brand-desktop">
+      <img src="../icons/brand-mark.svg" alt="قلک طلا" class="auth-brand-logo">
+      <h1 class="auth-brand-desktop-title">سرمایه‌گذاری امن<br>و هوشمند در طلا</h1>
+      <ul class="auth-brand-desktop-features">
+        <li>خرید و فروش آنلاین با قیمت لحظه‌ای</li>
+        <li>پشتیبانی از تحویل فیزیکی طلا</li>
+        <li>بدون کارمزد و مالیات پنهان</li>
+      </ul>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="auth-form-panel">
+      <!-- Mobile Brand (hidden on desktop) -->
+      <div class="auth-brand">
+        <img src="../icons/brand-mark.svg" alt="قلک طلا" class="auth-brand-logo">
+        <h1 class="auth-brand-name">قلک طلای اردیبهشت</h1>
+        <p class="auth-brand-tagline">سرمایه‌گذاری امن و هوشمند</p>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="auth-steps">
+        <div class="auth-step active">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۱</span></div>
+          <div class="auth-step-label">شماره موبایل</div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۲</span></div>
+          <div class="auth-step-label">کد تأیید</div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۳</span></div>
+          <div class="auth-step-label">اطلاعات هویتی</div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۴</span></div>
+          <div class="auth-step-label">ایجاد قلک</div>
+        </div>
+      </div>
+
+      <!-- Desktop Title -->
+      <div class="auth-desktop-title-wrap">
+        <h2 class="auth-desktop-title">ورود / ثبت‌نام</h2>
+        <p class="auth-desktop-subtitle">شماره موبایل خود را وارد کنید</p>
+      </div>
+
+      <form id="login-form" class="login-form" novalidate>
+        <div class="field-wrap" style="margin-bottom: 16px;">
+          <label for="login-phone" class="field-label">شماره تلفن همراه</label>
+          <input type="tel" id="login-phone" name="phone" class="field-input" placeholder="۰۹۱xxxxxxxx" required pattern="^09[0-9]{9}$" autocomplete="tel" inputmode="numeric">
+          <div class="auth-note modal-note" style="margin-top: 10px; display: flex; align-items: flex-start; gap: 6px;">
+            <i class='bx bx-error-circle' style="font-size: 14px; margin-top: 1px; color: var(--gold-700);"></i>
+            <span>شماره موبایل باید به نام شخص شما (مالک کد ملی) باشد.</span>
+          </div>
+          <div id="login-error" class="pre-invoice-error" style="text-align: right; margin-top: 8px;"></div>
+        </div>
+
+        <button type="submit" class="button auth-btn" id="login-submit">ارسال کد تأیید</button>
+
+        <p class="auth-note modal-note" style="text-align: center; margin-top: 18px; font-size: 12px; color: var(--text-secondary);">
+          ورود شما به منزله پذیرش <a href="../Terms.html" style="color: var(--gold-600); font-weight: 700;">شرایط و قوانین</a> است.
+        </p>
+
+        <div class="auth-demo-hint">
+          نسخه نمایشی: هر شماره موبایل معتبر مجاز است. کد تأیید در مرحله بعد نمایش داده می‌شود.
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <script src="../js/gold-trading.js"></script>
+  <script src="../js/gold-chrome.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('login-form');
+      var phoneInput = document.getElementById('login-phone');
+      var errEl = document.getElementById('login-error');
+      var submitBtn = document.getElementById('login-submit');
+
+      // Pre-fill if user came back from otp page
+      if (window.GoldAuth && GoldAuth.state && GoldAuth.state.phone) {
+        phoneInput.value = toPersianNum(GoldAuth.state.phone);
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errEl.textContent = '';
+
+        var phone = toEnglishNum(phoneInput.value).replace(/[^0-9]/g, '');
+        if (!/^09[0-9]{9}$/.test(phone)) {
+          errEl.textContent = 'شماره موبایل معتبر نیست. مثال: ۰۹۱۲۳۴۵۶۷۸۹';
+          phoneInput.focus();
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'در حال ارسال...';
+
+        // Persist phone via GoldAuth (sets otpSentAt timestamp)
+        GoldAuth.setPhone(phone);
+
+        // Simulate OTP send delay, then navigate
+        setTimeout(function () {
+          window.location.href = 'otp.html';
+        }, 600);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>تکمیل اطلاعات | قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <link rel="stylesheet" href="../css/auth.css">
+  <meta name="theme-color" content="#d4af37">
+</head>
+<body class="gold-auth-page">
+
+  <div class="auth-card">
+
+    <!-- Desktop Side Banner -->
+    <div class="auth-brand-desktop">
+      <img src="../icons/brand-mark.svg" alt="قلک طلا" class="auth-brand-logo" style="width: 80px; height: 80px; margin-bottom: 24px;">
+      <h1 class="auth-brand-desktop-title" style="color: white; font-size: 28px; margin-bottom: 32px; line-height: 1.4;">سرمایه‌گذاری امن<br>و هوشمند در طلا</h1>
+      <ul class="auth-brand-desktop-features" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
+        <li>خرید و فروش آنلاین با قیمت لحظه‌ای</li>
+        <li>پشتیبانی از تحویل فیزیکی طلا</li>
+        <li>بدون کارمزد و مالیات پنهان</li>
+      </ul>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="auth-form-panel">
+      <!-- Mobile Brand (hidden on desktop) -->
+      <div class="auth-brand">
+        <img src="../icons/brand-mark.svg" alt="قلک طلا" class="auth-brand-logo">
+        <h1 class="auth-brand-name">تکمیل اطلاعات</h1>
+        <p class="auth-brand-tagline">برای ایجاد قلک، اطلاعات زیر را وارد کنید</p>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="auth-steps">
+        <div class="auth-step done">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۱</span></div>
+          <div class="auth-step-label">شماره موبایل</div>
+        </div>
+        <div class="auth-step done">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۲</span></div>
+          <div class="auth-step-label">کد تأیید</div>
+        </div>
+        <div class="auth-step active">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۳</span></div>
+          <div class="auth-step-label">اطلاعات هویتی</div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۴</span></div>
+          <div class="auth-step-label">ایجاد قلک</div>
+        </div>
+      </div>
+
+      <!-- Desktop Title -->
+      <div class="auth-desktop-title-wrap" style="text-align: center; margin-bottom: 24px;">
+        <h2 style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">تکمیل اطلاعات هویتی</h2>
+        <p style="color: var(--text-secondary); font-size: 14px;">برای ایجاد قلک اصلی، اطلاعات زیر را وارد کنید</p>
+      </div>
+
+      <form id="register-form" class="login-form" novalidate>
+        <div class="field-wrap">
+          <label for="reg-firstname" class="field-label">نام</label>
+          <input type="text" id="reg-firstname" name="firstname" class="field-input" placeholder="مثلاً: علی" required maxlength="30">
+        </div>
+
+        <div class="field-wrap" style="margin-top: 14px;">
+          <label for="reg-lastname" class="field-label">نام خانوادگی</label>
+          <input type="text" id="reg-lastname" name="lastname" class="field-input" placeholder="مثلاً: احمدی" required maxlength="40">
+        </div>
+
+        <div class="field-wrap" style="margin-top: 14px;">
+          <label for="reg-nid" class="field-label">کد ملی</label>
+          <input type="tel" id="reg-nid" name="nationalId" class="field-input" placeholder="----------" required pattern="[0-9]{10}" inputmode="numeric" maxlength="10">
+        </div>
+
+        <div class="field-wrap" style="margin-top: 14px;">
+          <label class="field-label">تاریخ تولد (شمسی)</label>
+          <div class="date-row">
+            <div class="field-wrap">
+              <input type="text" id="reg-dob-year" name="birthYear" class="field-input" placeholder="۱۳۷۰" maxlength="4" inputmode="numeric">
+            </div>
+            <div class="field-wrap">
+              <input type="text" id="reg-dob-month" name="birthMonth" class="field-input" placeholder="۰۱" maxlength="2" inputmode="numeric">
+            </div>
+            <div class="field-wrap">
+              <input type="text" id="reg-dob-day" name="birthDay" class="field-input" placeholder="۰۱" maxlength="2" inputmode="numeric">
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">سال / ماه / روز</div>
+        </div>
+
+        <label class="pre-invoice-terms" style="margin-top: 20px;">
+          <input type="checkbox" id="reg-terms">
+          <span><a href="../Terms.html" target="_blank" style="color: var(--gold-600); font-weight: 700;">قوانین و مقررات</a> قلک طلا را می‌پذیرم
+            <span class="pre-invoice-terms-version">نسخه ۱.۴ — ۱۴۰۴/۰۳/۲۰</span>
+          </span>
+        </label>
+
+        <div id="reg-error" class="pre-invoice-error" style="text-align: right;"></div>
+
+        <button type="submit" id="reg-btn" class="button auth-btn" disabled style="opacity: 0.5;">ثبت‌نام و ایجاد قلک</button>
+      </form>
+    </div>
+
+  </div>
+
+  <script src="../js/gold-trading.js"></script>
+  <script src="../js/gold-chrome.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('register-form');
+      var termsCheck = document.getElementById('reg-terms');
+      var regBtn = document.getElementById('reg-btn');
+      var errEl = document.getElementById('reg-error');
+
+      // Guard: must have verified OTP
+      if (!window.GoldAuth || !GoldAuth.state || !GoldAuth.state.otpVerified) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Pre-fill if user came back
+      var st = GoldAuth.state;
+      if (st.name) document.getElementById('reg-firstname').value = st.name;
+      if (st.lastname) document.getElementById('reg-lastname').value = st.lastname;
+      if (st.nationalId) document.getElementById('reg-nid').value = toPersianNum(st.nationalId);
+      if (st.birthYear) document.getElementById('reg-dob-year').value = toPersianNum(st.birthYear);
+      if (st.birthMonth) document.getElementById('reg-dob-month').value = toPersianNum(st.birthMonth);
+      if (st.birthDay) document.getElementById('reg-dob-day').value = toPersianNum(st.birthDay);
+
+      // Toggle submit button based on terms checkbox
+      termsCheck.addEventListener('change', function () {
+        regBtn.disabled = !this.checked;
+        regBtn.style.opacity = this.checked ? '1' : '0.5';
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errEl.textContent = '';
+
+        var firstname = document.getElementById('reg-firstname').value.trim();
+        var lastname = document.getElementById('reg-lastname').value.trim();
+        var nid = toEnglishNum(document.getElementById('reg-nid').value).replace(/[^0-9]/g, '');
+        var year = toEnglishNum(document.getElementById('reg-dob-year').value).replace(/[^0-9]/g, '');
+        var month = toEnglishNum(document.getElementById('reg-dob-month').value).replace(/[^0-9]/g, '');
+        var day = toEnglishNum(document.getElementById('reg-dob-day').value).replace(/[^0-9]/g, '');
+
+        if (!firstname) { errEl.textContent = 'لطفاً نام خود را وارد کنید.'; return; }
+        if (!lastname) { errEl.textContent = 'لطفاً نام خانوادگی خود را وارد کنید.'; return; }
+        if (!/^[0-9]{10}$/.test(nid)) { errEl.textContent = 'کد ملی باید ۱۰ رقم باشد.'; return; }
+        if (!/^[0-9]{4}$/.test(year)) { errEl.textContent = 'سال تولد را به صورت ۴ رقمی وارد کنید.'; return; }
+        if (!/^[0-9]{1,2}$/.test(month) || +month < 1 || +month > 12) { errEl.textContent = 'ماه تولد بین ۱ تا ۱۲ باشد.'; return; }
+        if (!/^[0-9]{1,2}$/.test(day) || +day < 1 || +day > 31) { errEl.textContent = 'روز تولد بین ۱ تا ۳۱ باشد.'; return; }
+
+        regBtn.disabled = true;
+        regBtn.textContent = 'در حال ثبت...';
+
+        GoldAuth.setProfile({
+          name: firstname,
+          lastname: lastname,
+          nationalId: nid,
+          birthYear: year,
+          birthMonth: month,
+          birthDay: day,
+          termsVersion: '1.4 — 1404/03/20'
+        });
+
+        setTimeout(function () {
+          window.location.href = 'setup-success.html';
+        }, 500);
+      });
+    });
+  </script>
+</body>
+</html>

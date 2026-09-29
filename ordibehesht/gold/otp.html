@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>تأیید شماره | قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <link rel="stylesheet" href="../css/auth.css">
+  <meta name="theme-color" content="#d4af37">
+</head>
+<body class="gold-auth-page">
+
+  <div class="auth-card">
+
+    <!-- Desktop Side Banner -->
+    <div class="auth-brand-desktop">
+      <img src="../icons/brand-mark.svg" alt="قلک طلا" class="auth-brand-logo" style="width: 80px; height: 80px; margin-bottom: 24px;">
+      <h1 class="auth-brand-desktop-title" style="color: white; font-size: 28px; margin-bottom: 32px; line-height: 1.4;">سرمایه‌گذاری امن<br>و هوشمند در طلا</h1>
+      <ul class="auth-brand-desktop-features" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
+        <li>خرید و فروش آنلاین با قیمت لحظه‌ای</li>
+        <li>پشتیبانی از تحویل فیزیکی طلا</li>
+        <li>بدون کارمزد و مالیات پنهان</li>
+      </ul>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="auth-form-panel">
+      <!-- Mobile Brand (hidden on desktop) -->
+      <div class="auth-brand">
+        <img src="../icons/brand-mark.svg" alt="قلک طلا" class="auth-brand-logo">
+        <h1 class="auth-brand-name">کد تأیید</h1>
+        <p class="auth-brand-tagline">کد ۵ رقمی پیامک شده را وارد کنید</p>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="auth-steps">
+        <div class="auth-step done">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۱</span></div>
+          <div class="auth-step-label">شماره موبایل</div>
+        </div>
+        <div class="auth-step active">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۲</span></div>
+          <div class="auth-step-label">کد تأیید</div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۳</span></div>
+          <div class="auth-step-label">اطلاعات هویتی</div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۴</span></div>
+          <div class="auth-step-label">ایجاد قلک</div>
+        </div>
+      </div>
+
+      <!-- Desktop Title -->
+      <div class="auth-desktop-title-wrap" style="text-align: center; margin-bottom: 16px;">
+        <h2 style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">کد تأیید</h2>
+        <p style="color: var(--text-secondary); font-size: 14px;">کد ۵ رقمی پیامک شده را وارد کنید</p>
+      </div>
+
+      <!-- OTP hint with masked phone -->
+      <p class="otp-hint" id="otp-hint">کد تأیید به شماره <strong id="otp-phone" dir="ltr" style="display: inline-block; direction: ltr; unicode-bidi: isolate;">—</strong> پیامک شد.</p>
+
+      <form id="otp-form" class="login-form" novalidate>
+        <div class="otp-input-group" data-otp-length="5" id="otp-group">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="رقم اول">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="رقم دوم">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="رقم سوم">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="رقم چهارم">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="رقم پنجم">
+        </div>
+
+        <div class="otp-meta">
+          <span id="otp-timer-wrap">ارسال مجدد کد تا <span id="otp-timer" style="color: var(--gold-700); font-weight: bold;">۰۱:۵۹</span></span>
+          <button type="button" class="otp-resend-btn" id="otp-resend" disabled>ارسال مجدد</button>
+        </div>
+
+        <div id="otp-error" class="pre-invoice-error" style="text-align: center; margin-bottom: 8px;"></div>
+
+        <button type="submit" class="button auth-btn" id="otp-submit">تأیید کد</button>
+
+        <a href="login.html" class="auth-inline-link">تغییر شماره موبایل</a>
+
+        <div class="auth-demo-hint">
+          نسخه نمایشی: کد تأیید <code>۱۲۳۴۵</code> است.
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <script src="../js/gold-trading.js"></script>
+  <script src="../js/gold-chrome.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var hintPhone = document.getElementById('otp-phone');
+      var form = document.getElementById('otp-form');
+      var submitBtn = document.getElementById('otp-submit');
+      var errEl = document.getElementById('otp-error');
+      var resendBtn = document.getElementById('otp-resend');
+      var timerWrap = document.getElementById('otp-timer-wrap');
+      var timerEl = document.getElementById('otp-timer');
+
+      // Guard: if no phone in state, redirect back to login
+      if (!window.GoldAuth || !GoldAuth.state || !GoldAuth.state.phone) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Show masked phone
+      var phone = GoldAuth.state.phone;
+      hintPhone.textContent = toPersianNum(phone.slice(0, 4) + '***' + phone.slice(-3));
+
+      // Resend timer (119s)
+      var timeLeft = 119;
+      var interval = setInterval(function () {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          timerWrap.style.display = 'none';
+          resendBtn.disabled = false;
+        } else {
+          var m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+          var s = (timeLeft % 60).toString().padStart(2, '0');
+          timerEl.textContent = toPersianNum(m + ':' + s);
+        }
+      }, 1000);
+
+      // Resend handler
+      resendBtn.addEventListener('click', function () {
+        if (resendBtn.disabled) return;
+        GoldAuth.setPhone(phone);  // refresh otpSentAt
+        timeLeft = 119;
+        timerWrap.style.display = '';
+        resendBtn.disabled = true;
+        interval = setInterval(function () {
+          timeLeft--;
+          if (timeLeft <= 0) {
+            clearInterval(interval);
+            timerWrap.style.display = 'none';
+            resendBtn.disabled = false;
+          } else {
+            var m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            var s = (timeLeft % 60).toString().padStart(2, '0');
+            timerEl.textContent = toPersianNum(m + ':' + s);
+          }
+        }, 1000);
+        if (window.GoldToast) GoldToast.info('کد جدید پیامک شد');
+      });
+
+      // Form submit: verify OTP against GoldAuth.DEMO_OTP
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errEl.textContent = '';
+
+        var boxes = document.querySelectorAll('.otp-box');
+        var code = Array.prototype.map.call(boxes, function (b) {
+          return toEnglishNum(b.value || '').replace(/[^0-9]/g, '');
+        }).join('');
+
+        if (code.length !== 5) {
+          errEl.textContent = 'لطفاً همه ۵ رقم کد را وارد کنید.';
+          boxes[0].focus();
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'در حال بررسی...';
+
+        setTimeout(function () {
+          if (GoldAuth.verifyOtp(code)) {
+            window.location.href = 'register.html';
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'تأیید کد';
+            errEl.textContent = 'کد وارد شده صحیح نیست. دوباره تلاش کنید.';
+            // Shake all boxes
+            Array.prototype.forEach.call(boxes, function (b) {
+              b.classList.add('has-error');
+              b.value = '';
+              setTimeout(function () { b.classList.remove('has-error'); }, 500);
+            });
+            boxes[0].focus();
+          }
+        }, 400);
+      });
+    });
+  </script>
+</body>
+</html>

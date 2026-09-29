@@ -1,0 +1,17 @@
+{
+  "name": "talasho",
+  "version": "1.0.0",
+  "description": "Talasho - VIP Royal Purple & Gold jewelry storefront (Phase 1) and melted-gold trading (Phase 2)",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./assets/css/style.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./assets/css/style.css --watch",
+    "serve": "npx http-server . -p 8080 -c-1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  },
+  "dependencies": {
+    "swiper": "^11.0.0"
+  }
+}

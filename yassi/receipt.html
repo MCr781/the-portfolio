@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>رسید پرداخت | یاسی شو</title>
+    <meta name="description" content="رسید پرداخت آنلاین یاسی شو — وضعیت تراکنش، مبلغ، تاریخ و درگاه پرداخت.">
+    <meta name="keywords" content="رسید پرداخت, تراکنش, یاسی شو, پرداخت آنلاین">
+    <link rel="canonical" href="https://yassishow.ir/receipt.html">
+    <meta property="og:title" content="رسید پرداخت | یاسی شو">
+    <meta property="og:description" content="رسید پرداخت آنلاین یاسی شو.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="یاسی شو">
+    <meta property="og:locale" content="fa_IR">
+    <meta name="robots" content="noindex, follow">
+    <meta name="theme-color" content="#7b2c83">
+    <link rel="icon" type="image/png" href="assets/logos/logo.png">
+
+    <link rel="stylesheet" href="assets/css/Vazirmatn-font-face.css">
+    <link rel="stylesheet" href="assets/css/all.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebPage","name":"رسید پرداخت | یاسی شو","description":"رسید پرداخت آنلاین یاسی شو.","inLanguage":"fa-IR"}
+    </script>
+
+    <style>
+        /* Print styles — only show the receipt card when printing */
+        @media print {
+            /* Hide everything */
+            body > * { display: none !important; }
+
+            /* Show only the receipt body */
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+
+            /* Create a clone container for printing */
+            #print-output {
+                display: block !important;
+            }
+        }
+
+        /* Hidden on screen, shown only in print */
+        #print-output { display: none; }
+
+        /* Receipt card hover effect */
+        .ys-receipt-card {
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .ys-receipt-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+        }
+
+        /* Dashed separator */
+        .ys-receipt-dashed {
+            border-top: 2px dashed #e2e8f0;
+        }
+
+        /* Print receipt template (always in DOM but hidden on screen) */
+        .ys-print-receipt {
+            font-family: 'Vazirmatn', sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .ys-print-receipt .ys-pr-header {
+            text-align: center;
+            padding: 20px 0;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .ys-print-receipt .ys-pr-amount {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 900;
+            margin: 15px 0;
+        }
+        .ys-print-receipt .ys-pr-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+        .ys-print-receipt .ys-pr-dashed {
+            border-top: 2px dashed #ccc;
+            margin: 15px 0;
+        }
+        .ys-print-receipt .ys-pr-logo {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .ys-print-receipt .ys-pr-logo img {
+            max-height: 40px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 selection:bg-brand-pink selection:text-white flex flex-col min-h-screen font-sans has-mobile-trustbar">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 bg-white/90 backdrop-blur-lg border-b border-slate-200 shadow-sm z-50 transition-all">
+        <div class="relative max-w-[1400px] mx-auto px-3 sm:px-4 h-16 md:h-20 flex justify-between items-center gap-3">
+
+            <!-- Mobile: Hamburger Button (right side / start in RTL) -->
+            <button onclick="document.getElementById('mobile-menu').classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="md:hidden shrink-0 w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-700 rounded-full hover:bg-slate-200 active:bg-slate-300 transition-colors" aria-label="منو">
+                <i class="fa-solid fa-bars text-base"></i>
+            </button>
+
+            <!-- Right side (Nav Links) - Desktop only -->
+            <nav class="hidden md:flex gap-4 lg:gap-6 text-[14px] font-bold text-slate-600">
+                <a href="index.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">خانه</a>
+                <a href="deceased-archive.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">درگذشتگان</a>
+                <a href="board-order.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">تابلو گل نقره</a>
+                <a href="projects-archive.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">طرح‌ها</a>
+                <a href="about.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">درباره ما</a>
+                <a href="contact.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">تماس با ما</a>
+            </nav>
+
+            <!-- Center Logo (flex on mobile, absolute on desktop) -->
+            <a href="index.html" class="flex-1 md:flex-none md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center justify-center cursor-pointer group">
+                <img src="assets/logos/logo.png" alt="لوگوی یاسی شو"
+                    class="h-12 md:h-16 object-contain group-hover:opacity-90 transition-opacity duration-300">
+            </a>
+
+            <!-- Left side (Auth + Socials) — Step 1 update -->
+            <div class="flex items-center gap-2 md:gap-4 text-slate-500 text-[13px] font-bold shrink-0">
+                <!-- Social Icons (Aparat replaces YouTube) -->
+                <div class="hidden sm:flex gap-2 text-2xl items-center">
+                    <a href="#" aria-label="اینستاگرام" class="text-pink-600 hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="تلگرام" class="text-blue-500 hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="#" aria-label="واتساپ" class="text-green-500 hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="fa-brands fa-whatsapp"></i></a>
+                    <a href="#" aria-label="آپارات" class="text-[#ed145b] hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="aparat-icon" style="display:inline-block;width:1.5rem;height:1.5rem;vertical-align:-0.125em"></i></a>
+                </div>
+
+                <!-- Auth: Logged-out state -->
+                <div id="auth-loggedout">
+                    <button type="button" onclick="YasiAuth.openLogin()" class="flex items-center gap-1.5 cursor-pointer bg-gradient-to-l from-brand-purple-light to-brand-purple-dark text-white px-2.5 py-1.5 md:px-4 rounded-full text-[11px] md:text-[13px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all whitespace-nowrap">
+                        <i class="fa-solid fa-right-to-bracket text-[11px]"></i>
+                        ورود / عضویت
+                    </button>
+                </div>
+
+                <!-- Auth: Logged-in state (hidden by default; toggle via YasiAuth.setLoggedIn) -->
+                <div id="auth-loggedin" class="hidden relative">
+                    <button type="button" data-profile-trigger onclick="YasiAuth.toggleProfileMenu()" class="flex items-center gap-2 cursor-pointer bg-slate-100 hover:bg-slate-200 transition-colors ps-1 pe-2 py-1 md:pe-3 rounded-full text-[11px] md:text-[13px]">
+                        <span class="w-7 h-7 rounded-full bg-gradient-to-br from-brand-purple-light to-brand-purple-dark text-white flex items-center justify-center text-[12px] font-black shrink-0">ع</span>
+                        <span id="auth-username" class="hidden sm:inline text-slate-700 max-w-[130px] truncate">پروفایل علی صیدنژاد</span>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
+                    </button>
+                    <!-- Profile management dropdown -->
+                    <div id="profile-dropdown" class="ys-profile-dropdown hidden absolute end-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50">
+                        <div class="px-4 py-2 border-b border-slate-100 mb-1">
+                            <p class="text-[11px] text-slate-400 font-bold">حساب کاربری شما</p>
+                            <p class="text-[13px] text-slate-800 font-black truncate">علی صیدنژاد</p>
+                        </div>
+                        <a href="profile.html" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-user w-4 text-center text-brand-purple-light"></i> پروفایل من
+                        </a>
+                        <a href="profile.html#projects" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-folder w-4 text-center text-brand-purple-light"></i> مشارکت‌های من
+                        </a>
+                        <a href="board-order.html" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-table-columns w-4 text-center text-brand-purple-light"></i> تابلوهای من
+                        </a>
+                        <a href="profile.html#settings" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-gear w-4 text-center text-brand-purple-light"></i> تنظیمات حساب
+                        </a>
+                        <div class="border-t border-slate-100 mt-1 pt-1">
+                            <button type="button" onclick="YasiAuth.setLoggedOut()" class="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 font-bold">
+                                <i class="fa-solid fa-right-from-bracket w-4 text-center"></i> خروج از حساب
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Mobile Menu Drawer -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('mobile-menu').classList.add('hidden'); document.body.classList.remove('overflow-hidden');"></div>
+        <div class="absolute top-0 right-0 h-full w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col overflow-y-auto">
+            <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 bg-gradient-to-l from-brand-purple-light to-brand-purple-dark text-white">
+                <span class="font-black text-[15px]">منوی یاسی شو</span>
+                <button onclick="document.getElementById('mobile-menu').classList.add('hidden'); document.body.classList.remove('overflow-hidden');" class="w-9 h-9 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors" aria-label="بستن">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <nav class="flex flex-col p-4 gap-1">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-home w-5 text-center text-brand-purple-light"></i> خانه
+                </a>
+                <a href="deceased-archive.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-dove w-5 text-center text-brand-purple-light"></i> درگذشتگان
+                </a>
+                <a href="board-order.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-table-columns w-5 text-center text-brand-purple-light"></i> تابلو گل نقره
+                </a>
+                <a href="projects-archive.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-folder w-5 text-center text-brand-purple-light"></i> طرح‌ها
+                </a>
+                <a href="about.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-circle-info w-5 text-center text-brand-purple-light"></i> درباره ما
+                </a>
+                <a href="contact.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-envelope w-5 text-center text-brand-purple-light"></i> تماس با ما
+                </a>
+            </nav>
+            <div class="px-4 pt-2 pb-6 mt-2 border-t border-slate-100">
+                <p class="text-[11px] font-bold text-slate-400 mb-3">ما را در شبکه‌های اجتماعی دنبال کنید</p>
+                <div class="flex gap-2">
+                    <a href="#" class="flex-1 h-11 flex items-center justify-center bg-pink-50 text-pink-600 rounded-xl hover:bg-pink-100 transition-colors">
+                        <i class="fa-brands fa-instagram text-lg"></i>
+                    </a>
+                    <a href="#" class="flex-1 h-11 flex items-center justify-center bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-100 transition-colors">
+                        <i class="fa-brands fa-telegram text-lg"></i>
+                    </a>
+                    <a href="#" class="flex-1 h-11 flex items-center justify-center bg-green-50 text-green-500 rounded-xl hover:bg-green-100 transition-colors">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                    </a>
+                    <a href="#" aria-label="آپارات" class="flex-1 h-11 flex items-center justify-center bg-[#ed145b]/10 rounded-xl hover:bg-[#ed145b]/20 transition-colors">
+                        <i class="aparat-icon" style="font-size:1.25rem"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-4 py-8 md:py-16">
+        <div class="w-full max-w-md">
+
+            <h1 class="sr-only">رسید پرداخت یاسی شو</h1>
+
+            <!-- Toggle buttons (demo only — backend will determine status) -->
+            <div class="flex gap-2 mb-6 no-print">
+                <button onclick="showReceipt('success')" id="btn-success" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-emerald-500 text-white shadow-md">
+                    <i class="fa-solid fa-check-circle text-xs ml-1"></i> پرداخت موفق
+                </button>
+                <button onclick="showReceipt('failed')" id="btn-failed" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-white border border-slate-200 text-slate-500 hover:bg-slate-50">
+                    <i class="fa-solid fa-times-circle text-xs ml-1"></i> پرداخت ناموفق
+                </button>
+            </div>
+
+            <!-- ============ SUCCESS RECEIPT ============ -->
+            <div id="receipt-success" class="ys-receipt-card bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden" >
+                <div id="receipt-print-area">
+                    <!-- Status header -->
+                    <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 px-6 py-8 text-center text-white relative overflow-hidden">
+                        <div class="absolute -top-8 -end-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-3 border-2 border-white/30">
+                                <i class="fa-solid fa-check text-3xl"></i>
+                            </div>
+                            <h2 class="text-xl font-black">پرداخت با موفقیت انجام شد</h2>
+                            <p class="text-white/70 text-[12px] mt-1">تراکنش شما با موفقیت ثبت گردید</p>
+                        </div>
+                    </div>
+
+                    <!-- Receipt body -->
+                    <div class="p-6">
+                        <!-- Amount -->
+                        <div class="text-center mb-5">
+                            <p class="text-[12px] text-slate-400 font-bold mb-1">مبلغ پرداختی</p>
+                            <p class="text-3xl font-black text-emerald-600">۵۰۰,۰۰۰ <span class="text-sm font-normal text-slate-400">تومان</span></p>
+                        </div>
+
+                        <!-- Dashed separator -->
+                        <div class="ys-receipt-dashed mb-5"></div>
+
+                        <!-- Details -->
+                        <div class="flex flex-col gap-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">عنوان</span>
+                                <span class="text-[13px] text-slate-700 font-black">تابلو گل نقره - نوع ویژه</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">پرداخت‌کننده</span>
+                                <span class="text-[13px] text-slate-700 font-black">علی صیدنژاد</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">تاریخ</span>
+                                <span class="text-[13px] text-slate-700 font-black" dir="ltr">۱۴۰۴/۰۴/۱۲ - ۱۴:۳۰</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">کد پیگیری</span>
+                                <span class="text-[13px] text-slate-700 font-black font-mono" dir="ltr">YS-78451296</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">درگاه پرداخت</span>
+                                <span class="text-[13px] text-slate-700 font-black flex items-center gap-1.5">
+                                    <i class="fa-solid fa-building-columns text-amber-600 text-xs"></i>
+                                    بانک ملت
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Dashed separator -->
+                        <div class="ys-receipt-dashed my-5"></div>
+
+                        <!-- Logo + thank you -->
+                        <div class="text-center">
+                            <img src="assets/logos/logo.png" alt="لوگوی یاسی شو" class="h-10 mx-auto object-contain mb-2">
+                            <p class="text-[11px] text-slate-400 leading-relaxed">
+                                <i class="fa-solid fa-heart text-brand-pink text-[10px] ml-1"></i>
+                                از همراهی شما با بیماران سرطانی سپاسگزاریم
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="px-6 pb-6 flex gap-3 no-print">
+                    <button onclick="printReceipt()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-print text-xs"></i> چاپ رسید
+                    </button>
+                    <a href="profile.html" class="flex-1 bg-gradient-to-l from-brand-purple-light to-brand-purple-dark text-white font-bold text-sm py-3 rounded-xl text-center transition-all hover:shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user text-xs"></i> پروفایل
+                    </a>
+                </div>
+            </div>
+
+            <!-- ============ FAILED RECEIPT (hidden by default) ============ -->
+            <div id="receipt-failed" class="ys-receipt-card bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden hidden">
+                <div>
+                    <!-- Status header -->
+                    <div class="bg-gradient-to-br from-rose-500 to-red-600 px-6 py-8 text-center text-white relative overflow-hidden">
+                        <div class="absolute -top-8 -end-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-3 border-2 border-white/30">
+                                <i class="fa-solid fa-xmark text-3xl"></i>
+                            </div>
+                            <h2 class="text-xl font-black">پرداخت ناموفق بود</h2>
+                            <p class="text-white/70 text-[12px] mt-1">تراکنش با خطا مواجه شد</p>
+                        </div>
+                    </div>
+
+                    <!-- Receipt body -->
+                    <div class="p-6">
+                        <!-- Amount -->
+                        <div class="text-center mb-5">
+                            <p class="text-[12px] text-slate-400 font-bold mb-1">مبلغ</p>
+                            <p class="text-3xl font-black text-rose-500">۵۰۰,۰۰۰ <span class="text-sm font-normal text-slate-400">تومان</span></p>
+                        </div>
+
+                        <!-- Dashed separator -->
+                        <div class="ys-receipt-dashed mb-5"></div>
+
+                        <!-- Details -->
+                        <div class="flex flex-col gap-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">عنوان</span>
+                                <span class="text-[13px] text-slate-700 font-black">تابلو گل نقره - نوع ویژه</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">پرداخت‌کننده</span>
+                                <span class="text-[13px] text-slate-700 font-black">علی صیدنژاد</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">تاریخ</span>
+                                <span class="text-[13px] text-slate-700 font-black" dir="ltr">۱۴۰۴/۰۴/۱۲ - ۱۴:۲۸</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">کد پیگیری</span>
+                                <span class="text-[13px] text-slate-700 font-black font-mono" dir="ltr">YS-78451295</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">درگاه پرداخت</span>
+                                <span class="text-[13px] text-slate-700 font-black flex items-center gap-1.5">
+                                    <i class="fa-solid fa-building-columns text-amber-600 text-xs"></i>
+                                    بانک ملت
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[13px] text-slate-400 font-bold">علت خطا</span>
+                                <span class="text-[13px] text-rose-500 font-black">تراکنش توسط بانک رد شد</span>
+                            </div>
+                        </div>
+
+                        <!-- Dashed separator -->
+                        <div class="ys-receipt-dashed my-5"></div>
+
+                        <!-- Logo -->
+                        <div class="text-center">
+                            <img src="assets/logos/logo.png" alt="لوگوی یاسی شو" class="h-10 mx-auto object-contain mb-2">
+                            <p class="text-[11px] text-slate-400 leading-relaxed">
+                                در صورت بروز مشکل با <a href="contact.html" class="text-brand-purple-dark font-bold underline">پشتیبانی</a> تماس بگیرید
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="px-6 pb-6 flex gap-3 no-print">
+                    <a href="board-order.html" class="flex-1 bg-gradient-to-l from-brand-pink to-[#ff4b72] text-white font-bold text-sm py-3 rounded-xl text-center transition-all hover:shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right text-xs"></i> تلاش مجدد
+                    </a>
+                    <a href="index.html" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm py-3 rounded-xl text-center transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-house text-xs"></i> خانه
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+        <!-- Global Footer — Step 1 redesign -->
+    <footer class="bg-gradient-to-b from-white to-slate-50 border-t border-slate-200 mt-12 w-full z-10 relative">
+        <div class="max-w-[1400px] mx-auto px-4 py-10 md:py-12">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10">
+
+                <!-- RIGHT column (first in RTL): Yasi Show logo + about + contact -->
+                <div class="md:col-span-4 flex flex-col gap-4">
+                    <a href="index.html" class="inline-block">
+                        <img src="assets/logos/logo.png" alt="لوگوی یاسی شو" class="h-12 md:h-14 object-contain">
+                    </a>
+                    <p class="text-[13px] text-slate-600 leading-relaxed text-justify">
+                        یاسی شو، پلتفرم مشارکت مردمی انجمن خیریه حمایت از بیماران سرطانی یاس کرمان است. هدف ما ساخت مراکز درمانی و تکمیل پروژه‌های خیریه با همیاری دغدغه‌مندان نیکوکار است.
+                    </p>
+                    <div class="flex flex-col gap-2 text-[12px] text-slate-600 font-medium">
+                        <div class="flex items-start gap-2">
+                            <i class="fa-solid fa-location-dot text-brand-purple-light w-4 mt-0.5"></i>
+                            <span>کرمان، انجمن خیریه حمایت از بیماران سرطانی یاس</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-phone text-brand-purple-light w-4"></i>
+                            <span dir="ltr">۰۳۴ - ۳۲۲۱۲۳۴۵</span>
+                        </div>
+                        <a href="mailto:info@yassishow.ir" class="flex items-center gap-2 hover:text-brand-pink transition-colors">
+                            <i class="fa-solid fa-envelope text-brand-purple-light w-4"></i>
+                            <span dir="ltr">info@yassishow.ir</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CENTER column: useful links + latest projects -->
+                <div class="md:col-span-5 grid grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-[14px] font-black text-brand-purple-dark mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-link text-[12px] text-brand-pink"></i> پیوندها
+                        </h4>
+                        <ul class="flex flex-col gap-2.5 text-[13px]">
+                            <li><a href="index.html" class="ys-footer-link">خانه</a></li>
+                            <li><a href="about.html" class="ys-footer-link">درباره ما</a></li>
+                            <li><a href="contact.html" class="ys-footer-link">تماس با ما</a></li>
+                            <li><a href="projects-archive.html" class="ys-footer-link">آرشیو پروژه‌ها</a></li>
+                            <li><a href="board-order.html" class="ys-footer-link">تابلوی گل نقره</a></li>
+                            <li><a href="terms.html" class="ys-footer-link">قوانین و مقررات</a></li>
+                            <li><a href="https://yaas.org.ir" target="_blank" rel="noopener" class="ys-footer-link">انجمن خیریه یاس</a></li>
+                            <li><a href="register.html" class="ys-footer-link">ثبت نام</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-[14px] font-black text-brand-purple-dark mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-heart text-[12px] text-brand-pink"></i> پروژه‌های اخیر
+                        </h4>
+                        <ul class="flex flex-col gap-2.5 text-[13px]">
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>مرکز رادیوتراپی یاس</span></a></li>
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>مرکز غربالگری خون</span></a></li>
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>درمانگاه و مرکز بستری</span></a></li>
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>مرکز آموزش و پیشگیری</span></a></li>
+                            <li><a href="projects-archive.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>سفیران یاسی شو</span></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- LEFT column: trust badges -->
+                <div class="md:col-span-3">
+                    <h4 class="text-[14px] font-black text-brand-purple-dark mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-[12px] text-brand-pink"></i> نمادهای اعتماد
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <!-- 1. Enamad -->
+                        <a href="#" title="اینماد" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/enamad.webp" alt="نماد اعتماد الکترونیک اینماد" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                        <!-- 2. Bank Mellat (real bank icon) -->
+                        <a href="#" title="درگاه پرداخت بانک ملت" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/Mellat-Bank.jpg" alt="درگاه پرداخت بانک ملت" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                        <!-- 3. National Charity Network (heart icon) -->
+                        <a href="#" title="شبکه ملی نیکوکاری" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/Shabake-melli.png" alt="شبکه ملی نیکوکاری" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                        <!-- 4. Samandehi -->
+                        <a href="#" title="شبکه ملی پیشگیری از بیماری‌های غیرواگیر" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/INCDA.jpg" alt="نماد شبکه ملی پیشگیری از بیماری‌های غیرواگیر" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                    </div>
+                </div></div>
+            </div>
+
+            <!-- Bottom bar: copyright + socials -->
+            <div class="ys-footer-bottom border-t border-slate-200 mt-8 pt-5 flex flex-col items-center justify-center gap-4 text-center">
+                <p class="text-[12px] text-slate-500 text-center">
+                    تمامی حقوق برای انجمن خیریه حمایت از بیماران سرطانی یاس کرمان محفوظ است. © ۱۴۰۵
+                </p>
+            </div>
+        </div>
+    </footer>
+
+        <!-- Mobile-only sticky bottom navigation bar -->
+    <nav id="ys-mobile-trustbar" class="md:hidden fixed bottom-0 start-0 end-0 z-40">
+        <div class="flex items-stretch h-14 px-1">
+            <a href="deceased-detail.html" class="ys-trust-item" aria-label="درگذشتگان">
+                <i class="fa-solid fa-dove text-slate-600 text-base"></i>
+                <span class="ys-trust-item-label">درگذشتگان</span>
+            </a>
+            <a href="projects-archive.html" class="ys-trust-item" aria-label="طرح‌ها">
+                <i class="fa-solid fa-folder text-slate-600 text-base"></i>
+                <span class="ys-trust-item-label">طرح‌ها</span>
+            </a>
+            <a href="index.html" class="ys-trust-item" aria-label="خانه">
+                <i class="fa-solid fa-house text-slate-600 text-base"></i>
+                <span class="ys-trust-item-label">خانه</span>
+            </a>
+            <a href="board-order.html" class="ys-trust-item" aria-label="تابلو گل نقره">
+                <i class="fa-solid fa-table-columns text-brand-purple-dark text-base"></i>
+                <span class="ys-trust-item-label">تابلو گل نقره</span>
+            </a>
+            <a href="profile.html" class="ys-trust-item" aria-label="پروفایل">
+                <i class="fa-solid fa-user text-brand-pink text-base"></i>
+                <span class="ys-trust-item-label">پروفایل</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Print-only receipt template (hidden on screen, shown when printing) -->
+    <div id="print-output">
+        <div class="ys-print-receipt" id="print-receipt-content">
+            <!-- Content injected by JS before printing -->
+        </div>
+    </div>
+
+    <!-- Receipt toggle + print logic -->
+    <script>
+        function showReceipt(type) {
+            var success = document.getElementById('receipt-success');
+            var failed = document.getElementById('receipt-failed');
+            var btnS = document.getElementById('btn-success');
+            var btnF = document.getElementById('btn-failed');
+
+            if (type === 'success') {
+                success.classList.remove('hidden');
+                failed.classList.add('hidden');
+                btnS.classList.add('bg-emerald-500', 'text-white', 'shadow-md');
+                btnS.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-500');
+                btnF.classList.remove('bg-rose-500', 'text-white', 'shadow-md');
+                btnF.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-500');
+            } else {
+                failed.classList.remove('hidden');
+                success.classList.add('hidden');
+                btnF.classList.add('bg-rose-500', 'text-white', 'shadow-md');
+                btnF.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-500');
+                btnS.classList.remove('bg-emerald-500', 'text-white', 'shadow-md');
+                btnS.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-500');
+            }
+        }
+
+        // Build a clean print-only receipt before printing
+        function printReceipt() {
+            var isSuccess = !document.getElementById('receipt-success').classList.contains('hidden');
+            var content = document.getElementById('print-receipt-content');
+
+            if (isSuccess) {
+                content.innerHTML = `
+                    <div class="ys-pr-header" style="background:#10b981;color:#fff;border-radius:16px;padding:20px;text-align:center;">
+                        <div style="font-size:48px;line-height:1;margin-bottom:8px;">✓</div>
+                        <div style="font-size:18px;font-weight:900;">پرداخت با موفقیت انجام شد</div>
+                        <div style="font-size:11px;opacity:0.7;margin-top:4px;">تراکنش شما با موفقیت ثبت گردید</div>
+                    </div>
+                    <div class="ys-pr-amount" style="color:#10b981;">۵۰۰,۰۰۰ <span style="font-size:14px;font-weight:normal;color:#999;">تومان</span></div>
+                    <div class="ys-pr-dashed"></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">عنوان</span><span style="font-weight:900;">تابلو گل نقره - نوع ویژه</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">پرداخت‌کننده</span><span style="font-weight:900;">علی صیدنژاد</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">تاریخ</span><span style="font-weight:900;" dir="ltr">۱۴۰۴/۰۴/۱۲ - ۱۴:۳۰</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">کد پیگیری</span><span style="font-weight:900;" dir="ltr">YS-78451296</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">درگاه پرداخت</span><span style="font-weight:900;">بانک ملت</span></div>
+                    <div class="ys-pr-dashed"></div>
+                    <div class="ys-pr-logo"><img src="assets/logos/logo.png" alt="یاسی شو"><p style="font-size:10px;color:#999;margin-top:6px;">از همراهی شما با بیماران سرطانی سپاسگزاریم</p></div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="ys-pr-header" style="background:#f43f5e;color:#fff;border-radius:16px;padding:20px;text-align:center;">
+                        <div style="font-size:48px;line-height:1;margin-bottom:8px;">✗</div>
+                        <div style="font-size:18px;font-weight:900;">پرداخت ناموفق بود</div>
+                        <div style="font-size:11px;opacity:0.7;margin-top:4px;">تراکنش با خطا مواجه شد</div>
+                    </div>
+                    <div class="ys-pr-amount" style="color:#f43f5e;">۵۰۰,۰۰۰ <span style="font-size:14px;font-weight:normal;color:#999;">تومان</span></div>
+                    <div class="ys-pr-dashed"></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">عنوان</span><span style="font-weight:900;">تابلو گل نقره - نوع ویژه</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">پرداخت‌کننده</span><span style="font-weight:900;">علی صیدنژاد</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">تاریخ</span><span style="font-weight:900;" dir="ltr">۱۴۰۴/۰۴/۱۲ - ۱۴:۲۸</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">کد پیگیری</span><span style="font-weight:900;" dir="ltr">YS-78451295</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">درگاه پرداخت</span><span style="font-weight:900;">بانک ملت</span></div>
+                    <div class="ys-pr-row"><span style="color:#999;font-weight:bold;">علت خطا</span><span style="font-weight:900;color:#f43f5e;">تراکنش توسط بانک رد شد</span></div>
+                    <div class="ys-pr-dashed"></div>
+                    <div class="ys-pr-logo"><img src="assets/logos/logo.png" alt="یاسی شو"><p style="font-size:10px;color:#999;margin-top:6px;">در صورت بروز مشکل با پشتیبانی تماس بگیرید</p></div>
+                `;
+            }
+
+            // Trigger print
+            window.print();
+        }
+    </script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>قلک طلای اردیبهشت | خرید و فروش طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/gold-trading.css?v=18">
+    <link rel="stylesheet" href="../css/auth.css">
+  <!-- PWA basics -->
+  <meta name="theme-color" content="#d4af37">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="قلک طلا">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <!-- Font preload (fixes the "font not loading" issue) -->
+  <link rel="preload" as="font" type="font/woff" href="../fonts/PeydaWeb-Regular.woff" crossorigin>
+  <link rel="preload" as="font" type="font/woff" href="../fonts/PeydaWeb-Bold.woff" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="../fonts/boxicons.woff2" crossorigin>
+<meta name="robots" content="noindex,nofollow">
+</head>
+<body class="internal-page gold-page">
+    <div class="gold-app">
+    <div class="gold-app-inner">
+
+  <!-- ── Gold Mobile Header ── -->
+  <div class="gold-header">
+    <div class="gold-header-left">
+      <a href="index.html" class="icon-btn-gold" aria-label="بازگشت" id="profile-back-btn"><i class='bx bx-arrow-back'></i></a>
+      <span class="gold-header-title">پروفایل کاربری</span>
+    </div>
+    <div class="gold-header-right">
+      <button class="icon-btn-gold" onclick="GoldToast.info('اعلان جدیدی وجود ندارد')"><i class='bx bx-bell'></i></button>
+    </div>
+  </div>
+
+      <div class="gold-content container" style="margin-top: 30px; margin-bottom: 60px;">
+  <div class="profile-layout" style="display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start;">
+    
+    <!-- Sidebar -->
+    <aside class="profile-sidebar" style="background: #fff; border-radius: 24px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); border: 1px solid #f3f4f6;">
+      <div class="profile-user-brief" style="text-align: center; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #f3f4f6;">
+        <div style="width: 72px; height: 72px; background: var(--gold-100); border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--gold-600);">
+          <i class="bx bx-user"></i>
+        </div>
+        <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">محمد رضایی</h3>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 12px;">۰۹۱۲۳۴۵۶۷۸۹</p>
+        <span class="badge success" style="background: #ecfdf5; color: #10b981; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;"><i class="bx bx-check-circle" style="vertical-align:middle;"></i> تأیید شده</span>
+      </div>
+      
+      <nav class="profile-nav" style="display: flex; flex-direction: column; gap: 8px;">
+        <a href="#tab-identity" class="profile-nav-link active" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--gold-600); background: var(--gold-50); font-weight: 700; transition: all 0.2s;"><i class="bx bx-id-card" style="font-size:20px;"></i> اطلاعات هویتی</a>
+        <a href="#tab-account" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-shield-quarter" style="font-size:20px;"></i> وضعیت حساب</a>
+        <a href="#tab-vaults" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-coin-stack" style="font-size:20px;"></i> قلک‌های من</a>
+        <a href="#tab-wallet" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-money" style="font-size:20px;"></i> کیف پول من</a>
+        <a href="#tab-bank-accounts" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-credit-card-front" style="font-size:20px;"></i> حساب‌های بانکی</a>
+        <a href="#tab-security" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-lock-alt" style="font-size:20px;"></i> امنیت و ورود</a>
+        <a href="#tab-settings" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-cog" style="font-size:20px;"></i> تنظیمات اطلاع‌رسانی</a>
+        <a href="#tab-rules" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-file" style="font-size:20px;"></i> قوانین و اسناد</a>
+        <a href="#tab-support" class="profile-nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); font-weight: 600; transition: all 0.2s;"><i class="bx bx-support" style="font-size:20px;"></i> پشتیبانی</a>
+      </nav>
+      
+      <button class="button" id="profile-create-vault-btn" style="width: 100%; margin-top: 24px; background: linear-gradient(135deg, var(--gold-400), var(--gold-600)); color: white; padding: 12px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <i class='bx bx-plus-circle' style="font-size: 20px;"></i> ایجاد قلک جدید
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="profile-main" style="background: #fff; border-radius: 24px; padding: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); border: 1px solid #f3f4f6; min-height: 600px;">
+      
+      <!-- Tab 1: Identity -->
+      <div id="tab-identity" class="tab-content active" style="display: block;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; margin-bottom: 24px; padding-bottom: 16px;">
+          <h2 style="font-size: 20px; font-weight: 800; margin: 0;">اطلاعات هویتی</h2>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <div class="demo-controls" style="display: flex; gap: 4px;">
+              <button onclick="setIdentityStatus('approved')" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #10b981; background: #ecfdf5; color: #10b981; cursor: pointer;">تأیید شده</button>
+              <button onclick="setIdentityStatus('pending')" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #f59e0b; background: #fffbeb; color: #f59e0b; cursor: pointer;">در انتظار</button>
+              <button onclick="setIdentityStatus('review')" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #ef4444; background: #fef2f2; color: #ef4444; cursor: pointer;">نیازمند بررسی</button>
+            </div>
+            <button class="button" style="padding: 8px 16px; border-radius: 8px; background: var(--gold-50); color: var(--gold-600); font-weight: 700; border: none; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="GoldToast.info('بخش ویرایش پروفایل به‌زودی فعال می‌شود')">
+              <i class='bx bx-edit-alt'></i> ویرایش اطلاعات
+            </button>
+          </div>
+        </div>
+        
+        <div class="profile-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">نام و نام خانوادگی</label>
+            <div style="padding: 12px 16px; background: #f9fafb; border-radius: 12px; font-weight: 600;">محمد رضایی</div>
+          </div>
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">شماره موبایل</label>
+            <div style="padding: 12px 16px; background: #f9fafb; border-radius: 12px; font-weight: 600;">۰۹۱۲۳۴۵۶۷۸۹</div>
+          </div>
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">کد ملی</label>
+            <div style="padding: 12px 16px; background: #f9fafb; border-radius: 12px; font-weight: 600;">***۱۲۳۴۵۶۷</div>
+          </div>
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">تاریخ تولد</label>
+            <div style="padding: 12px 16px; background: #f9fafb; border-radius: 12px; font-weight: 600;">۱۳۷۰/۰۵/۱۲</div>
+          </div>
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">وضعیت احراز هویت</label>
+            <div id="id-status-badge" style="padding: 12px 16px; background: #ecfdf5; border-radius: 12px; font-weight: 600; color: #10b981;">تأیید شده</div>
+          </div>
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">تاریخ آخرین بروزرسانی</label>
+            <div style="padding: 12px 16px; background: #f9fafb; border-radius: 12px; font-weight: 600;">۱۴۰۲/۰۸/۲۴</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Account Status -->
+      <div id="tab-account" class="tab-content" style="display: none;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 24px; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">وضعیت حساب کاربر</h2>
+        <div class="profile-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">وضعیت حساب</label>
+            <div style="padding: 12px 16px; background: #ecfdf5; border-radius: 12px; font-weight: 600; color: #10b981;">فعال</div>
+          </div>
+          <div class="info-group">
+            <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px;">سطح احراز کاربر</label>
+            <div style="padding: 12px 16px; background: #f9fafb; border-radius: 12px; font-weight: 600;">سطح ۲ (پایه)</div>
+          </div>
+        </div>
+        
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 16px; color: #374151;">هشدارهای مهم</h3>
+        <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 16px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;">
+          <i class='bx bx-error-circle' style="color: #f59e0b; font-size: 24px;"></i>
+          <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 4px;">نیاز به تأیید حساب بانکی</h4>
+            <p style="font-size: 13px; color: #b45309; line-height: 1.6;">لطفاً برای امکان برداشت وجه، حداقل یک شماره شبا به نام خودتان ثبت کنید.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Wallet -->
+      <div id="tab-wallet" class="tab-content" style="display: none;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 24px; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">کیف پول من</h2>
+        <div style="background: linear-gradient(135deg, var(--gold-400), var(--gold-600)); border-radius: 20px; padding: 24px; color: #fff; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">موجودی ریالی کیف پول</div>
+            <div style="font-size: 28px; font-weight: 900;"><span data-format="persian">12,500,000</span> <small style="font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8);">تومان</small></div>
+          </div>
+          <div style="font-size: 48px; opacity: 0.2;">
+            <i class='bx bx-wallet'></i>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <a href="deposit.html" class="button" style="flex: 1; text-align: center; padding: 14px; border-radius: 12px; background: var(--gold-500); color: white; font-weight: 700; border: none; text-decoration: none;">افزایش موجودی</a>
+          <a href="withdraw.html" class="button" style="flex: 1; text-align: center; padding: 14px; border-radius: 12px; background: transparent; border: 1px solid var(--border); color: var(--text); font-weight: 700; text-decoration: none;">برداشت وجه</a>
+        </div>
+      </div>
+
+      <!-- Tab: Vaults (in-page, replaces external link) -->
+      <div id="tab-vaults" class="tab-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; margin-bottom: 24px; padding-bottom: 16px;">
+          <h2 style="font-size: 20px; font-weight: 800; margin: 0;">قلک‌های من</h2>
+          <button class="button" id="tab-vaults-create-btn" style="padding: 8px 16px; border-radius: 8px; background: var(--gold-500); color: white; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <i class='bx bx-plus'></i> قلک جدید
+          </button>
+        </div>
+        <div id="profile-vaults-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Populated by JS from GoldAuth -->
+        </div>
+      </div>
+
+      <!-- Tab: Bank Accounts (in-page, replaces external link) -->
+      <div id="tab-bank-accounts" class="tab-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; margin-bottom: 24px; padding-bottom: 16px;">
+          <h2 style="font-size: 20px; font-weight: 800; margin: 0;">حساب‌های بانکی من</h2>
+          <a href="bank-account.html" class="button" style="padding: 8px 16px; border-radius: 8px; background: var(--gold-500); color: white; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; text-decoration: none;">
+            <i class='bx bx-plus'></i> افزودن حساب
+          </a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="border: 1px solid #f3f4f6; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 48px; height: 48px; background: #fef3c7; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #92400e; font-weight: 900; font-size: 14px;">ملت</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 14px;">بانک ملت</div>
+              <div style="font-size: 12px; color: var(--text-secondary); direction: ltr; text-align: right;">IR1234***1234</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">به نام: محمد رضایی</div>
+            </div>
+            <span style="background: #ecfdf5; color: #10b981; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;">تأیید شده</span>
+          </div>
+          <div style="border: 1px solid #f3f4f6; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 48px; height: 48px; background: #dbeafe; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #1d4ed8; font-weight: 900; font-size: 14px;">سامان</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 14px;">بانک سامان</div>
+              <div style="font-size: 12px; color: var(--text-secondary); direction: ltr; text-align: right;">IR5678***5678</div>
+              <div style="font-size: 12px; color: var(--text-secondary);">به نام: محمد رضایی</div>
+            </div>
+            <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;">در انتظار</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Security -->
+      <div id="tab-security" class="tab-content" style="display: none;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 24px; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">امنیت و ورود</h2>
+        <div style="border: 1px solid #f3f4f6; border-radius: 16px; padding: 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <div style="width: 48px; height: 48px; background: #f3f4f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #6b7280;"><i class='bx bx-key'></i></div>
+            <div>
+              <h4 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">رمز عبور ثابت</h4>
+              <p style="font-size: 13px; color: #6b7280;">استفاده از رمز عبور ثابت به جای پیامک یکبار مصرف</p>
+            </div>
+          </div>
+          <button class="button" onclick="GoldToast.info('امکان تغییر رمز به زودی فعال می‌شود')" style="padding: 8px 16px; border-radius: 8px; background: transparent; border: 1px solid var(--gold-500); color: var(--gold-600); font-weight: 700; cursor: pointer; font-size: 13px;">تغییر رمز</button>
+        </div>
+        <div style="border: 1px solid #f3f4f6; border-radius: 16px; padding: 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <div style="width: 48px; height: 48px; background: #ecfdf5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #10b981;"><i class='bx bx-shield-check'></i></div>
+            <div>
+              <h4 style="font-size: 15px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">ورود دو مرحله‌ای (OTP)</h4>
+              <p style="font-size: 13px; color: #6b7280;">جهت امنیت بیشتر برای تمامی عملیات حساس فعال است</p>
+            </div>
+          </div>
+          <div style="width: 44px; height: 24px; background: #10b981; border-radius: 12px; position: relative;">
+            <div style="width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"></div>
+          </div>
+        </div>
+
+        <!-- Active Sessions (added in Batch 5) -->
+        <h3 style="font-size: 16px; font-weight: 800; margin: 24px 0 12px; color: #374151;">دستگاه‌ها و نشست‌های فعال</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="border: 1px solid #f3f4f6; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: #ecfdf5; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #10b981;"><i class='bx bx-mobile-alt'></i></div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 13px;">iPhone 14 Pro — این دستگاه</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">تهران · فعال · همین الان</div>
+            </div>
+            <span style="background: #ecfdf5; color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">فعال</span>
+          </div>
+          <div style="border: 1px solid #f3f4f6; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: #f3f4f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #6b7280;"><i class='bx bx-laptop'></i></div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 13px;">Chrome — Windows</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">تهران · ۲ ساعت پیش</div>
+            </div>
+            <button onclick="GoldToast.info('نشست بسته شد')" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">بستن</button>
+          </div>
+        </div>
+
+        <!-- Last Logins (added in Batch 5) -->
+        <h3 style="font-size: 16px; font-weight: 800; margin: 24px 0 12px; color: #374151;">آخرین ورودها</h3>
+        <div style="border: 1px solid #f3f4f6; border-radius: 12px; overflow: hidden;">
+          <div style="padding: 12px 16px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; font-size: 13px;">
+            <span><i class='bx bx-mobile-alt' style="margin-left: 6px; color: #6b7280;"></i> iPhone · تهران</span>
+            <span style="color: var(--text-secondary);">همین الان</span>
+          </div>
+          <div style="padding: 12px 16px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; font-size: 13px;">
+            <span><i class='bx bx-laptop' style="margin-left: 6px; color: #6b7280;"></i> Chrome · تهران</span>
+            <span style="color: var(--text-secondary);">۲ ساعت پیش</span>
+          </div>
+          <div style="padding: 12px 16px; display: flex; justify-content: space-between; font-size: 13px;">
+            <span><i class='bx bx-laptop' style="margin-left: 6px; color: #6b7280;"></i> Chrome · شیراز</span>
+            <span style="color: var(--text-secondary);">۳ روز پیش</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: Settings -->
+      <div id="tab-settings" class="tab-content" style="display: none;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 24px; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">تنظیمات اطلاع‌رسانی</h2>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9fafb;">
+            <div>
+              <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">پیامک تراکنشی</h4>
+              <p style="font-size: 12px; color: #6b7280;">ارسال پیامک برای خرید، فروش و واریز</p>
+            </div>
+            <input type="checkbox" checked style="accent-color: var(--gold-500); width: 18px; height: 18px;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9fafb;">
+            <div>
+              <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">نوتیفیکیشن داخل سایت</h4>
+              <p style="font-size: 12px; color: #6b7280;">نمایش اعلانات در صندوق پیام‌ها</p>
+            </div>
+            <input type="checkbox" checked style="accent-color: var(--gold-500); width: 18px; height: 18px;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9fafb;">
+            <div>
+              <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">اعلان‌رسانی مرورگر (Web Push)</h4>
+              <p style="font-size: 12px; color: #6b7280;">ارسال اعلان به مرورگر حتی زمانی که سایت باز نیست</p>
+            </div>
+            <input type="checkbox" style="accent-color: var(--gold-500); width: 18px; height: 18px;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+            <div>
+              <h4 style="font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 4px;">پیام‌های تبلیغاتی</h4>
+              <p style="font-size: 12px; color: #6b7280;">اطلاع‌رسانی درباره تخفیف‌ها و کمپین‌ها (با اجازه شما)</p>
+            </div>
+            <input type="checkbox" style="accent-color: var(--gold-500); width: 18px; height: 18px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 6: Rules -->
+      <div id="tab-rules" class="tab-content" style="display: none;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 24px; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">قوانین و اسناد</h2>
+        <div style="background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">آخرین نسخه شرایط و قوانین پذیرفته‌شده</h4>
+          <p style="font-size: 13px; color: #6b7280; line-height: 1.6;">شما در تاریخ ۱۴۰۲/۰۱/۱۵ نسخه v2.1 شرایط و قوانین استفاده از خدمات قلک طلای اردیبهشت را پذیرفته‌اید.</p>
+        </div>
+        <a href="../Terms.html" target="_blank" style="color: var(--gold-600); font-weight: 700; font-size: 13px; text-decoration: none;">مشاهده متن کامل قوانین و مقررات ←</a>
+      </div>
+
+      <!-- Tab 7: Support -->
+      <div id="tab-support" class="tab-content" style="display: none;">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 24px; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">پشتیبانی و ارتباط</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+          <div style="border: 1px solid #f3f4f6; border-radius: 16px; padding: 20px; text-align: center;">
+            <i class='bx bx-phone-call' style="font-size: 36px; color: var(--gold-600); margin-bottom: 12px;"></i>
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">پشتیبانی تلفنی</h4>
+            <p style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">۰۳۴-۳۲۱۱۳۵۳۲</p>
+            <a href="tel:03432113532" class="button" style="display: inline-block; padding: 8px 16px; border-radius: 8px; background: var(--gold-50); color: var(--gold-600); font-weight: 700; text-decoration: none; font-size: 12px;">تماس بگیرید</a>
+          </div>
+          <div style="border: 1px solid #f3f4f6; border-radius: 16px; padding: 20px; text-align: center;">
+            <i class='bx bx-support' style="font-size: 36px; color: var(--gold-600); margin-bottom: 12px;"></i>
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">ارسال تیکت</h4>
+            <p style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">پاسخگویی سریع ۲۴/۷</p>
+            <button onclick="GoldToast.info('بخش تیکت به‌زودی راه‌اندازی می‌شود')" class="button" style="padding: 8px 16px; border-radius: 8px; background: var(--gold-500); color: white; font-weight: 700; border: none; cursor: pointer; font-size: 12px;">ثبت تیکت جدید</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Gold Bottom Nav (mobile only) — lets users navigate from profile to
+         other gold pages without going back to the home page first. -->
+    <nav class="gold-bottom-nav">
+      <a href="index.html" class="gold-nav-item">
+        <i class='bx bx-home gold-nav-icon'></i>
+        <span class="gold-nav-label">خانه</span>
+      </a>
+      <a href="buy.html" class="gold-nav-item">
+        <i class='bx bx-plus-circle gold-nav-icon'></i>
+        <span class="gold-nav-label">خرید</span>
+      </a>
+      <a href="transactions.html" class="gold-nav-item">
+        <i class='bx bx-transfer-alt gold-nav-icon'></i>
+        <span class="gold-nav-label">تراکنش‌ها</span>
+      </a>
+      <a href="rates.html" class="gold-nav-item">
+        <i class='bx bx-trending-up gold-nav-icon'></i>
+        <span class="gold-nav-label">نرخ‌ها</span>
+      </a>
+      <a href="#" class="gold-nav-item user-btn active">
+        <i class='bx bx-user gold-nav-icon'></i>
+        <span class="gold-nav-label">پروفایل</span>
+      </a>
+    </nav>
+
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+</div>
+
+  <!-- Modals -->
+  <div class="modal-overlay search-overlay-wrapper" id="searchOverlay" aria-hidden="true" role="dialog">
+        <div class="modal-content search-modal">
+
+            <div class="search-overlay__header">
+                <a href="index.html" class="logo" aria-label="طلای اردیبهشت">
+                    <svg class="logo-svg" version="1.1" id="svg1" viewbox="40 390 700.52 280.70135" xmlns="http://www.w3.org/2000/svg">
+                    </svg>
+                </a>
+                <button class="icon-btn modal-close search-close" aria-label="بستن جستجو"><i class='bx bx-x'></i></button>
+            </div>
+
+            <div class="search-overlay__content">
+                <form action="/products/search" method="get" class="search-form">
+                    <input type="search" class="search-form__input" name="Q" dir="rtl" placeholder="جستجوی محصول؛ مثل انگشتر، دستبند یا گردنبند..." autocomplete="off">
+                    <button type="submit" class="button search-submit-button">جستجو کن</button>
+                </form>
+                <div class="search-suggestions">
+                    <h4 class="search-suggestions__title">جستجوهای پیشنهادی محصول</h4>
+                    <ul class="search-suggestions__list">
+                        <li><a href="../products/search.html?Q=انگشتر">انگشتر</a></li>
+                        <li><a href="../products/search-1.html?Q=دستبند">دستبند</a></li>
+                        <li><a href="../products/search-2.html?Q=گردنبند">گردنبند</a></li>
+                        <li><a href="../products/special.html">پیشنهاد ویژه</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    
+    </div>
+
+    <!-- ── Create Gholak Modal ── -->
+    <!-- Legacy createGholakModal removed — GoldVaultCreate (from gold-chrome.js)
+         is used instead, which is properly styled and reusable across all pages. -->
+
+    <div class="modal-overlay cart-modal-overlay" id="cartModal" aria-hidden="true" role="dialog">
+        <div class="modal-content cart-modal">
+            <button class="modal-close" aria-label="بستن"><i class='bx bx-x'></i></button>
+
+            <div class="modal-header">
+                <h2 class="modal-title">سبد خرید</h2>
+            </div>
+
+            <div class="modal-body">
+                <div class="cart-item">
+                    <img src="../assets/pics/pic-ring-gold.webp" alt="انگشتر طرح میراث" class="cart-item__image">
+                    <div class="cart-item__details">
+                        <h4 class="cart-item__name">انگشتر طرح میراث</h4>
+                        <span class="cart-item__price">۱ عدد × ۸,۵۰۰,۰۰۰</span>
+                    </div>
+                </div>
+
+                <div style="padding: 1.5rem; text-align: center; background: #f9f9f9; margin-top: auto;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:1rem; font-weight:bold; color:#333;">
+                        <span>مبلغ قابل پرداخت:</span>
+                        <span>۸,۵۰۰,۰۰۰ تومان</span>
+                    </div>
+
+                    <div style="display:flex; gap:10px; flex-direction:column;">
+                        <a href="#" class="button modal-button">تسویه حساب نهایی</a>
+                        <a href="#" class="button modal-button" style="background:#e0e0e0; color:#333;">مشاهده سبد خرید</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="modal-overlay calc-modal-overlay" id="calcModal" aria-hidden="true" role="dialog">
+        <div class="modal-content calc-modal">
+            <button class="modal-close" aria-label="بستن"><i class='bx bx-x'></i></button>
+
+            <div class="modal-header">
+                <h2 class="modal-title"><i class='bx bx-calculator'></i> محاسبه‌گر قیمت طلا</h2>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="calc-samples-wrapper">
+                    <h3 class="calc-samples-title">نمونه‌های محاسبه شده برای راهنمایی:</h3>
+                    <div class="calc-samples-grid">
+
+                        <div class="calc-sample-card">
+                            <img src="../assets/pics/pic-ring-gold.webp" alt="انگشتر میراث" class="calc-sample-img">
+                            <div class="calc-sample-info">
+                                <h4>انگشتر میراث</h4>
+                                <div class="calc-sample-specs">
+                                    <span class="spec-badge">وزن: ۴.۵ گرم</span>
+                                    <span class="spec-badge">اجرت: ۱۵٪</span>
+                                </div>
+                                <div class="calc-sample-price">۳۲,۵۰۰,۰۰۰ تومان</div>
+                            </div>
+                        </div>
+
+                        <div class="calc-sample-card">
+                            <img src="../assets/pics/pic2.webp" alt="گردنبند اشک" class="calc-sample-img">
+                            <div class="calc-sample-info">
+                                <h4>گردنبند اشک</h4>
+                                <div class="calc-sample-specs">
+                                    <span class="spec-badge">وزن: ۲.۱ گرم</span>
+                                    <span class="spec-badge">اجرت: ۱۸٪</span>
+                                </div>
+                                <div class="calc-sample-price">۱۵,۸۰۰,۰۰۰ تومان</div>
+                            </div>
+                        </div>
+
+                        <div class="calc-sample-card">
+                            <img src="../assets/pics/pic5.webp" alt="گوشواره مینیمال" class="calc-sample-img">
+                            <div class="calc-sample-info">
+                                <h4>گوشواره مینیمال</h4>
+                                <div class="calc-sample-specs">
+                                    <span class="spec-badge">وزن: ۱.۸ گرم</span>
+                                    <span class="spec-badge">اجرت: ۱۲٪</span>
+                                </div>
+                                <div class="calc-sample-price">۱۲,۱۰۰,۰۰۰ تومان</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="calc-layout">
+
+                    <div class="calc-form">
+                        <div class="calc-input-group">
+                            <label>قیمت روز طلای ۱۸ عیار (هر گرم)</label>
+                            <input type="text" placeholder="مثلاً: ۵,۴۳۳,۰۰۰" value="۵,۴۳۳,۰۰۰">
+                            <span class="input-currency">تومان</span>
+                        </div>
+
+                        <div class="calc-input-group">
+                            <label>وزن طلا</label>
+                            <input type="text" placeholder="مثلاً: ۴.۵">
+                            <span class="input-currency">گرم</span>
+                        </div>
+
+                        <div class="calc-row-3">
+                            <div class="calc-input-group">
+                                <label>اجرت ساخت</label>
+                                <input type="text" placeholder="مثلاً: ۱۵">
+                                <span class="input-currency">٪</span>
+                            </div>
+                            <div class="calc-input-group">
+                                <label>سود گالری</label>
+                                <input type="text" placeholder="۷" value="۷">
+                                <span class="input-currency">٪</span>
+                            </div>
+                            <div class="calc-input-group disabled-group">
+                                <label>مالیات</label>
+                                <input type="text" value="۹" disabled="">
+                                <span class="input-currency">٪</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="calc-results">
+                        <h3 class="results-title">فاکتور نهایی</h3>
+
+                        <div class="result-item">
+                            <span class="result-label">ارزش طلای خام:</span>
+                            <span class="result-value">--- تومان</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">مبلغ اجرت:</span>
+                            <span class="result-value">--- تومان</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">مبلغ سود:</span>
+                            <span class="result-value">--- تومان</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">مبلغ مالیات (۹٪):</span>
+                            <span class="result-value">--- تومان</span>
+                        </div>
+
+                        <div class="result-divider"></div>
+
+                        <div class="result-item total">
+                            <span class="result-label">مبلغ قابل پرداخت:</span>
+                            <span class="result-value">--- تومان</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay login-modal-overlay" id="loginModal" aria-hidden="true" role="dialog">
+        <div class="modal-content login-modal">
+            <button class="modal-close" aria-label="بستن"><i class='bx bx-x'></i></button>
+            <div class="modal-body">
+                <h2 class="modal-title">ورود / ثبت‌نام</h2>
+                <form class="login-form">
+                    <div class="input-group">
+                        <label for="login-phone">شماره تلفن همراه</label>
+                        <input type="tel" id="login-phone" placeholder="۰۹۱xxxxxxxx">
+                    </div>
+                    <button type="submit" class="button modal-button">ارسال کد تایید</button>
+                    <p class="modal-note">ثبت‌نام به منزله پذیرش <a href="#">شرایط و قوانین</a> است.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+<!-- ── Scripts ── -->
+  <script src="../lib/jquery/jquery.min.js"></script>
+  <script src="../js/script.js"></script>
+  <script src="../js/gold-trading.js"></script>
+  <script src="../js/gold-chrome.js"></script>
+  <script>
+    // Legacy create-gholak modal functions (kept for backward compat with
+    // any inline onclick handlers still using them).
+    function openCreateGholakModal() {
+      // Redirect to the new shared GoldVaultCreate component
+      if (window.GoldVaultCreate) { GoldVaultCreate.open(); return; }
+      const modal = document.getElementById('createGholakModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      setTimeout(() => { modal.style.opacity = '1'; }, 10);
+    }
+    function closeCreateGholakModal() {
+      const modal = document.getElementById('createGholakModal');
+      if (!modal) return;
+      modal.style.opacity = '0';
+      setTimeout(() => {
+        modal.style.display = 'none';
+        modal.style.visibility = 'hidden';
+      }, 300);
+    }
+    function submitCreateGholak() {
+      closeCreateGholakModal();
+      if (typeof GoldToast !== 'undefined') {
+        setTimeout(() => { GoldToast.success('قلک جدید با موفقیت ایجاد شد'); }, 300);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // ── Pull user data from GoldAuth (if logged in) and replace the demo data ──
+      if (window.GoldAuth && GoldAuth.isLoggedIn()) {
+        var st = GoldAuth.state;
+        // Replace user name in sidebar brief
+        var nameEl = document.querySelector('.profile-user-brief h3');
+        if (nameEl) nameEl.textContent = GoldAuth.fullName();
+        // Replace phone
+        var phoneEl = document.querySelector('.profile-user-brief p');
+        if (phoneEl && st.phone) phoneEl.textContent = toPersianNum(st.phone);
+        // Identity tab: name, phone, nationalId (masked), birthdate
+        var infoGroups = document.querySelectorAll('#tab-identity .info-group');
+        if (infoGroups.length >= 6) {
+          infoGroups[0].querySelector('div:last-child').textContent = GoldAuth.fullName();
+          infoGroups[1].querySelector('div:last-child').textContent = toPersianNum(st.phone);
+          infoGroups[2].querySelector('div:last-child').textContent = GoldAuth.maskedNationalId();
+          if (st.birthYear) {
+            infoGroups[3].querySelector('div:last-child').textContent =
+              toPersianNum(st.birthYear) + '/' + toPersianNum(st.birthMonth) + '/' + toPersianNum(st.birthDay);
+          }
+        }
+      }
+
+      // ── Wire sidebar nav links to smooth-scroll to in-page sections + activate tab ──
+      document.querySelectorAll('.profile-nav-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          var href = this.getAttribute('href') || '';
+          if (!href.startsWith('#')) return; // external links (none left, but be safe)
+          e.preventDefault();
+          var targetId = href.slice(1);
+          var target = document.getElementById(targetId);
+          if (!target) return;
+
+          // Hide all tab contents
+          document.querySelectorAll('.tab-content').forEach(function (t) {
+            t.style.display = 'none';
+            t.classList.remove('active');
+          });
+          // Show target
+          target.style.display = 'block';
+          target.classList.add('active');
+
+          // Update active nav state
+          document.querySelectorAll('.profile-nav-link').forEach(function (l) {
+            l.classList.remove('active');
+            l.style.background = '';
+            l.style.color = 'var(--text-secondary)';
+            l.style.fontWeight = '600';
+          });
+          this.classList.add('active');
+          this.style.background = 'var(--gold-50)';
+          this.style.color = 'var(--gold-600)';
+          this.style.fontWeight = '700';
+
+          // Smooth-scroll the target into view on mobile
+          if (window.innerWidth < 960) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // ── Identity status toggle (demo buttons) ──
+      window.setIdentityStatus = function (status) {
+        var badge = document.getElementById('id-status-badge');
+        if (!badge) return;
+        var map = {
+          approved: { text: 'تأیید شده', bg: '#ecfdf5', color: '#10b981' },
+          pending:  { text: 'در انتظار', bg: '#fffbeb', color: '#f59e0b' },
+          review:   { text: 'نیازمند بررسی', bg: '#fef2f2', color: '#ef4444' }
+        };
+        var s = map[status] || map.approved;
+        badge.textContent = s.text;
+        badge.style.background = s.bg;
+        badge.style.color = s.color;
+      };
+
+      // ── Wire all "create vault" buttons to GoldVaultCreate ──
+      var cvBtns = ['#profile-create-vault-btn', '#tab-vaults-create-btn'];
+      cvBtns.forEach(function (sel) {
+        var btn = document.querySelector(sel);
+        if (btn) {
+          btn.addEventListener('click', function () {
+            if (window.GoldVaultCreate) GoldVaultCreate.open();
+          });
+        }
+      });
+
+      // ── Populate the vaults list from GoldAuth ──
+      function renderVaultsList() {
+        var container = document.getElementById('profile-vaults-list');
+        if (!container) return;
+        var vaults = window.GoldAuth ? GoldAuth.getVaults() : [];
+        if (!vaults.length) {
+          container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 32px; color: var(--text-secondary); font-size: 13px;">' +
+            '<i class="bx bx-coin-stack" style="font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.3;"></i>' +
+            'هنوز قلکی نساخته‌اید. روی «قلک جدید» بزنید تا اولین قلک شما ساخته شود.</div>';
+          return;
+        }
+        container.innerHTML = vaults.map(function (v) {
+          var icon = v.type === 'main' ? 'bx-wallet' : (v.goalType === 'gram' ? 'bx-coin' : 'bx-money');
+          var goalText = '';
+          if (v.goalType === 'gram' && v.goalAmount) {
+            goalText = '<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">هدف: ' + toPersianNum(v.goalAmount) + ' گرم</div>';
+          } else if (v.goalType === 'rial' && v.goalAmount) {
+            goalText = '<div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">هدف: ' + toPersianNum(formatMoney(v.goalAmount)) + ' تومان</div>';
+          }
+          return '<div style="border: 1px solid #f3f4f6; border-radius: 12px; padding: 16px;">' +
+                   '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">' +
+                     '<i class="bx ' + icon + '" style="font-size: 20px; color: var(--gold-600);"></i>' +
+                     '<span style="font-weight: 700; font-size: 14px;">' + v.name + '</span>' +
+                     (v.type === 'main' ? '<span style="background: var(--gold-50); color: var(--gold-700); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;">اصلی</span>' : '') +
+                   '</div>' +
+                   '<div style="font-size: 18px; font-weight: 900; color: var(--text);">' + toPersianNum(v.gramBalance.toFixed(3)) + ' <small style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">گرم</small></div>' +
+                   goalText +
+                 '</div>';
+        }).join('');
+      }
+      renderVaultsList();
+
+      // Re-render vaults list when a new vault is created
+      document.addEventListener('gold:vault-created', renderVaultsList);
+
+      // ── Smart back button: use history.back() if there's a previous page,
+      //    otherwise fall back to index.html. ──
+      var backBtn = document.getElementById('profile-back-btn');
+      if (backBtn) {
+        backBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+            window.history.back();
+          } else {
+            window.location.href = 'index.html';
+          }
+        });
+      }
+
+      // ── Hash-based tab navigation: support browser back/forward to switch
+      //    between profile tabs. We push a history entry on each tab click so
+      //    the browser back button returns to the previously active tab. ──
+      function activateTabById(tabId) {
+        var target = tabId ? document.getElementById(tabId) : null;
+        if (!target || !target.classList.contains('tab-content')) return false;
+        document.querySelectorAll('.tab-content').forEach(function (t) {
+          t.style.display = 'none';
+          t.classList.remove('active');
+        });
+        target.style.display = 'block';
+        target.classList.add('active');
+        document.querySelectorAll('.profile-nav-link').forEach(function (l) {
+          l.classList.remove('active');
+          l.style.background = '';
+          l.style.color = 'var(--text-secondary)';
+          l.style.fontWeight = '600';
+        });
+        var matchingLink = document.querySelector('.profile-nav-link[href="#' + tabId + '"]');
+        if (matchingLink) {
+          matchingLink.classList.add('active');
+          matchingLink.style.background = 'var(--gold-50)';
+          matchingLink.style.color = 'var(--gold-600)';
+          matchingLink.style.fontWeight = '700';
+        }
+        if (window.innerWidth < 960) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        return true;
+      }
+
+      // Capture-phase listener: push history state on tab click, BEFORE the
+      // existing handler runs its own preventDefault + toggle.
+      document.querySelectorAll('.profile-nav-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          var href = this.getAttribute('href') || '';
+          if (!href.startsWith('#')) return;
+          var tabId = href.slice(1);
+          if (window.location.hash !== href) {
+            window.history.pushState({ tab: tabId }, '', href);
+          }
+        }, true);
+      });
+
+      // Respond to browser back/forward: re-activate the tab matching the hash
+      window.addEventListener('popstate', function () {
+        var hash = window.location.hash.slice(1);
+        if (hash && document.getElementById(hash)) {
+          activateTabById(hash);
+        } else {
+          activateTabById('tab-identity');
+        }
+      });
+
+      // On initial load, activate the tab from the URL hash (if any)
+      if (window.location.hash) {
+        var initialTab = window.location.hash.slice(1);
+        if (document.getElementById(initialTab)) {
+          activateTabById(initialTab);
+        }
+      }
+    });
+  </script>
+  <!-- PWA: service worker registration -->
+  <script src="../js/sw-register.js"></script>
+
+</body>
+
+
+
+
+

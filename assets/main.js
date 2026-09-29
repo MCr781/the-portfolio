@@ -370,6 +370,10 @@
       tone({ f: 820, d: 0.035, v: 0.04, type: 'square' });
       noiseHit({ f: 2800, hp: true, d: 0.025, v: 0.03 });
     },
+    cartFlip: function () {
+      tone({ f: 480, f1: 960, d: 0.08, v: 0.045, type: 'triangle' });
+      noiseHit({ f: 2800, hp: true, d: 0.035, v: 0.03 });
+    },
     exploreSlide: function () {
       tone({ f: 440, f1: 220, d: 0.35, v: 0.045, type: 'triangle', exp: true });
       tone({ f: 880, f1: 440, d: 0.28, v: 0.025, type: 'sine', exp: true, at: 0.05 });
@@ -7369,11 +7373,11 @@ function farRow(wx, rows) {
     if (useCursor) {
       var wasEnter = cursor.classList.contains('is-enter');
       var wasHover = cursor.classList.contains('is-hover');
-      cursor.classList.toggle('is-enter', !!cart);
-      cursor.classList.toggle('is-hover', !!link && !cart);
-      cursorTag.classList.toggle('show', !!cart);
-      if ((!!cart) !== wasEnter || ((!!link && !cart)) !== wasHover) {
-        paintCursor(cart ? 'enter' : (link ? 'hover' : 'idle'));
+      cursor.classList.toggle('is-enter', !!cart && !link);
+      cursor.classList.toggle('is-hover', !!link);
+      cursorTag.classList.toggle('show', !!cart && !link);
+      if (((!!cart && !link)) !== wasEnter || (!!link) !== wasHover) {
+        paintCursor(link ? 'hover' : (cart ? 'enter' : 'idle'));
       }
     }
     soundBtn.classList.toggle('is-hover', soundBtn === link);
@@ -7390,14 +7394,14 @@ function farRow(wx, rows) {
       coinBtn.classList.toggle('is-hover', coinBtn === link);
     }
 
-    var target = cart || link;
+    var target = link || cart;
     if (target !== hoverTarget) {
       hoverTarget = target;
       var now = Date.now();
       if (target && now - lastBlipAt > 90) {
         lastBlipAt = now;
-        if (cart) { sfx('cartSnap'); }
-        else { blip(660, 40); }
+        if (link) { blip(660, 40); }
+        else if (cart) { sfx('cartSnap'); }
       }
     }
 
@@ -7432,7 +7436,10 @@ function farRow(wx, rows) {
           rx = Math.max(-5, Math.min(5, Math.round(rx / 2.5) * 2.5));
           ry = Math.max(-5, Math.min(5, Math.round(ry / 2.5) * 2.5));
           o.cart.classList.add('tilting');
-          o.cart.style.transform = 'perspective(800px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+          var flipped = o.cart.classList.contains('is-flipped');
+          var baseRot = flipped ? 180 : 0;
+          var effRy = flipped ? -ry : ry;
+          o.cart.style.transform = 'perspective(800px) rotateY(' + (baseRot + effRy) + 'deg) rotateX(' + rx + 'deg)';
         } else if (o.cart.classList.contains('tilting')) {
           o.cart.classList.remove('tilting');
           o.cart.style.transform = '';
@@ -7504,6 +7511,47 @@ function farRow(wx, rows) {
   doc.addEventListener('pointercancel', function () {
     gates.forEach(function (g) { g.press = false; });
   }, { passive: true });
+
+  /* ── 3D cartridge flipper wiring ────────────────────── */
+  function toggleCartFlip(cartEl) {
+    if (!cartEl) { return; }
+    var wrap = cartEl.closest('.cart-flipper-wrap');
+    var isFlipped = cartEl.classList.toggle('is-flipped');
+    if (wrap) {
+      wrap.classList.toggle('is-flipped', isFlipped);
+      var flipBtn = $('.cart-flip-btn', wrap);
+      if (flipBtn) { flipBtn.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
+    }
+    var front = $('.cart-front', cartEl);
+    var back = $('.cart-back', cartEl);
+    if (front) { front.setAttribute('aria-hidden', isFlipped ? 'true' : 'false'); }
+    if (back) { back.setAttribute('aria-hidden', isFlipped ? 'false' : 'true'); }
+    cartEl.classList.remove('tilting');
+    cartEl.style.transform = '';
+    sfx('cartFlip');
+  }
+
+  doc.addEventListener('click', function (e) {
+    var flipBtn = e.target.closest('.cart-flip-btn');
+    if (flipBtn) {
+      var targetWrap = flipBtn.closest('.cart-flipper-wrap');
+      var cart = targetWrap ? $('.cartridge', targetWrap) : null;
+      if (cart) {
+        toggleCartFlip(cart);
+        e.preventDefault();
+        return;
+      }
+    }
+    var flipTab = e.target.closest('.cart-flip-tab');
+    if (flipTab) {
+      var cartFromTab = flipTab.closest('.cartridge');
+      if (cartFromTab) {
+        toggleCartFlip(cartFromTab);
+        e.preventDefault();
+        return;
+      }
+    }
+  });
 
   /* ── on-screen controls · START / coin / joystick ──── */
   if (startBtn) {

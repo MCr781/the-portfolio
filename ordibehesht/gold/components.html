@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>کامپوننت‌های وضعیت | قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <link rel="stylesheet" href="../css/auth.css">
+  
+  <meta name="theme-color" content="#d4af37">
+</head>
+<body class="gold-page" style="padding: 24px;">
+
+  <h2 style="margin-bottom: 24px;">نشان‌های وضعیت (Status Badges)</h2>
+  
+  <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 48px;">
+    <!-- Success -->
+    <div class="status-badge status-success">
+      <i class='bx bx-check-circle'></i>
+      موفق
+    </div>
+    
+    <!-- Failed -->
+    <div class="status-badge status-failed">
+      <i class='bx bx-x-circle'></i>
+      ناموفق
+    </div>
+    
+    <!-- Pending / Canceled -->
+    <div class="status-badge status-pending">
+      <i class='bx bx-time-five'></i>
+      در انتظار / لغو شده
+    </div>
+    
+    <!-- Needs Review -->
+    <div class="status-badge status-review">
+      <i class='bx bx-search-alt-2'></i>
+      نیازمند بررسی
+    </div>
+  </div>
+
+  <h2 style="margin-bottom: 24px;">کارت‌های اعلان (Status Alerts)</h2>
+
+  <div style="display: flex; flex-direction: column; gap: 16px; max-width: 500px;">
+    <!-- Success Alert -->
+    <div style="background: #d1fae5; border-right: 4px solid #10b981; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+      <i class='bx bx-check-circle' style="color: #047857; font-size: 24px;"></i>
+      <div>
+        <h4 style="color: #047857; margin-bottom: 4px; font-weight: 700;">عملیات موفق</h4>
+        <p style="color: #065f46; font-size: 13px; line-height: 1.6;">درخواست شما با موفقیت ثبت شد و در حال پردازش است.</p>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div style="background: #fee2e2; border-right: 4px solid #ef4444; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+      <i class='bx bx-x-circle' style="color: #b91c1c; font-size: 24px;"></i>
+      <div>
+        <h4 style="color: #b91c1c; margin-bottom: 4px; font-weight: 700;">خطا در عملیات</h4>
+        <p style="color: #991b1b; font-size: 13px; line-height: 1.6;">موجودی کیف پول شما برای این تراکنش کافی نیست.</p>
+      </div>
+    </div>
+    
+    <!-- Warning Alert -->
+    <div style="background: #fef3c7; border-right: 4px solid #f59e0b; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+      <i class='bx bx-info-circle' style="color: #b45309; font-size: 24px;"></i>
+      <div>
+        <h4 style="color: #b45309; margin-bottom: 4px; font-weight: 700;">توجه</h4>
+        <p style="color: #92400e; font-size: 13px; line-height: 1.6;">سفارش شما در انتظار تأیید ادمین قرار گرفت.</p>
+      </div>
+    </div>
+
+    <!-- Needs Review Alert -->
+    <div style="background: #e0e7ff; border-right: 4px solid #6366f1; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+      <i class='bx bx-search-alt-2' style="color: #4338ca; font-size: 24px;"></i>
+      <div>
+        <h4 style="color: #4338ca; margin-bottom: 4px; font-weight: 700;">نیازمند بررسی</h4>
+        <p style="color: #3730a3; font-size: 13px; line-height: 1.6;">تراکنش شما ثبت شده و در حال بررسی توسط تیم پشتیبانی است. نتیجه به‌زودی اعلام می‌شود.</p>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

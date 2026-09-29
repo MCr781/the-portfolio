@@ -1,290 +1,624 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>دنیای یاسی شو — دروازه</title>
-<meta name="description" content="پلتفرم مشارکت مردمی انجمن خیریه‌ی یاس کرمان — پیش‌نمایش دروازه">
-<meta name="theme-color" content="#120a1c">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<style>
-:root{--acc:#ed145b;--acc-hi:#ffd6e4;--acc-dk:#8a0c38;--bg:#120a1c;--panel:#190e26;}
-*{box-sizing:border-box}
-/* round 14: the highlighter follows the room light here too — the
-   same per-world ::selection the main cabinet wears since round 12 */
-::selection{background:var(--acc);color:#0d0d15}
-html,body{margin:0;padding:0}
-body{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:var(--bg);color:#f2f2f7;font-family:'Segoe UI',Tahoma,Vazirmatn,sans-serif;
-  padding:1.5rem;overflow-x:hidden}
-/* the tube: scanlines + aperture grille + slow roll, the main site's glass */
-.scanlines{position:fixed;inset:0;z-index:40;pointer-events:none;
-  --sl-dark:rgba(0,0,0,.08);--sl-light:rgba(255,255,255,.05);
-  background:repeating-linear-gradient(0deg,var(--sl-dark) 0 1px,transparent 1px 4px),
-  repeating-linear-gradient(0deg,transparent 0 2px,var(--sl-light) 2px 3px,transparent 3px 4px);
-  box-shadow:inset 0 0 0 9999px #ed145b14}
-.scanlines::before{content:"";position:absolute;inset:0;
-  background:repeating-linear-gradient(90deg,rgba(255,64,64,.025) 0 1px,rgba(64,255,128,.018) 1px 2px,rgba(96,128,255,.025) 2px 3px)}
-.scanlines::after{content:"";position:absolute;inset-inline:0;top:-150px;height:130px;
-  background:linear-gradient(180deg,transparent,rgba(255,255,255,.03) 35%,rgba(0,0,0,.055) 72%,transparent);
-  animation:crtroll 8s linear infinite}
-@keyframes crtroll{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 300px))}}
-.gate{width:100%;max-width:30rem;position:relative;z-index:2}
-.card{position:relative;background:var(--panel);border:3px solid #f2f2f7;
-  box-shadow:8px 8px 0 rgba(0,0,0,.6);padding:2.2rem 1.8rem 1.7rem;text-align:center}
-.card::before{content:"";position:absolute;inset:4px;border:1px solid rgba(255,255,255,.09);pointer-events:none}
-.k{font-family:'Courier New',monospace;font-size:.68rem;letter-spacing:.22em;color:var(--acc);direction:ltr;margin:0 0 1rem}
-.k bdi{color:var(--acc-hi)}
-h1{font-size:1.9rem;margin:.2rem 0 .5rem;font-weight:900;letter-spacing:-.5px}
-.d{color:#b9b9c6;line-height:1.9;font-size:.9rem;margin:0 0 1.3rem}
-/* the terrarium: the keeper of this world lives here too */
-.terra{margin:0 auto 1rem;width:min(11rem,72vw);background:#07070d;border:2px solid var(--acc);
-  box-shadow:5px 5px 0 rgba(0,0,0,.55);padding:.55rem .55rem .5rem;position:relative;cursor:pointer;
-  transition:transform 180ms steps(3,end),box-shadow 180ms steps(3,end)}
-.terra::before{content:"";position:absolute;inset:3px;border:1px solid rgba(255,255,255,.08);pointer-events:none}
-.terra:hover,.terra:active{transform:translateY(-3px);box-shadow:7px 8px 0 rgba(0,0,0,.55)}
-.terra:active{transform:translateY(0);box-shadow:3px 3px 0 rgba(0,0,0,.55)}
-.terra canvas{display:block;margin:0 auto;image-rendering:pixelated;image-rendering:crisp-edges;
-  width:204px;height:144px;max-width:100%}
-/* round 13 · the glass sweep, baked in from the main cabinet: once per
-   hover a bar of light slides across the pane in six hard steps.
-   round 13 CORRECTION (shared with the main cabinet): the bar animates
-   TRANSFORM on the pane itself — a registered custom property ran but
-   never moved in this engine, leaving the pane parked off-glass. A
-   pseudo-element carries its own keyframes; no registration needed.
-   A press pushes the vivarium back onto the shelf. */
-.terra::after{content:"";position:absolute;top:0;bottom:0;left:0;width:34%;
-  background:linear-gradient(105deg,transparent 0 30%,rgba(255,255,255,.075) 42%,rgba(255,255,255,.13) 50%,rgba(255,255,255,.075) 58%,transparent 70% 100%);
-  transform:translateX(-120%);pointer-events:none}
-.terra:hover::after{animation:glasssweep 780ms steps(6,end) 1}
-@keyframes glasssweep{from{transform:translateX(-120%)}to{transform:translateX(320%)}}
-@media (prefers-reduced-motion:reduce){.terra:hover::after{animation:none}.terra::after{display:none}}
-.tname{font-size:.8rem;margin:.55rem 0 1.2rem;color:#f2f2f7;line-height:1.7}
-.tname b{color:var(--acc)}
-.tname i{font-style:normal;color:#9494a8;font-size:.72rem;display:block;margin-top:.15rem}
-.tname i.is-rare{color:#ffd76a;animation:truerare 460ms steps(1) 4}
-@keyframes truerare{0%,100%{opacity:1}50%{opacity:.35}}
-.p{font-family:'Courier New',monospace;font-size:.72rem;letter-spacing:.12em;color:var(--acc);
-  border:2px solid var(--acc);display:inline-block;padding:.3rem .7rem;direction:ltr;margin:0 0 1.6rem}
-.b{display:inline-block;color:#f2f2f7;text-decoration:none;border:3px solid var(--acc);
-  box-shadow:6px 6px 0 rgba(0,0,0,.6);padding:.75rem 1.3rem;font-weight:800;font-size:.95rem;
-  transition:transform 150ms steps(3,end),box-shadow 150ms steps(3,end)}
-.b:hover,.b:focus-visible{transform:translate(-2px,-2px);box-shadow:9px 9px 0 rgba(0,0,0,.6);outline:2px solid var(--acc-hi);outline-offset:3px}
-.b:active{transform:translate(1px,1px);box-shadow:3px 3px 0 rgba(0,0,0,.6)}
-.coin{font-family:'Courier New',monospace;font-size:.62rem;letter-spacing:.24em;color:#5c5c6b;
-  direction:ltr;margin:1.5rem 0 0}
-/* the cabinet record: the main tube's kept best follows you through
-   the gate — one quiet line of gold under the coin door */
-.rec{font-family:'Courier New',monospace;font-size:.66rem;letter-spacing:.18em;
-  direction:ltr;margin:.55rem 0 0;color:var(--acc-dk)}
-.rec b{font-weight:400;color:var(--acc-hi)}
-.note{margin:.8rem 0 0;font-size:.72rem;color:#8a8a99;line-height:1.8}
-.gnum{position:absolute;top:.55rem;left:.7rem;font-family:'Courier New',monospace;font-size:.62rem;
-  letter-spacing:.2em;color:var(--acc-dk);direction:ltr}
-@media (max-width:420px){.card{padding:1.7rem 1.2rem 1.4rem}h1{font-size:1.55rem}}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="یاسی شو، پلتفرم مشارکت مردمی برای ساخت و تکمیل پروژه‌های انجمن خیریه حمایت از بیماران سرطانی یاس کرمان. در ساخت مراکز درمانی سهیم شوید.">
+    <meta name="keywords" content="یاسی شو, انجمن یاس, خیریه, سرطان, کرمان, مشارکت مردمی, بیماران سرطانی, رادیوتراپی, درمانگاه, خیریه یاس">
+    <link rel="canonical" href="https://yassishow.ir/index.html">
+    <meta property="og:title" content="یاسی شو | پلتفرم مشارکت مردمی انجمن خیریه یاس کرمان">
+    <meta property="og:description" content="یاسی شو، پلتفرم مشارکت مردمی برای ساخت و تکمیل پروژه‌های انجمن خیریه حمایت از بیماران سرطانی یاس کرمان. در ساخت مراکز درمانی سهیم شوید.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="یاسی شو">
+    <meta property="og:locale" content="fa_IR">
+    <meta property="og:url" content="https://yassishow.ir/index.html">
+    <meta property="og:image" content="https://yassishow.ir/assets/logos/logo.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="یاسی شو | پلتفرم مشارکت مردمی انجمن خیریه یاس کرمان">
+    <meta name="twitter:description" content="یاسی شو، پلتفرم مشارکت مردمی برای ساخت و تکمیل پروژه‌های انجمن خیریه حمایت از بیماران سرطانی یاس کرمان. در ساخت مراکز درمانی سهیم شوید.">
+    <meta name="twitter:image" content="https://yassishow.ir/assets/logos/logo.png">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#7b2c83">
+    <title>یاسی شو | پلتفرم مشارکت مردمی انجمن خیریه یاس کرمان</title>
+
+    <link rel="stylesheet" href="assets/css/Vazirmatn-font-face.css">
+    <!-- Make sure FontAwesome is properly linked for the new icons -->
+    <link rel="stylesheet" href="assets/css/all.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" type="image/png" href="assets/logos/logo.png">
+
+    <script type="application/ld+json">
+    {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "یاسی شو",
+  "url": "https://yassishow.ir",
+  "description": "یاسی شو، پلتفرم مشارکت مردمی برای ساخت و تکمیل پروژه‌های انجمن خیریه حمایت از بیماران سرطانی یاس کرمان. در ساخت مراکز درمانی سهیم شوید.",
+  "inLanguage": "fa-IR"
+}
+    </script>
 </head>
-<body>
-<div class="scanlines" aria-hidden="true"></div>
-<main class="gate">
-  <div class="card">
-    <span class="gnum">04/04</span>
-    <p class="k">WORLD 04 · <bdi>یاسی شو</bdi></p>
-    <h1>دنیای یاسی شو</h1>
-    <p class="d">پلتفرم مشارکت مردمی انجمن خیریه‌ی یاس کرمان</p>
-    <div class="terra" id="terra" role="img" aria-label="ساکن این دنیا: یاسِک">
-      <canvas id="terracv" width="34" height="24"></canvas>
+
+<body class="bg-slate-50 text-slate-800 selection:bg-brand-pink selection:text-white has-mobile-trustbar">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 bg-white/90 backdrop-blur-lg border-b border-slate-200 shadow-sm z-50 transition-all">
+        <div class="relative max-w-[1400px] mx-auto px-3 sm:px-4 h-16 md:h-20 flex justify-between items-center gap-3">
+
+            <!-- Mobile: Hamburger Button (right side / start in RTL) -->
+            <button onclick="document.getElementById('mobile-menu').classList.remove('hidden'); document.body.classList.add('overflow-hidden');" class="md:hidden shrink-0 w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-700 rounded-full hover:bg-slate-200 active:bg-slate-300 transition-colors" aria-label="منو">
+                <i class="fa-solid fa-bars text-base"></i>
+            </button>
+
+            <!-- Right side (Nav Links) - Desktop only -->
+            <nav class="hidden md:flex gap-4 lg:gap-6 text-[14px] font-bold text-slate-600">
+                <a href="index.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">خانه</a>
+                <a href="deceased-archive.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">درگذشتگان</a>
+                <a href="board-order.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">تابلو گل نقره</a>
+                <a href="projects-archive.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">طرح‌ها</a>
+                <a href="about.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">درباره ما</a>
+                <a href="contact.html" class="hover:text-brand-purple-dark hover:-translate-y-0.5 transition-all duration-300">تماس با ما</a>
+            </nav>
+
+            <!-- Center Logo (flex on mobile, absolute on desktop) -->
+            <a href="index.html" class="flex-1 md:flex-none md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center justify-center cursor-pointer group">
+                <img src="assets/logos/logo.png" alt="لوگوی یاسی شو"
+                    class="h-12 md:h-16 object-contain group-hover:opacity-90 transition-opacity duration-300">
+            </a>
+
+            <!-- Left side (Auth + Socials) — Step 1 update -->
+            <div class="flex items-center gap-2 md:gap-4 text-slate-500 text-[13px] font-bold shrink-0">
+                <!-- Social Icons (Aparat replaces YouTube) -->
+                <div class="hidden sm:flex gap-2 text-2xl items-center">
+                    <a href="#" aria-label="اینستاگرام" class="text-pink-600 hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="تلگرام" class="text-blue-500 hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="#" aria-label="واتساپ" class="text-green-500 hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="fa-brands fa-whatsapp"></i></a>
+                    <a href="#" aria-label="آپارات" class="text-[#ed145b] hover:-translate-y-1 hover:scale-110 transition-all cursor-pointer"><i class="aparat-icon" style="display:inline-block;width:1.5rem;height:1.5rem;vertical-align:-0.125em"></i></a>
+                </div>
+
+                <!-- Auth: Logged-out state -->
+                <div id="auth-loggedout">
+                    <button type="button" onclick="YasiAuth.openLogin()" class="flex items-center gap-1.5 cursor-pointer bg-gradient-to-l from-brand-purple-light to-brand-purple-dark text-white px-2.5 py-1.5 md:px-4 rounded-full text-[11px] md:text-[13px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all whitespace-nowrap">
+                        <i class="fa-solid fa-right-to-bracket text-[11px]"></i>
+                        ورود / عضویت
+                    </button>
+                </div>
+
+                <!-- Auth: Logged-in state (hidden by default; toggle via YasiAuth.setLoggedIn) -->
+                <div id="auth-loggedin" class="hidden relative">
+                    <button type="button" data-profile-trigger onclick="YasiAuth.toggleProfileMenu()" class="flex items-center gap-2 cursor-pointer bg-slate-100 hover:bg-slate-200 transition-colors ps-1 pe-2 py-1 md:pe-3 rounded-full text-[11px] md:text-[13px]">
+                        <span class="w-7 h-7 rounded-full bg-gradient-to-br from-brand-purple-light to-brand-purple-dark text-white flex items-center justify-center text-[12px] font-black shrink-0">ع</span>
+                        <span id="auth-username" class="hidden sm:inline text-slate-700 max-w-[130px] truncate">پروفایل علی صیدنژاد</span>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
+                    </button>
+                    <!-- Profile management dropdown -->
+                    <div id="profile-dropdown" class="ys-profile-dropdown hidden absolute end-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50">
+                        <div class="px-4 py-2 border-b border-slate-100 mb-1">
+                            <p class="text-[11px] text-slate-400 font-bold">حساب کاربری شما</p>
+                            <p class="text-[13px] text-slate-800 font-black truncate">علی صیدنژاد</p>
+                        </div>
+                        <a href="profile.html" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-user w-4 text-center text-brand-purple-light"></i> پروفایل من
+                        </a>
+                        <a href="profile.html#projects" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-folder w-4 text-center text-brand-purple-light"></i> مشارکت‌های من
+                        </a>
+                        <a href="board-order.html" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-table-columns w-4 text-center text-brand-purple-light"></i> تابلوهای من
+                        </a>
+                        <a href="profile.html#settings" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 font-bold">
+                            <i class="fa-solid fa-gear w-4 text-center text-brand-purple-light"></i> تنظیمات حساب
+                        </a>
+                        <div class="border-t border-slate-100 mt-1 pt-1">
+                            <button type="button" onclick="YasiAuth.setLoggedOut()" class="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 font-bold">
+                                <i class="fa-solid fa-right-from-bracket w-4 text-center"></i> خروج از حساب
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Mobile Menu Drawer -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('mobile-menu').classList.add('hidden'); document.body.classList.remove('overflow-hidden');"></div>
+        <div class="absolute top-0 right-0 h-full w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col overflow-y-auto">
+            <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 bg-gradient-to-l from-brand-purple-light to-brand-purple-dark text-white">
+                <span class="font-black text-[15px]">منوی یاسی شو</span>
+                <button onclick="document.getElementById('mobile-menu').classList.add('hidden'); document.body.classList.remove('overflow-hidden');" class="w-9 h-9 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors" aria-label="بستن">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <nav class="flex flex-col p-4 gap-1">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-home w-5 text-center text-brand-purple-light"></i> خانه
+                </a>
+                <a href="deceased-archive.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-dove w-5 text-center text-brand-purple-light"></i> درگذشتگان
+                </a>
+                <a href="board-order.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-table-columns w-5 text-center text-brand-purple-light"></i> تابلو گل نقره
+                </a>
+                <a href="projects-archive.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-folder w-5 text-center text-brand-purple-light"></i> طرح‌ها
+                </a>
+                <a href="about.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-circle-info w-5 text-center text-brand-purple-light"></i> درباره ما
+                </a>
+                <a href="contact.html" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 font-bold hover:bg-slate-100 hover:text-brand-purple-dark active:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-envelope w-5 text-center text-brand-purple-light"></i> تماس با ما
+                </a>
+            </nav>
+            <div class="px-4 pt-2 pb-6 mt-2 border-t border-slate-100">
+                <p class="text-[11px] font-bold text-slate-400 mb-3">ما را در شبکه‌های اجتماعی دنبال کنید</p>
+                <div class="flex gap-2">
+                    <a href="#" class="flex-1 h-11 flex items-center justify-center bg-pink-50 text-pink-600 rounded-xl hover:bg-pink-100 transition-colors">
+                        <i class="fa-brands fa-instagram text-lg"></i>
+                    </a>
+                    <a href="#" class="flex-1 h-11 flex items-center justify-center bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-100 transition-colors">
+                        <i class="fa-brands fa-telegram text-lg"></i>
+                    </a>
+                    <a href="#" class="flex-1 h-11 flex items-center justify-center bg-green-50 text-green-500 rounded-xl hover:bg-green-100 transition-colors">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                    </a>
+                    <a href="#" aria-label="آپارات" class="flex-1 h-11 flex items-center justify-center bg-[#ed145b]/10 rounded-xl hover:bg-[#ed145b]/20 transition-colors">
+                        <i class="aparat-icon" style="font-size:1.25rem"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    <p class="tname"><b>یاسِک</b> — گل امید<i>یاسِک می‌گوید: هر لبخند، یک گل تازه است!</i></p>
-    <p class="p">/yassi/</p><br>
-    <a class="b" href="/">← بازگشت به دروازه</a>
-    <p class="coin">INSERT COIN · NO COIN REQUIRED</p>
-    <p class="rec" id="recChip" dir="ltr" hidden></p>
-    <p class="note">این دنیا در استقرار اصلی زندگی می‌کند؛ این صفحه، اتاق ورودی دروازه است.</p>
-  </div>
-</main>
-<script>
-(function(){
-  'use strict';
-  /* the record rides with you: this gate prefers its OWN kept best
-     (runs made under this world's patronage), and falls back to the
-     cabinet's global wall — four doors, one machine, every wall
-     honest. The best rank ever worn rides on whichever it shows. */
-  try{
-    var recEl=document.getElementById('recChip');
-    if(recEl){
-      /* round 12: the doors keep their own records now — this gate
-         reads ITS bucket first (fw-hiscore-0X, written by any run
-         made under this world's patronage) and only falls back to
-         the cabinet's global wall when the door has none yet. */
-      var wb='04';
-      var own=parseInt(localStorage.getItem('fw-hiscore-'+wb)||'0',10)||0;
-      var glob=parseInt(localStorage.getItem('fw-hiscore')||'0',10)||0;
-      var useOwn=own>0;
-      var hs=useOwn?own:glob;
-      var src=useOwn?'GATE RECORD':'CABINET RECORD';
-      var rb=useOwn?wb:'';
-      var rt=Math.max(1,Math.min(6,parseInt(localStorage.getItem('fw-best-rank'+(rb?'-'+rb:''))||localStorage.getItem('fw-best-rank')||'1',10)||1));
-      var RT=['ROOKIE','CADET','PILOT','VETERAN','ACE','DEFENDER'];
-      if(hs>0){
-        var hn=(localStorage.getItem('fw-hi-name'+(rb?'-'+rb:''))||localStorage.getItem('fw-hi-name')||'AAA').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3)||'AAA';
-        recEl.innerHTML=src+' <b>'+String(hs).padStart(10,'0')+'</b> · '+hn+(rt>=2?' · RANK '+RT[rt-1]:'');
-        recEl.hidden=false;
-      } else if(rt>=2){
-        recEl.innerHTML=(useOwn?'GATE':'CABINET')+' RANK <b>'+RT[rt-1]+'</b>';
-        recEl.hidden=false;
-      }
-    }
-  }catch(e){}
-  var cv=document.getElementById('terracv');
-  var g=cv.getContext('2d');
-  g.imageSmoothingEnabled=false;
-  var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var FLOOR='#8a0c38';
-  var FLOOR_HI='#ed145b';
-  function cross(g,x,y,col){g.fillStyle=col;g.fillRect(x,y-1,1,3);g.fillRect(x-1,y,3,1);}
-  var reactT=0;
-  var rareT=0,clicks=0,lastClick=0;
-  function paint(g,t,age,rare){
-    var cx=17,sway=Math.round(Math.sin(t*0.0022));
-    if(age>=0&&age<0.6){sway+=Math.round(Math.sin(age*26)*1.5*(1-age));}
-    var pot='#b3563a',potHi='#d97b52',potDk='#7e3a28',stem='#3fae5a',petal='#f7f3e8',gold='#ffd76a';
-    g.fillStyle=pot;g.fillRect(cx-5,16,11,2);g.fillRect(cx-4,18,9,4);
-    g.fillStyle=potHi;g.fillRect(cx-5,16,11,1);g.fillRect(cx-4,18,1,4);
-    g.fillStyle=potDk;g.fillRect(cx+3,18,2,4);g.fillRect(cx-5,21,11,1);
-    g.fillStyle=stem;g.fillRect(cx,10,1,6);g.fillRect(cx-2,13,2,1);g.fillRect(cx+1,12,2,1);
-    var hx=cx+sway,big=(age>=0&&age<0.7)?-1:0;
-    g.fillStyle=gold;g.fillRect(hx-1,7,2,2);
-    g.fillStyle=petal;
-    g.fillRect(hx-3-big,6,2+big,4+big);g.fillRect(hx+2,6,2+big,4+big);
-    g.fillRect(hx-2,4-big,5,2);g.fillRect(hx-2,10+big,5,2);
-    g.fillStyle='#ffffff';g.fillRect(hx-2,4-big,2,1);g.fillRect(hx-3-big,6,1,2);
-    if((t%7000)<2000){
-      var dp=(t%7000)/2000;
-      g.fillStyle=petal;
-      g.fillRect(hx+4+Math.round(Math.sin(dp*6)*2),Math.round(3-dp*8),1,1);
-    }
-    if(age>=0&&age<0.7){
-      for(var bk2=0;bk2<6;bk2++){
-        var ba2=bk2/6*6.28+1;
-        g.fillStyle=bk2%3?petal:gold;
-        g.fillRect(hx+Math.round(Math.cos(ba2)*(2+age*12)),7+Math.round(Math.sin(ba2)*(2+age*9)),1,1);
-      }
-    }
-    if(rare>=0&&rare<1.6){
-      var fp=rare/1.6;
-      for(var fk=0;fk<8;fk++){
-        var fa=fk/8*6.28+rare*5;
-        var fy=21-Math.round(fp*19);
-        var fr=fk<4?2+Math.round(fp*4):2;
-        g.fillStyle=fk%3===0?gold:(fk%3===1?petal:'#ffffff');
-        g.fillRect(cx+Math.round(Math.cos(fa)*fr),fy+Math.round(Math.sin(fa)*1.5),1,1);
-      }
-      if(fp>0.75&&(Math.floor(t/110)%2)===0){
-        for(var fr2=0;fr2<5;fr2++){
-          g.fillStyle=fr2%2?gold:petal;
-          g.fillRect(cx-4+fr2*2,2+(fr2%2),1,1);
-        }
-      }
-    }
-  }
-  function frame(t){
-    g.clearRect(0,0,34,24);
-    for(var x=0;x<34;x++){
-      g.fillStyle=FLOOR;g.fillRect(x,19,1,5);
-      var h=(Math.sin(x*12.9898+7.233)*43758.5453)%1;
-      if(h>0.6){g.fillStyle=FLOOR_HI;g.fillRect(x,19,1,1);}
-      if(h<-0.82){g.fillStyle=FLOOR_HI;g.fillRect(x,21,1,1);}
-    }
-    var age=reactT>0?(t-reactT)/1000:-1;
-    var rare=rareT>0?(t-rareT)/1000:-1;
-    paint(g,t,age,rare);
-    if(!reduced){requestAnimationFrame(frame);}
-  }
-  if(reduced){frame(1);}
-  else{requestAnimationFrame(frame);}
-  /* the keepers' voices — the same four timbres the main tube uses.
-     Round 11: one shared AudioContext, built on the first sound and
-     reused for every blip after — a door that doesn't build a new
-     speaker cabinet every time somebody knocks. */
-  var ACTX=null;
-  function ac(){
-    if(!ACTX){
-      var AC=window.AudioContext||window.webkitAudioContext;
-      if(!AC){return null;}
-      ACTX=new AC();
-    }
-    if(ACTX.state==='suspended'&&ACTX.resume){ACTX.resume();}
-    return ACTX;
-  }
-  function voice(kind,a){
-    try{
-      var c=ac();
-      if(!c){return;}
-      var t0=c.currentTime;
-      function tone(o){
-        var os=c.createOscillator(),gn=c.createGain();
-        os.type=o.w||'square';
-        os.frequency.setValueAtTime(o.f,t0+(o.at||0));
-        if(o.f1){os.frequency.exponentialRampToValueAtTime(o.f1,t0+(o.at||0)+o.d);}
-        gn.gain.setValueAtTime(o.v,t0+(o.at||0));
-        gn.gain.exponentialRampToValueAtTime(0.0001,t0+(o.at||0)+o.d);
-        os.connect(gn);gn.connect(c.destination);
-        os.start(t0+(o.at||0));os.stop(t0+(o.at||0)+o.d+0.02);
-      }
-      if(kind==='ingot'){tone({f:196,f1:294,d:.09,v:.055});tone({f:392,d:.06,v:.02,w:'triangle',at:.05});}
-      else if(kind==='gem'){tone({f:1318.5,f1:1975.5,d:.1,v:.04,w:'sine'});tone({f:2637,d:.07,v:.014,w:'triangle',at:.03});}
-      else if(kind==='bolt'){tone({f:440,d:.045,v:.05});tone({f:554,d:.05,v:.05,at:.05});}
-      else if(kind==='bloom'){tone({f:523.25,f1:783.99,d:.12,v:.042,w:'triangle'});}
-      else{tone({f:660,f1:1180,d:.09,v:.06});}
-      if(a){
-        var up=[783.99,987.77,1174.66,1567.98];
-        for(var i=0;i<up.length;i++){tone({f:up[i],d:.07,v:.05,at:.3+i*.062});}
-        for(var j=0;j<up.length;j++){tone({f:up[j]*1.335,d:.07,v:.035,w:'triangle',at:.6+j*.055});}
-      }
-    }catch(e){}
-  }
-  var terraEl=document.getElementById('terra');
-  var helloEl=document.querySelector('.tname i');
-  terraEl.addEventListener('click',function(){
-    reactT=performance.now();
-    var nowC=performance.now();
-    clicks=(nowC-lastClick<1400)?clicks+1:1;
-    lastClick=nowC;
-    if(clicks>=5){
-      clicks=0;
-      rareT=nowC;
-      if(helloEl){
-        if(!helloEl.dataset.keep){helloEl.dataset.keep=helloEl.textContent;}
-        helloEl.classList.add('is-rare');
-        helloEl.textContent='یاسِک: امید همیشه سبز می‌ماند.';
-        clearTimeout(helloEl.__rt);
-        helloEl.__rt=setTimeout(function(){
-          helloEl.classList.remove('is-rare');
-          helloEl.textContent=helloEl.dataset.keep;
-        },2200);
-      }
-      voice('bloom',true);
-    }else{
-      voice('bloom',false);
-    }
-  });
-  document.querySelectorAll('a').forEach(function(a){
-    a.addEventListener('click',function(){
-      try{
-        var x=ac();
-        if(x){
-          var o=x.createOscillator(),gn=x.createGain();
-          o.type='square';o.frequency.setValueAtTime(880,x.currentTime);
-          o.frequency.exponentialRampToValueAtTime(440,x.currentTime+0.09);
-          gn.gain.setValueAtTime(0.05,x.currentTime);
-          gn.gain.exponentialRampToValueAtTime(0.0001,x.currentTime+0.12);
-          o.connect(gn);gn.connect(x.destination);o.start();o.stop(x.currentTime+0.14);
-        }
-      }catch(e){}
-    });
-  });
-})();
-</script>
+
+    <!-- Main Layout Container — Step 2: .pushes sidebar below main on mobile -->
+    <div class="max-w-[1300px] mx-auto px-4 pt-16 md:pt-20 pb-10 md:pb-20 flex flex-col lg:flex-row gap-8 md:gap-12">
+
+        <!-- ================= SIDEBAR (Right side) ================= -->
+        <aside
+            class="hidden lg:flex lg:w-[300px] shrink-0 flex-col items-center gap-6 lg:border-l border-slate-200 lg:pl-10 lg:sticky lg:top-24 lg:self-start">
+
+            <!-- TL Logo -->
+            <img src="assets/logos/association-logo.png" alt="لوگوی انجمن خیریه یاس"
+                class="w-32 object-contain hover:opacity-80 transition-opacity cursor-pointer">
+
+            <!-- Navigation Links (Step 7: replaces filter buttons) -->
+            <div class="w-full max-w-[280px] flex flex-row flex-nowrap md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-1 md:pb-0 -mx-1 px-1 snap-x">
+                <a href="index.html" class="shrink-0 snap-start bg-slate-800 text-white py-3 px-4 rounded-xl text-sm font-medium shadow-md hover:bg-brand-purple-dark hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 md:w-full flex items-center gap-2 justify-center md:justify-start"><i class="fa-solid fa-home text-xs"></i> خانه</a>
+                <a href="deceased-archive.html" class="shrink-0 snap-start bg-slate-800 text-white py-3 px-4 rounded-xl text-sm font-medium shadow-md hover:bg-brand-purple-dark hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 md:w-full flex items-center gap-2 justify-center md:justify-start"><i class="fa-solid fa-dove text-xs"></i> درگذشتگان</a>
+                <a href="board-order.html" class="shrink-0 snap-start bg-slate-800 text-white py-3 px-4 rounded-xl text-sm font-medium shadow-md hover:bg-brand-purple-dark hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 md:w-full flex items-center gap-2 justify-center md:justify-start"><i class="fa-solid fa-table-columns text-xs"></i> تابلو گل نقره</a>
+                <a href="projects-archive.html" class="shrink-0 snap-start bg-slate-800 text-white py-3 px-4 rounded-xl text-sm font-medium shadow-md hover:bg-brand-purple-dark hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 md:w-full flex items-center gap-2 justify-center md:justify-start"><i class="fa-solid fa-folder text-xs"></i> طرح‌ها</a>
+                <a href="about.html" class="shrink-0 snap-start bg-slate-800 text-white py-3 px-4 rounded-xl text-sm font-medium shadow-md hover:bg-brand-purple-dark hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 md:w-full flex items-center gap-2 justify-center md:justify-start"><i class="fa-solid fa-circle-info text-xs"></i> درباره ما</a>
+                <a href="contact.html" class="shrink-0 snap-start bg-slate-800 text-white py-3 px-4 rounded-xl text-sm font-medium shadow-md hover:bg-brand-purple-dark hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 md:w-full flex items-center gap-2 justify-center md:justify-start"><i class="fa-solid fa-envelope text-xs"></i> تماس با ما</a>
+            </div>
+
+            <!-- Intro Text (hidden on mobile to save vertical space) -->
+            <div class="hidden sm:block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative w-full">
+                <i class="fa-solid fa-quote-right absolute top-3 right-3 text-slate-100 text-3xl"></i>
+                <p class="text-[13px] text-slate-600 text-justify leading-loose relative z-10">
+                    <strong class="text-brand-purple-dark font-black">یاسی شو</strong> یک پلتفرم بر بستر فضای وب است که
+                    بر اساس مشارکت افراد جهت ساخت و تکمیل پروژه های انجمن خیریه بیماران سرطانی یاس شامل:
+                    <br><span class="inline-block mt-2 font-medium text-slate-700"><i
+                            class="fa-solid fa-check text-brand-pink text-[10px] ml-1"></i>مرکز رادیوتراپی</span>
+                    <br><span class="inline-block mt-1 font-medium text-slate-700"><i
+                            class="fa-solid fa-check text-brand-pink text-[10px] ml-1"></i>مرکز غربالگری خون</span>
+                    <br><span class="inline-block mt-1 font-medium text-slate-700"><i
+                            class="fa-solid fa-check text-brand-pink text-[10px] ml-1"></i>درمانگاه و مرکز بستری</span>
+                    <br><span class="inline-block mt-1 mb-2 font-medium text-slate-700"><i
+                            class="fa-solid fa-check text-brand-pink text-[10px] ml-1"></i>مرکز آموزش و پیشگیری</span>
+                    <br>شکل گرفته است. با حضور خود، دعوت از دوستان و اضافه نمودن اقوام و یاران سفر کرده تان در این
+                    پروژه، انجمن یاس را یاری رسانید.
+                </p>
+            </div>
+
+            
+            <!-- Login CTA -->
+            <div class="relative w-full max-w-[320px] bg-gradient-to-br from-brand-purple-light to-[#311b92] rounded-3xl p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] mt-2 md:mt-6 border border-white/10 text-center">
+                <i class="fa-solid fa-user-circle text-4xl text-white/90 mb-4 drop-shadow-md"></i>
+                <h3 class="text-white font-bold text-[15px] mb-2">حساب کاربری یاسی شو</h3>
+                <p class="text-white/70 text-[12px] leading-relaxed mb-5">برای مدیریت درگذشتگان، تابلوهای سفارش داده شده و مشاهده تاریخچه مشارکت‌ها وارد شوید.</p>
+                <a href="register.html" class="bg-white text-brand-purple-dark w-full py-3 rounded-full text-[13px] font-black shadow-md hover:bg-slate-50 transition-colors block text-center">
+                    ورود / ثبت‌نام
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT (Left side) ================= -->
+        <main class="w-full lg:flex-1 flex flex-col gap-10">
+            <h1 class="sr-only">یاسی شو - پلتفرم مشارکت مردمی انجمن خیریه یاس کرمان</h1>
+
+            <!-- 1. Colorful Bento Grid (Modernized with Gradients, Spacing, and Radii) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 grid-rows-3 gap-3 md:gap-4 h-auto md:h-[420px]">
+                <!-- Large Top Left (Spans 2x2) -->
+                <div
+                    class="col-span-2 row-span-2 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-2xl flex flex-col items-center justify-center p-6 text-white font-black text-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fa-solid fa-building-wheat text-4xl mb-3 opacity-80"></i>
+                    پروژه های در حال احداث
+                </div>
+
+                <div
+                    class="bg-gradient-to-br from-fuchsia-700 to-purple-900 rounded-2xl flex flex-col items-center justify-center p-4 text-white text-base font-bold shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
+                    <i
+                        class="fa-solid fa-users text-2xl mb-2 opacity-80 group-hover:scale-110 transition-transform"></i>
+                    درگذشتگان
+                </div>
+
+                <div
+                    class="disabled-box bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex flex-col items-center justify-center p-4 text-white text-base font-bold shadow-md transition-all duration-300 cursor-pointer group">
+                    <i
+                        class="fa-solid fa-chart-line text-2xl mb-2 opacity-80"></i>
+                    گزارش مالی
+                </div>
+
+                <div
+                    class="bg-gradient-to-br from-purple-400 to-fuchsia-500 rounded-2xl flex flex-col items-center justify-center p-4 text-white text-base font-bold shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
+                    <i
+                        class="fa-solid fa-photo-film text-2xl mb-2 opacity-80 group-hover:scale-110 transition-transform"></i>
+                    رسانه یاس
+                </div>
+
+                <!-- Tall Right Middle (Spans 2 rows) -->
+                <div
+                    class="row-span-2 bg-gradient-to-br from-purple-600 to-violet-800 rounded-2xl flex flex-col items-center justify-center p-4 text-white font-black text-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center group relative overflow-hidden">
+                    <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fa-solid fa-medal text-4xl mb-3 text-yellow-300 opacity-90 drop-shadow-md"></i>
+                    تابلو گل نقره
+                </div>
+
+                <div
+                    class="bg-gradient-to-br from-rose-400 to-pink-600 rounded-2xl flex flex-col items-center justify-center p-4 text-white text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center group">
+                    <i
+                        class="fa-solid fa-hand-holding-heart text-2xl mb-2 opacity-80 group-hover:scale-110 transition-transform"></i>
+                    سفیران یاسی شو
+                </div>
+
+                <div
+                    class="bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex flex-col items-center justify-center p-4 text-white text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center group">
+                    <i class="fa-solid fa-gem text-2xl mb-2 opacity-80 group-hover:scale-110 transition-transform"></i>
+                    خیرین بزرگ
+                </div>
+
+                <div
+                    class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl flex flex-col items-center justify-center p-4 text-white text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center group">
+                    <i
+                        class="fa-solid fa-notes-medical text-2xl mb-2 opacity-80 group-hover:scale-110 transition-transform"></i>
+                    رادیوتراپی
+                </div>
+            </div>
+
+            <!-- 2. Search & Statistics Block -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden mb-6">
+                <!-- Decorative background blur -->
+                <div class="absolute -left-10 -top-10 w-32 h-32 bg-brand-pink/5 rounded-full blur-2xl"></div>
+                <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-brand-purple-dark/5 rounded-full blur-2xl"></div>
+
+                <!-- Search Form -->
+                <div class="p-5 sm:p-6 sm:px-10 border-b border-slate-100 relative z-10">
+                    <form class="flex flex-col md:flex-row gap-4 items-stretch md:items-end">
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-[12px] font-bold text-slate-500 mb-1.5">جستجو بر اساس نام و نام خانوادگی</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" placeholder="نام مرحوم را وارد کنید..." class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl pr-10 pl-4 py-3 focus:outline-none focus:border-brand-purple-light focus:ring-1 focus:ring-brand-purple-light transition-all">
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/4">
+                            <label class="block text-[12px] font-bold text-slate-500 mb-1.5">از تاریخ فوت</label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" placeholder="1402/01/01" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl pr-10 pl-4 py-3 focus:outline-none focus:border-brand-purple-light focus:ring-1 focus:ring-brand-purple-light transition-all" dir="ltr" style="text-align: right;">
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/4">
+                            <label class="block text-[12px] font-bold text-slate-500 mb-1.5">تا تاریخ فوت</label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" placeholder="1403/01/01" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl pr-10 pl-4 py-3 focus:outline-none focus:border-brand-purple-light focus:ring-1 focus:ring-brand-purple-light transition-all" dir="ltr" style="text-align: right;">
+                            </div>
+                        </div>
+                        <div class="w-full md:w-auto flex-shrink-0">
+                            <button type="button" class="w-full bg-brand-pink text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-pink-600 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+                                جستجو
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Statistics -->
+                <div class="p-5 sm:p-6 sm:px-10 flex flex-wrap justify-between items-center relative z-10 gap-y-4">
+                    <div class="text-center w-1/2 sm:w-auto mb-6 sm:mb-0">
+                        <div class="text-brand-purple-light mb-1"><i class="fa-solid fa-user-group text-xl"></i></div>
+                        <div class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-slate-800 to-slate-600 mb-1 font-sans">
+                            1,567</div>
+                        <div class="text-[13px] font-bold text-slate-500">افراد شرکت کننده</div>
+                    </div>
+
+                    <div class="hidden sm:block w-px h-12 bg-slate-100"></div>
+
+                    <div class="text-center w-1/2 sm:w-auto mb-6 sm:mb-0">
+                        <div class="text-brand-purple-light mb-1"><i class="fa-solid fa-book-open text-xl"></i></div>
+                        <div class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-slate-800 to-slate-600 mb-1 font-sans">
+                            321</div>
+                        <div class="text-[13px] font-bold text-slate-500">تعداد یادبود</div>
+                    </div>
+
+                    <div class="hidden sm:block w-px h-12 bg-slate-100"></div>
+
+                    <div class="text-center w-1/2 sm:w-auto">
+                        <div class="text-brand-purple-light mb-1"><i class="fa-solid fa-dove text-xl"></i></div>
+                        <div class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-slate-800 to-slate-600 mb-1 font-sans">
+                            1,021</div>
+                        <div class="text-[13px] font-bold text-slate-500">تعداد درگذشتگان</div>
+                    </div>
+
+                    <div class="hidden sm:block w-px h-12 bg-slate-100"></div>
+
+                    <div class="text-center w-1/2 sm:w-auto">
+                        <div class="text-brand-pink mb-1"><i class="fa-solid fa-heart text-xl"></i></div>
+                        <div class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-brand-purple-dark to-brand-pink mb-1 font-sans"
+                            dir="ltr">102,793,545</div>
+                        <div class="text-[13px] font-bold text-slate-500">میزان کمک مردم (تومان)</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 3. Deceased Archive — Seamless Mosaic (Step 2 redesign) -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-0 overflow-hidden">
+                <div class="ys-mosaic">
+                    <!-- Add-deceased tile (1x1) -->
+                    <a href="profile.html" class="ys-mosaic-add" aria-label="تعریف درگذشته">
+                        <i class="fa-solid fa-user-plus text-2xl mb-1"></i>
+                        <span class="text-xs font-bold">تعریف درگذشته</span>
+                    </a>
+
+                    <!-- Deceased items. Some carry .mosaic-large to span 2x2.
+                         The grid uses auto-flow:dense so the layout stays
+                         compact no matter which items are enlarged. -->
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-1.jpg" alt="مرحوم محمد رضایی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم محمد رضایی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-1.jpg" alt="مرحومه فاطمه حسینی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه فاطمه حسینی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="mosaic-large group">
+                        <img src="assets/images/people/man-2.jpg" alt="مرحوم علی کریمی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم علی کریمی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-2.jpg" alt="مرحومه زهرا موسوی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه زهرا موسوی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-3.jpg" alt="مرحوم حسن نجفی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم حسن نجفی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-3.jpg" alt="مرحومه مریم کمالی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه مریم کمالی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-7.jpg" alt="مرحوم رضا هاشمی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم رضا هاشمی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="mosaic-large group">
+                        <img src="assets/images/projects/mosharekat.jpg" alt="مشارکت در طرح‌های یاس">
+                        <div class="ys-mosaic-overlay" style="opacity:1; align-items:center;">
+                            <span class="block text-center">
+                                <strong class="block text-base font-black mb-1">مشارکت در طرح‌های یاس</strong>
+                                <span class="inline-block bg-brand-pink text-white text-[11px] px-3 py-1 rounded-full">مشاهده پروژه‌ها</span>
+                            </span>
+                        </div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-7.jpg" alt="مرحومه زینب یعقوبی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه زینب یعقوبی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-9.jpg" alt="مرحوم کریم احمدی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم کریم احمدی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-10.jpg" alt="مرحومه سارا نوری">
+                        <div class="ys-mosaic-overlay"><span>مرحومه سارا نوری</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-10.jpg" alt="مرحوم جواد مرادی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم جواد مرادی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-11.jpg" alt="مرحومه لیلا رستمی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه لیلا رستمی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="mosaic-large group">
+                        <img src="assets/images/people/man-12.jpg" alt="مرحوم محمدرضا کاظمی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم محمدرضا کاظمی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-13.jpg" alt="مرحومه نرگس صادقی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه نرگس صادقی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-14.jpg" alt="مرحوم امیر عباسی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم امیر عباسی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-15.jpg" alt="مرحومه هما جعفری">
+                        <div class="ys-mosaic-overlay"><span>مرحومه هما جعفری</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-8.jpg" alt="مرحوم بهرام شریفی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم بهرام شریفی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-9.jpg" alt="مرحومه مهری قاسمی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه مهری قاسمی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-10.jpg" alt="مرحوم فرهاد تهرانی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم فرهاد تهرانی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-11.jpg" alt="مرحومه الهام رحیمی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه الهام رحیمی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/man-13.jpg" alt="مرحوم کاوه نجفی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم کاوه نجفی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-7.jpg" alt="مرحومه پری شیرازی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه پری شیرازی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-8.jpg" alt="مرحوم منصور کیانی">
+                        <div class="ys-mosaic-overlay"><span>مرحوم منصور کیانی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-9.jpg" alt="مرحومه آذر مرادی">
+                        <div class="ys-mosaic-overlay"><span>مرحومه آذر مرادی</span></div>
+                    </a>
+                    <a href="deceased-detail.html" class="group">
+                        <img src="assets/images/people/woman-10.jpg" alt="مرحوم شهاب اکبری">
+                        <div class="ys-mosaic-overlay"><span>مرحوم شهاب اکبری</span></div>
+                    </a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+            <!-- Global Footer — Step 1 redesign -->
+    <footer class="bg-gradient-to-b from-white to-slate-50 border-t border-slate-200 mt-12 w-full z-10 relative">
+        <div class="max-w-[1400px] mx-auto px-4 py-10 md:py-12">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10">
+
+                <!-- RIGHT column (first in RTL): Yasi Show logo + about + contact -->
+                <div class="md:col-span-4 flex flex-col gap-4">
+                    <a href="index.html" class="inline-block">
+                        <img src="assets/logos/logo.png" alt="لوگوی یاسی شو" class="h-12 md:h-14 object-contain">
+                    </a>
+                    <p class="text-[13px] text-slate-600 leading-relaxed text-justify">
+                        یاسی شو، پلتفرم مشارکت مردمی انجمن خیریه حمایت از بیماران سرطانی یاس کرمان است. هدف ما ساخت مراکز درمانی و تکمیل پروژه‌های خیریه با همیاری دغدغه‌مندان نیکوکار است.
+                    </p>
+                    <div class="flex flex-col gap-2 text-[12px] text-slate-600 font-medium">
+                        <div class="flex items-start gap-2">
+                            <i class="fa-solid fa-location-dot text-brand-purple-light w-4 mt-0.5"></i>
+                            <span>کرمان، انجمن خیریه حمایت از بیماران سرطانی یاس</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-phone text-brand-purple-light w-4"></i>
+                            <span dir="ltr">۰۳۴ - ۳۲۲۱۲۳۴۵</span>
+                        </div>
+                        <a href="mailto:info@yassishow.ir" class="flex items-center gap-2 hover:text-brand-pink transition-colors">
+                            <i class="fa-solid fa-envelope text-brand-purple-light w-4"></i>
+                            <span dir="ltr">info@yassishow.ir</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CENTER column: useful links + latest projects -->
+                <div class="md:col-span-5 grid grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-[14px] font-black text-brand-purple-dark mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-link text-[12px] text-brand-pink"></i> پیوندها
+                        </h4>
+                        <ul class="flex flex-col gap-2.5 text-[13px]">
+                            <li><a href="index.html" class="ys-footer-link">خانه</a></li>
+                            <li><a href="about.html" class="ys-footer-link">درباره ما</a></li>
+                            <li><a href="contact.html" class="ys-footer-link">تماس با ما</a></li>
+                            <li><a href="projects-archive.html" class="ys-footer-link">آرشیو پروژه‌ها</a></li>
+                            <li><a href="board-order.html" class="ys-footer-link">تابلوی گل نقره</a></li>
+                            <li><a href="terms.html" class="ys-footer-link">قوانین و مقررات</a></li>
+                            <li><a href="https://yaas.org.ir" target="_blank" rel="noopener" class="ys-footer-link">انجمن خیریه یاس</a></li>
+                            <li><a href="register.html" class="ys-footer-link">ثبت نام</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-[14px] font-black text-brand-purple-dark mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-heart text-[12px] text-brand-pink"></i> پروژه‌های اخیر
+                        </h4>
+                        <ul class="flex flex-col gap-2.5 text-[13px]">
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>مرکز رادیوتراپی یاس</span></a></li>
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>مرکز غربالگری خون</span></a></li>
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>درمانگاه و مرکز بستری</span></a></li>
+                            <li><a href="project-detail.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>مرکز آموزش و پیشگیری</span></a></li>
+                            <li><a href="projects-archive.html" class="ys-footer-link flex items-start gap-1.5"><span class="text-brand-pink mt-1 text-[8px]">●</span><span>سفیران یاسی شو</span></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- LEFT column: trust badges -->
+                <div class="md:col-span-3">
+                    <h4 class="text-[14px] font-black text-brand-purple-dark mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-[12px] text-brand-pink"></i> نمادهای اعتماد
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <!-- 1. Enamad -->
+                        <a href="#" title="اینماد" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/enamad.webp" alt="نماد اعتماد الکترونیک اینماد" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                        <!-- 2. Bank Mellat (real bank icon) -->
+                        <a href="#" title="درگاه پرداخت بانک ملت" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/Mellat-Bank.jpg" alt="درگاه پرداخت بانک ملت" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                        <!-- 3. National Charity Network (heart icon) -->
+                        <a href="#" title="شبکه ملی نیکوکاری" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/Shabake-melli.png" alt="شبکه ملی نیکوکاری" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                        <!-- 4. Samandehi -->
+                        <a href="#" title="شبکه ملی پیشگیری از بیماری‌های غیرواگیر" class="ys-trust-badge">
+                            <div class="ys-trust-mark">
+                                <img src="assets/icons/INCDA.jpg" alt="نماد شبکه ملی پیشگیری از بیماری‌های غیرواگیر" class="object-contain" onerror="this.style.display='none'">
+                            </div>
+                        </a>
+                    </div>
+                </div></div>
+            </div>
+
+            <!-- Bottom bar: copyright + socials -->
+            <div class="ys-footer-bottom border-t border-slate-200 mt-8 pt-5 flex flex-col items-center justify-center gap-4 text-center">
+                <p class="text-[12px] text-slate-500 text-center">
+                    تمامی حقوق برای انجمن خیریه حمایت از بیماران سرطانی یاس کرمان محفوظ است. © ۱۴۰۵
+                </p>
+            </div>
+        </div>
+    </footer>
+    <!-- Mobile-only sticky bottom navigation bar -->
+    <nav id="ys-mobile-trustbar" class="md:hidden fixed bottom-0 start-0 end-0 z-40">
+        <div class="flex items-stretch h-14 px-1">
+            <a href="deceased-detail.html" class="ys-trust-item" aria-label="درگذشتگان">
+                <i class="fa-solid fa-dove text-slate-600 text-base"></i>
+                <span class="ys-trust-item-label">درگذشتگان</span>
+            </a>
+            <a href="projects-archive.html" class="ys-trust-item" aria-label="طرح‌ها">
+                <i class="fa-solid fa-folder text-slate-600 text-base"></i>
+                <span class="ys-trust-item-label">طرح‌ها</span>
+            </a>
+            <a href="index.html" class="ys-trust-item" aria-label="خانه">
+                <i class="fa-solid fa-house text-slate-600 text-base"></i>
+                <span class="ys-trust-item-label">خانه</span>
+            </a>
+            <a href="board-order.html" class="ys-trust-item" aria-label="تابلو گل نقره">
+                <i class="fa-solid fa-table-columns text-brand-purple-dark text-base"></i>
+                <span class="ys-trust-item-label">تابلو گل نقره</span>
+            </a>
+            <a href="profile.html" class="ys-trust-item" aria-label="پروفایل">
+                <i class="fa-solid fa-user text-brand-pink text-base"></i>
+                <span class="ys-trust-item-label">پروفایل</span>
+            </a>
+        </div>
+    </nav>
+    <!-- Shared front-end interactions (auth state, dropdown, login modal) -->
+    <script src="assets/js/app.js"></script>
 </body>
+
 </html>

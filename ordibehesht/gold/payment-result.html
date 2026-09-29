@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>نتیجه تراکنش | قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <link rel="stylesheet" href="../css/auth.css">
+  <meta name="theme-color" content="#d4af37">
+  <style>
+    .result-card {
+      display: none;
+      text-align: center;
+      padding: 32px 16px;
+    }
+    .result-card.active {
+      display: block;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .result-icon {
+      font-size: 72px;
+      margin-bottom: 16px;
+    }
+    .status-success .result-icon { color: #10b981; }
+    .status-failed .result-icon { color: #ef4444; }
+    .status-canceled .result-icon, .status-review .result-icon { color: #f59e0b; }
+
+    .result-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .result-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .result-details {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: right;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .detail-row:last-child { margin-bottom: 0; }
+    .detail-label { color: var(--text-secondary); }
+    .detail-value { font-weight: 700; color: var(--text); }
+
+    .result-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-pdf {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: white;
+      border: 1px solid var(--gold-500);
+      color: var(--gold-600);
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    /* Demo controls — always visible for back-end team to test all states */
+    .demo-controls {
+      display: flex;
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      gap: 8px;
+      justify-content: center;
+      z-index: 1000;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .demo-controls-title {
+      width: 100%;
+      text-align: center;
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .demo-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .demo-btn:hover { border-color: var(--gold-500); color: var(--gold-700); }
+    .demo-btn.active { background: var(--gold-500); color: white; border-color: var(--gold-500); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (min-width: 960px) {
+      body.gold-auth-page > .auth-card {
+        display: block;
+        max-width: 500px;
+        min-height: auto;
+      }
+    }
+    @media print {
+      .demo-controls, .btn-pdf, .result-actions a { display: none !important; }
+    }
+  </style>
+</head>
+<body class="gold-auth-page">
+
+  <div class="auth-card">
+
+    <!-- SUCCESS STATE -->
+    <div class="result-card status-success active" id="state-success">
+      <i class='bx bx-check-circle result-icon'></i>
+      <h2 class="result-title">پرداخت موفق</h2>
+      <p class="result-desc">تراکنش شما با موفقیت انجام شد و کیف پول شما شارژ گردید.</p>
+
+      <div class="result-details" id="details-success"></div>
+
+      <div class="result-actions">
+        <a href="index.html" class="button" style="display: block; width: 100%; background: linear-gradient(135deg, var(--gold-400), var(--gold-600)); color: white; padding: 14px; border-radius: 12px; font-weight: 900; text-decoration: none;">بازگشت به داشبورد</a>
+        <button class="btn-pdf" onclick="window.print()"><i class='bx bx-download'></i> دانلود رسید (PDF)</button>
+      </div>
+    </div>
+
+    <!-- BUY SUCCESS STATE -->
+    <div class="result-card status-success" id="state-buy-success">
+      <i class='bx bx-check-circle result-icon'></i>
+      <h2 class="result-title">خرید طلا موفق</h2>
+      <p class="result-desc">عملیات خرید طلای شما با موفقیت انجام شد و به موجودی قلک شما اضافه گردید.</p>
+
+      <div class="result-details" id="details-buy-success"></div>
+
+      <div class="result-actions">
+        <a href="index.html" class="button" style="display: block; width: 100%; background: linear-gradient(135deg, var(--gold-400), var(--gold-600)); color: white; padding: 14px; border-radius: 12px; font-weight: 900; text-decoration: none;">بازگشت به داشبورد</a>
+        <a href="transactions.html" class="button" style="display: block; width: 100%; background: white; border: 1px solid var(--gold-500); color: var(--gold-600); padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none;">مشاهده تراکنش‌ها</a>
+        <button class="btn-pdf" onclick="window.print()"><i class='bx bx-download'></i> دانلود رسید (PDF)</button>
+      </div>
+    </div>
+
+    <!-- SELL SUCCESS STATE -->
+    <div class="result-card status-success" id="state-sell-success">
+      <i class='bx bx-check-circle result-icon'></i>
+      <h2 class="result-title">فروش طلا موفق</h2>
+      <p class="result-desc">عملیات فروش طلای شما با موفقیت انجام شد و مبلغ آن به کیف پول ریالی شما واریز گردید.</p>
+
+      <div class="result-details" id="details-sell-success"></div>
+
+      <div class="result-actions">
+        <a href="index.html" class="button" style="display: block; width: 100%; background: linear-gradient(135deg, var(--gold-400), var(--gold-600)); color: white; padding: 14px; border-radius: 12px; font-weight: 900; text-decoration: none;">بازگشت به داشبورد</a>
+        <a href="withdraw.html" class="button" style="display: block; width: 100%; background: white; border: 1px solid var(--gold-500); color: var(--gold-600); padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none;">برداشت وجه</a>
+        <button class="btn-pdf" onclick="window.print()"><i class='bx bx-download'></i> دانلود رسید (PDF)</button>
+      </div>
+    </div>
+
+    <!-- FAILED STATE -->
+    <div class="result-card status-failed" id="state-failed">
+      <i class='bx bx-x-circle result-icon'></i>
+      <h2 class="result-title">پرداخت ناموفق</h2>
+      <p class="result-desc">متأسفانه در فرآیند پرداخت خطایی رخ داد. در صورت کسر وجه، مبلغ تا ۷۲ ساعت آینده به حساب شما بازخواهد گشت.</p>
+
+      <div class="result-details" id="details-failed"></div>
+
+      <div class="result-actions">
+        <a href="buy.html" class="button" style="display: block; width: 100%; background: #ef4444; color: white; padding: 14px; border-radius: 12px; font-weight: 900; border: none; text-decoration: none;">تلاش مجدد</a>
+        <a href="index.html" class="button" style="display: block; width: 100%; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none;">انصراف و بازگشت</a>
+      </div>
+    </div>
+
+    <!-- CANCELED STATE -->
+    <div class="result-card status-canceled" id="state-canceled">
+      <i class='bx bx-error-circle result-icon'></i>
+      <h2 class="result-title">پرداخت لغو شد</h2>
+      <p class="result-desc">شما از فرآیند پرداخت انصراف دادید. تراکنشی انجام نشد و هیچ مبلغی کسر نشده است.</p>
+
+      <div class="result-details" id="details-canceled"></div>
+
+      <div class="result-actions">
+        <a href="index.html" class="button" style="display: block; width: 100%; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none;">بازگشت به داشبورد</a>
+        <a href="buy.html" class="button" style="display: block; width: 100%; background: linear-gradient(135deg, var(--gold-400), var(--gold-600)); color: white; padding: 14px; border-radius: 12px; font-weight: 900; text-decoration: none;">خرید مجدد</a>
+      </div>
+    </div>
+
+    <!-- REVIEW STATE -->
+    <div class="result-card status-review" id="state-review">
+      <i class='bx bx-search-alt-2 result-icon'></i>
+      <h2 class="result-title">نیازمند بررسی</h2>
+      <p class="result-desc">تراکنش شما ثبت شده و در حال بررسی توسط تیم پشتیبانی است. نتیجه به زودی از طریق پیامک به اطلاع شما خواهد رسید.</p>
+
+      <div class="result-details" id="details-review"></div>
+
+      <div class="result-actions">
+        <a href="index.html" class="button" style="display: block; width: 100%; background: linear-gradient(135deg, var(--gold-400), var(--gold-600)); color: white; padding: 14px; border-radius: 12px; font-weight: 900; text-decoration: none;">بازگشت به داشبورد</a>
+        <a href="transactions.html" class="button" style="display: block; width: 100%; background: white; border: 1px solid var(--gold-500); color: var(--gold-600); padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none;">مشاهده تراکنش‌ها</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="demo-controls">
+    <div class="demo-controls-title">تست حالت‌های مختلف (برای تیم back-end)</div>
+    <button class="demo-btn" onclick="showState('success')">موفق</button>
+    <button class="demo-btn" onclick="showState('buy-success')">خرید موفق</button>
+    <button class="demo-btn" onclick="showState('sell-success')">فروش موفق</button>
+    <button class="demo-btn" onclick="showState('failed')">ناموفق</button>
+    <button class="demo-btn" onclick="showState('canceled')">لغو شده</button>
+    <button class="demo-btn" onclick="showState('review')">نیازمند بررسی</button>
+  </div>
+
+  <script src="../js/gold-trading.js"></script>
+  <script>
+    var params = new URLSearchParams(window.location.search);
+
+    // Demo controls are always visible for the back-end team to test all states.
+
+    function faDate(d) {
+      try {
+        return new Intl.DateTimeFormat('fa-IR', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        }).format(d || new Date());
+      } catch (_) { return ''; }
+    }
+
+    function faMoney(n) {
+      n = String(n || '0').replace(/[^0-9.-]/g, '');
+      var parts = n.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return toPersianNum(parts.join('.')) + ' تومان';
+    }
+    function faGram(g) {
+      g = parseFloat(g) || 0;
+      return toPersianNum(g.toFixed(3)) + ' گرم';
+    }
+
+    function showState(stateId) {
+      document.querySelectorAll('.result-card').forEach(el => el.classList.remove('active'));
+      var el = document.getElementById('state-' + stateId);
+      if (el) el.classList.add('active');
+    }
+
+    function renderDetails(containerId, rows) {
+      var c = document.getElementById(containerId);
+      if (!c) return;
+      c.innerHTML = rows.map(function (r) {
+        return '<div class="detail-row"><span class="detail-label">' + r.label +
+               ':</span><span class="detail-value" style="' + (r.style || '') + '">' + r.value +
+               '</span></div>';
+      }).join('');
+    }
+
+    var status = params.get('status');
+    var amount = params.get('amount');
+    var weight = params.get('weight');
+    var rate = params.get('rate');
+    var fee = params.get('fee');
+    var vault = params.get('vault') || params.get('gholak') || 'قلک اصلی';
+    var gateway = params.get('gateway') || 'زرین‌پال';
+    var tracking = params.get('tracking') || String(Math.floor(Math.random() * 9000000 + 1000000));
+    var gatewayTracking = params.get('gatewayTracking') || String(Math.floor(Math.random() * 9000000 + 1000000));
+    var dateStr = faDate(new Date());
+
+    if (['success', 'buy-success', 'sell-success', 'failed', 'canceled', 'review'].includes(status)) {
+      showState(status);
+
+      if (status === 'success') {
+        renderDetails('details-success', [
+          { label: 'مبلغ پرداختی', value: faMoney(amount) },
+          { label: 'شماره پیگیری', value: 'B-' + toPersianNum(tracking) },
+          { label: 'درگاه پرداخت', value: gateway },
+          { label: 'کد پیگیری درگاه', value: toPersianNum(gatewayTracking) },
+          { label: 'تاریخ', value: dateStr }
+        ]);
+      } else if (status === 'buy-success') {
+        var rows = [
+          { label: 'مقدار طلای خریداری‌شده', value: faGram(weight) },
+          { label: 'مبلغ پرداختی', value: faMoney(amount) },
+          { label: 'قلک مقصد', value: vault },
+          { label: 'درگاه پرداخت', value: gateway },
+          { label: 'کد پیگیری درگاه', value: toPersianNum(gatewayTracking) },
+          { label: 'شماره پیگیری', value: 'B-' + toPersianNum(tracking) },
+          { label: 'تاریخ و زمان', value: dateStr }
+        ];
+        if (fee && fee !== '0') {
+          rows.splice(2, 0, { label: 'کارمزد خرید', value: faMoney(fee) });
+        } else {
+          rows.splice(2, 0, { label: 'کارمزد خرید', value: 'رایگان', style: 'color:#10b981;' });
+        }
+        renderDetails('details-buy-success', rows);
+      } else if (status === 'sell-success') {
+        var srows = [
+          { label: 'مقدار طلای فروخته‌شده', value: faGram(weight) },
+          { label: 'مبلغ واریز به کیف پول', value: faMoney(amount) }
+        ];
+        if (rate) srows.push({ label: 'نرخ فروش', value: faMoney(rate) });
+        if (fee && fee !== '0') srows.push({ label: 'کارمزد فروش', value: faMoney(fee) });
+        srows.push({ label: 'شماره پیگیری', value: 'S-' + toPersianNum(tracking) });
+        srows.push({ label: 'تاریخ و زمان', value: dateStr });
+        renderDetails('details-sell-success', srows);
+      } else if (status === 'failed') {
+        renderDetails('details-failed', [
+          { label: 'مبلغ تراکنش', value: faMoney(amount) },
+          { label: 'شماره پیگیری', value: 'B-' + toPersianNum(tracking) },
+          { label: 'درگاه پرداخت', value: gateway },
+          { label: 'تاریخ', value: dateStr },
+          { label: 'علت', value: 'خطای درگاه پرداخت' }
+        ]);
+      } else if (status === 'canceled') {
+        renderDetails('details-canceled', [
+          { label: 'مبلغ تراکنش', value: faMoney(amount) },
+          { label: 'شماره پیگیری', value: 'B-' + toPersianNum(tracking) },
+          { label: 'درگاه پرداخت', value: gateway },
+          { label: 'تاریخ', value: dateStr },
+          { label: 'علت', value: 'کاربر پرداخت را لغو کرد' }
+        ]);
+      } else if (status === 'review') {
+        renderDetails('details-review', [
+          { label: 'مبلغ تراکنش', value: faMoney(amount) },
+          { label: 'شماره پیگیری', value: 'B-' + toPersianNum(tracking) },
+          { label: 'درگاه پرداخت', value: gateway },
+          { label: 'تاریخ', value: dateStr },
+          { label: 'وضعیت بررسی', value: 'در حال بررسی توسط پشتیبانی' }
+        ]);
+      }
+    } else {
+      // No status URL param: render default details for the active 'success' state
+      // so the result-details block isn't empty.
+      renderDetails('details-success', [
+        { label: 'مبلغ پرداختی', value: faMoney(amount) },
+        { label: 'شماره پیگیری', value: 'B-' + toPersianNum(tracking) },
+        { label: 'درگاه پرداخت', value: gateway },
+        { label: 'کد پیگیری درگاه', value: toPersianNum(gatewayTracking) },
+        { label: 'تاریخ', value: dateStr }
+      ]);
+    }
+
+    // Highlight the active demo button
+    document.querySelectorAll('.demo-btn').forEach(function (btn) {
+      btn.classList.remove('active');
+      var onclickAttr = btn.getAttribute('onclick') || '';
+      if (onclickAttr.indexOf("'" + status + "'") !== -1) {
+        btn.classList.add('active');
+      }
+    });
+
+    // Wire demo buttons to also update the active highlight
+    var origShowState = showState;
+    showState = function (stateId) {
+      origShowState(stateId);
+      document.querySelectorAll('.demo-btn').forEach(function (btn) {
+        btn.classList.remove('active');
+        var onclickAttr = btn.getAttribute('onclick') || '';
+        if (onclickAttr.indexOf("'" + stateId + "'") !== -1) {
+          btn.classList.add('active');
+        }
+      });
+    };
+  </script>
+</body>
+</html>

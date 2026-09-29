@@ -1,0 +1,422 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@theme {
+  --font-vazir: "Vazirmatn", ui-sans-serif, system-ui;
+
+  /* Brand Colors from photo-1 */
+  --color-brand-purple-dark: #7b2c83;
+  --color-brand-purple-light: #9e64a4;
+  --color-brand-pink: #e91e63;
+  --color-brand-blue: #3f51b5;
+  --color-brand-cyan: #00bcd4;
+  --color-brand-gray: #757575;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-vazir);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    direction: rtl;
+    background-color: #ffffff;
+  }
+}
+
+/* Custom Styles from your setup */
+@layer components {
+  .input-sidebar {
+    @apply w-full bg-transparent border-none rounded-full px-3 py-2 text-sm text-center text-white outline-none;
+  }
+  
+  .btn-sidebar {
+    @apply bg-white text-[#4527a0] text-xs font-bold px-4 py-1.5 rounded-full hover:bg-gray-100 transition-all absolute left-1 top-1 bottom-1;
+  }
+}
+/* ==========================================================================
+   Yasi Show - Step 1 Global Layout Additions
+   (Footer overhaul, mobile trust bar, profile dropdown, Aparat icon)
+   ========================================================================== */
+
+/* ---- Aparat brand icon — uses the official Aparat logo.
+   The icon inherits font-size for sizing (1em) and sits on the text baseline.
+   The logo is full-color (magenta + black + white) so we do NOT tint it;
+   we only scale it. We prefer the high-quality PNG (crisper at small sizes)
+   with the SVG as a scalable fallback for large displays. ---- */
+.aparat-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.18em;
+  background: url("../icons/aparat-logo-128.png") center / contain no-repeat;
+  /* SVG wins on high-DPI / large sizes; PNG is the crisp default. */
+  background-image: image-set(
+    url("../icons/aparat-logo-128.png") type("image/png") 1x,
+    url("../icons/aparat-logo.png") type("image/png") 2x
+  );
+}
+/* When the Aparat icon sits inside a colored circular "chip" (e.g. footer
+   social row), keep it readable on light backgrounds. */
+a .aparat-icon { transition: transform .2s ease; }
+a:hover .aparat-icon { transform: scale(1.1); }
+
+/* ---- Footer: trust badge tiles (30% bigger) ---- */
+.ys-trust-badge {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  height: 6.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+.ys-trust-badge:hover {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+  transform: translateY(-3px);
+  border-color: #c4b5fd;
+}
+.ys-trust-badge .ys-trust-mark {
+  height: 3rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ys-trust-badge .ys-trust-mark img {
+  max-height: 3rem;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+.ys-trust-badge .ys-trust-label {
+  font-size: 0.625rem;
+  line-height: 1.1;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* ---- Footer link hover accent ---- */
+.ys-footer-link {
+  color: #475569;
+  transition: color .2s ease, padding-inline-start .2s ease;
+}
+.ys-footer-link:hover {
+  color: var(--color-brand-pink);
+  padding-inline-start: 0.25rem;
+}
+
+/* ---- Profile dropdown (logged-in header state) ---- */
+.ys-profile-dropdown {
+  animation: ys-dropdown-in .18s ease-out;
+}
+@keyframes ys-dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Mobile sticky bottom trust bar ---- */
+#ys-mobile-trustbar {
+  background: rgba(255,255,255,0.96);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -6px 24px rgba(0,0,0,0.08);
+}
+.ys-trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1 1 0;
+  min-width: 0;
+  color: #475569;
+  text-decoration: none;
+  transition: color .2s ease, transform .2s ease;
+}
+.ys-trust-item:active { transform: scale(0.94); }
+.ys-trust-item .ys-trust-item-label {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Reserve space under the footer so the mobile trust bar never covers the
+   copyright text. Desktop is unaffected. */
+@media (max-width: 767px) {
+  body.has-mobile-trustbar .ys-footer-bottom {
+    padding-bottom: 4.5rem;
+  }
+}
+
+/* ==========================================================================
+   Yasi Show - Step 2 Additions
+   (disabled category box, seamless deceased mosaic, mobile reorder)
+   ========================================================================== */
+
+/* ---- Disabled / inactive category box (Phase 1) ----
+   Apply .disabled-box to any bento category tile to render it grayscale,
+   faded, and non-interactive. A small "به‌زودی" (Coming soon) badge appears. */
+.disabled-box {
+  filter: grayscale(1);
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+  position: relative;
+}
+.disabled-box::after {
+  content: "به‌زودی";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: inherit;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ---- Seamless deceased mosaic grid ----
+   Zero gaps, no borders, square cells. Some items span 2x2 randomly
+   (driven by the .mosaic-large class on chosen tiles). The grid auto-flows
+   densely so the layout stays compact regardless of which items are large. */
+.ys-mosaic {
+  display: grid;
+  /* 6 equal columns on desktop, fewer on smaller screens. minmax(0,1fr) lets
+     columns shrink/expand so the grid always fills its container with no
+     leftover whitespace. */
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  grid-auto-flow: dense;
+  /* Small 2px gap between tiles to match the mockup (photo-1-01.jpg).
+     The background peeks through as a subtle grid line. */
+  gap: 2px;
+  background: #f1f5f9;
+  width: 100%;
+}
+@media (max-width: 1023px) {
+  .ys-mosaic { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) {
+  .ys-mosaic { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.ys-mosaic > * {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  display: block;
+  aspect-ratio: 1 / 1;          /* keep every cell square */
+}
+/* 2x2 tiles stay square too (2x2 of the square base unit) */
+.ys-mosaic .mosaic-large {
+  grid-column: span 2;
+  grid-row: span 2;
+  aspect-ratio: 1 / 1;
+}
+.ys-mosaic > * img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Hover overlay for the deceased name */
+.ys-mosaic .ys-mosaic-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(123, 44, 131, 0.92) 0%,
+    rgba(0, 0, 0, 0.45) 45%,
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.75rem;
+}
+.ys-mosaic > *:hover .ys-mosaic-overlay { opacity: 1; }
+.ys-mosaic .ys-mosaic-overlay span {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+/* The "add deceased" tile — styled to blend into the seamless mosaic.
+   No dashed border, no rounded corners; just a solid tinted square. */
+.ys-mosaic .ys-mosaic-add {
+  background: rgba(233, 30, 99, 0.1);
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-brand-pink);
+  text-decoration: none;
+  transition: background .25s ease;
+}
+.ys-mosaic .ys-mosaic-add:hover {
+  background: rgba(233, 30, 99, 0.2);
+}
+
+/* ---- Mobile layout reorder on index.html ----
+   On mobile only, push the sidebar (dark filter buttons + user-account box)
+   below the main content so the colorful category bento is the first thing
+   the user sees. We use CSS order on the flex container. */
+@media (max-width: 1023px) {
+  .ys-layout-reorder {
+    flex-direction: column;
+  }
+  .ys-layout-reorder > .ys-sidebar {
+    order: 2;            /* sidebar moves to the bottom on mobile */
+  }
+  .ys-layout-reorder > .ys-main {
+    order: 1;            /* main content (bento + grid) stays on top */
+  }
+  /* On mobile the intro text + login CTA inside the sidebar are less useful
+     above the fold; keep them but allow the filter row to scroll. The sidebar
+     already stacks vertically so no extra hiding is needed. */
+}
+
+/* ==========================================================================
+   Yasi Show - Step 3 Additions
+   (Lightbox gallery, chart modal, deceased-detail side-by-side layout,
+    square photo consistency)
+   ========================================================================== */
+
+/* ---- Memorial gallery: fixed-height preview row ---- */
+.ys-gallery-preview {
+  max-height: 280px;
+  overflow: hidden;
+  position: relative;
+}
+.ys-gallery-preview::after {
+  /* Subtle fade at the bottom edge when content is clipped */
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 48px;
+  background: linear-gradient(to top, #fff, transparent);
+  pointer-events: none;
+}
+
+/* ---- Advanced Lightbox (full-screen image/video viewer) ---- */
+#ys-lightbox {
+  background: rgba(0, 0, 0, 0.95);
+}
+.ys-lightbox-stage {
+  /* Center the current image/video; cap dimensions so it never overflows */
+  max-width: 90vw;
+  max-height: 75vh;
+  object-fit: contain;
+}
+.ys-lightbox-nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: background .2s ease, transform .2s ease;
+}
+.ys-lightbox-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.08);
+}
+.ys-lightbox-nav-btn:active { transform: scale(0.95); }
+.ys-lightbox-thumb {
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity .2s ease;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+}
+.ys-lightbox-thumb:hover { opacity: 0.85; }
+.ys-lightbox-thumb.active {
+  opacity: 1;
+  border-color: var(--color-brand-pink);
+}
+
+/* ---- Empty chart modal (for backend to inject chart later) ---- */
+#ys-chart-modal .ys-chart-slot {
+  min-height: 320px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(148, 163, 184, 0.05),
+      rgba(148, 163, 184, 0.05) 12px,
+      transparent 12px,
+      transparent 24px
+    );
+  border: 2px dashed #cbd5e1;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+/* ---- Deceased detail: full-width gallery+donation row ----
+   The white container uses CSS Grid on desktop: top row has the content
+   column (3fr) and photo column (2fr) side-by-side; bottom row spans both
+   columns for the gallery+donation. On mobile it collapses to a simple
+   stacked column. */
+.ys-deceased-container {
+  display: flex !important;
+  flex-direction: column !important;
+}
+@media (min-width: 1024px) {
+  .ys-deceased-container {
+    display: grid !important;
+    grid-template-columns: 3fr 2fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 2.5rem 4rem !important;
+  }
+  .ys-deceased-content { grid-column: 1 !important; grid-row: 1 !important; }
+  .ys-deceased-photo  { grid-column: 2 !important; grid-row: 1 !important; }
+  .ys-fullwidth-row   { grid-column: 1 / -1 !important; grid-row: 2 !important; }
+}
+
+/* ---- Custom checkbox styling (deceased-detail + add-deceased) ---- */
+input[type="checkbox"].peer:checked {
+  background-color: var(--color-brand-pink);
+  border-color: var(--color-brand-pink);
+}
+
+/* ---- Custom checkbox: pink background when checked ---- */
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+input[type="checkbox"]:checked {
+  background-color: #e91e63;
+  border-color: #e91e63;
+}
+input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}

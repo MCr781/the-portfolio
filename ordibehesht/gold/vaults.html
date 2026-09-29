@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>قلک‌های من | قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <link rel="stylesheet" href="../css/auth.css">
+  <meta name="theme-color" content="#d4af37">
+</head>
+<body class="internal-page gold-page">
+
+  <div class="gold-app">
+    <div class="gold-app-inner">
+      <!-- Gold Header (mobile only) -->
+      <div class="gold-header">
+        <div class="gold-header-left">
+          <a href="index.html" class="icon-btn-gold" aria-label="بازگشت">
+            <i class='bx bx-arrow-back'></i>
+          </a>
+          <div class="gold-logo">
+            <img src="../icons/brand-mark.svg" alt="قلک طلا" class="gold-logo-img" width="28" height="28">
+            <span class="gold-logo-text">قلک‌های من</span>
+          </div>
+        </div>
+        <div class="gold-header-right">
+          <button class="icon-btn-gold" aria-label="اعلان‌ها">
+            <i class='bx bx-bell'></i>
+          </button>
+          <a href="rates.html" class="icon-btn-gold" aria-label="نرخ‌ها">
+            <i class='bx bx-trending-up'></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Gold Content -->
+      <div class="gold-content">
+
+        <!-- Page Header -->
+        <div class="vaults-page-header">
+          <div>
+            <h1 class="vaults-page-title">قلک‌های من</h1>
+            <p class="vaults-page-subtitle">قلک‌های شخصی خود را مدیریت کنید و برای هدف‌های خاص پس‌انداز کنید.</p>
+          </div>
+          <button class="btn-primary-gold ripple" id="vaults-create-btn" style="width: auto; padding: 10px 18px; border-radius: 10px; border: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
+            <i class='bx bx-plus'></i> قلک جدید
+          </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="vaults-summary" id="vaults-summary">
+          <div class="vaults-summary-card">
+            <div class="vaults-summary-icon"><i class='bx bx-coin-stack'></i></div>
+            <div>
+              <div class="vaults-summary-label">مجموع طلای قلک‌ها</div>
+              <div class="vaults-summary-value" id="summary-total-gram">۰ <small>گرم</small></div>
+            </div>
+          </div>
+          <div class="vaults-summary-card">
+            <div class="vaults-summary-icon"><i class='bx bx-wallet-alt'></i></div>
+            <div>
+              <div class="vaults-summary-label">معادل ریالی</div>
+              <div class="vaults-summary-value" id="summary-total-rial">۰ <small>تومان</small></div>
+            </div>
+          </div>
+          <div class="vaults-summary-card">
+            <div class="vaults-summary-icon"><i class='bx bx-target-lock'></i></div>
+            <div>
+              <div class="vaults-summary-label">قلک‌های هدف</div>
+              <div class="vaults-summary-value" id="summary-goal-count">۰</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vaults Grid -->
+        <div class="vaults-grid" id="vaults-grid">
+          <!-- Populated by JS -->
+        </div>
+
+      </div>
+
+      <!-- Gold Bottom Nav (mobile only) -->
+      <nav class="gold-bottom-nav">
+        <a href="index.html" class="gold-nav-item">
+          <i class='bx bx-home gold-nav-icon'></i>
+          <span class="gold-nav-label">خانه</span>
+        </a>
+        <a href="buy.html" class="gold-nav-item">
+          <i class='bx bx-plus-circle gold-nav-icon'></i>
+          <span class="gold-nav-label">خرید</span>
+        </a>
+        <a href="transactions.html" class="gold-nav-item">
+          <i class='bx bx-transfer-alt gold-nav-icon'></i>
+          <span class="gold-nav-label">تراکنش‌ها</span>
+        </a>
+        <a href="rates.html" class="gold-nav-item">
+          <i class='bx bx-trending-up gold-nav-icon'></i>
+          <span class="gold-nav-label">نرخ‌ها</span>
+        </a>
+        <a href="#" class="gold-nav-item user-btn">
+          <i class='bx bx-user gold-nav-icon'></i>
+          <span class="gold-nav-label">پروفایل</span>
+        </a>
+      </nav>
+
+      <div id="toast-container" class="toast-container"></div>
+    </div>
+  </div>
+
+  <script src="../lib/jquery/jquery.min.js"></script>
+  <script src="../js/script.js"></script>
+  <script src="../js/gold-trading.js"></script>
+  <script src="../js/gold-chrome.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var createBtn = document.getElementById('vaults-create-btn');
+      if (createBtn) {
+        createBtn.addEventListener('click', function () {
+          if (window.GoldVaultCreate) GoldVaultCreate.open();
+        });
+      }
+
+      var RATE = 17641000;
+
+      function faNum(n) { return toPersianNum(n); }
+      function faMoney(n) {
+        n = String(n).replace(/[^0-9.-]/g, '');
+        var parts = n.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return toPersianNum(parts.join('.'));
+      }
+
+      function renderSummary(vaults) {
+        var totalGram = 0;
+        var totalRial = 0;
+        var goalCount = 0;
+        vaults.forEach(function (v) {
+          totalGram += v.gramBalance || 0;
+          totalRial += v.rialBalance || 0;
+          if (v.goalType && v.goalType !== 'none') goalCount++;
+        });
+        var totalRialEquivalent = totalRial + (totalGram * RATE);
+
+        document.getElementById('summary-total-gram').innerHTML = faNum(totalGram.toFixed(3)) + ' <small>گرم</small>';
+        document.getElementById('summary-total-rial').innerHTML = faMoney(Math.round(totalRialEquivalent)) + ' <small>تومان</small>';
+        document.getElementById('summary-goal-count').textContent = faNum(goalCount);
+      }
+
+      function renderVaults() {
+        var grid = document.getElementById('vaults-grid');
+        if (!grid) return;
+        var vaults = window.GoldAuth ? GoldAuth.getVaults() : [];
+
+        renderSummary(vaults);
+
+        if (!vaults.length) {
+          grid.innerHTML = '<div class="vault-empty-state">' +
+            '<i class="bx bx-coin-stack"></i>' +
+            '<h3>هنوز قلکی نساخته‌اید</h3>' +
+            '<p>قلک‌های شخصی به شما کمک می‌کنند برای هدف‌های خاص مثل خرید ماشین، سفر یا جهیزیه پس‌انداز کنید. هر قلک می‌تواند یادآوری دوره‌ای و هدف جداگانه داشته باشد.</p>' +
+            '<button class="btn-primary-gold ripple" onclick="GoldVaultCreate.open()" style="padding: 12px 24px; border-radius: 10px; border: none;">ساخت اولین قلک</button>' +
+          '</div>';
+          return;
+        }
+
+        grid.innerHTML = vaults.map(function (v) {
+          var isMain = v.type === 'main';
+          var icon = isMain ? 'bx-wallet' : (v.goalType === 'gram' ? 'bx-coin' : 'bx-money');
+          var goalHtml = '';
+          if (v.goalType === 'gram' && v.goalAmount) {
+            var pct = Math.min(100, Math.round((v.gramBalance / v.goalAmount) * 100));
+            goalHtml = '<div class="vault-card-progress">' +
+                       '<div class="vault-card-progress-bar" style="width: ' + pct + '%;"></div>' +
+                     '</div>' +
+                     '<div class="vault-card-progress-text">' +
+                       '<span>' + faNum(v.gramBalance.toFixed(3)) + ' از ' + faNum(v.goalAmount) + ' گرم</span>' +
+                       '<span>' + faNum(pct) + '٪</span>' +
+                     '</div>';
+          } else if (v.goalType === 'rial' && v.goalAmount) {
+            var rialPct = Math.min(100, Math.round(((v.rialBalance || 0) / v.goalAmount) * 100));
+            goalHtml = '<div class="vault-card-progress">' +
+                       '<div class="vault-card-progress-bar" style="width: ' + rialPct + '%;"></div>' +
+                     '</div>' +
+                     '<div class="vault-card-progress-text">' +
+                       '<span>' + faMoney(v.rialBalance || 0) + ' از ' + faMoney(v.goalAmount) + ' تومان</span>' +
+                       '<span>' + faNum(rialPct) + '٪</span>' +
+                     '</div>';
+          }
+          var reminderHtml = '';
+          if (v.reminder && v.reminder !== 'none') {
+            var reminderLabel = { daily: 'روزانه', weekly: 'هفتگی', monthly: 'ماهانه' }[v.reminder] || v.reminder;
+            reminderHtml = '<div class="vault-card-reminder"><i class="bx bx-bell"></i> یادآوری ' + reminderLabel + '</div>';
+          }
+          return '<div class="vault-card' + (isMain ? ' vault-card-main' : '') + '" data-vault-id="' + v.id + '">' +
+                   '<div class="vault-card-header">' +
+                     '<div class="vault-card-icon"><i class="bx ' + icon + '"></i></div>' +
+                     '<span class="vault-card-type-badge">' + (isMain ? 'قلک اصلی' : 'قلک هدف') + '</span>' +
+                   '</div>' +
+                   '<div class="vault-card-name">' + v.name + '</div>' +
+                   '<div class="vault-card-balance">' +
+                     '<span class="vault-card-balance-value">' + faNum(v.gramBalance.toFixed(3)) + '</span>' +
+                     '<span class="vault-card-balance-unit">گرم طلا</span>' +
+                   '</div>' +
+                   '<div class="vault-card-meta">قابل استفاده</div>' +
+                   goalHtml +
+                   reminderHtml +
+                 '</div>';
+        }).join('');
+
+        // Wire click → show details toast
+        grid.querySelectorAll('.vault-card').forEach(function (card) {
+          card.addEventListener('click', function () {
+            var id = this.dataset.vaultId;
+            var vaults = window.GoldAuth ? GoldAuth.getVaults() : [];
+            var v = vaults.find(function (x) { return x.id === id; });
+            if (!v) return;
+            if (window.GoldToast) {
+              GoldToast.info('جزئیات قلک «' + v.name + '» — موجودی: ' + faNum(v.gramBalance.toFixed(3)) + ' گرم');
+            }
+          });
+        });
+      }
+
+      renderVaults();
+      document.addEventListener('gold:vault-created', renderVaults);
+    });
+  </script>
+  <script src="../js/sw-register.js"></script>
+
+</body>
+</html>

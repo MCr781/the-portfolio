@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>در حال ایجاد قلک | قلک طلا</title>
+  <link rel="stylesheet" href="../css/vendor/boxicons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/gold-trading.css">
+  <link rel="stylesheet" href="../css/auth.css">
+  <meta name="theme-color" content="#d4af37">
+  <style>
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+    }
+    .gholak-icon-wrapper {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gold-50);
+      border-radius: 50%;
+    }
+    .gholak-pulse {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--gold-200);
+      animation: pulse 1.5s infinite ease-out;
+      z-index: 1;
+    }
+    .gholak-coin {
+      position: absolute;
+      top: -30px;
+      font-size: 24px;
+      color: var(--gold-600);
+      animation: dropCoin 1.5s infinite ease-in;
+      opacity: 0;
+      z-index: 3;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    @keyframes dropCoin {
+      0% { transform: translateY(0); opacity: 0; }
+      20% { opacity: 1; }
+      80% { transform: translateY(40px); opacity: 1; }
+      100% { transform: translateY(60px); opacity: 0; }
+    }
+    .loading-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .loading-subtext {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .loading-steps {
+      list-style: none;
+      padding: 0;
+      margin: 32px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .loading-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      opacity: 0.5;
+      transition: opacity 0.3s, color 0.3s;
+    }
+    .loading-step.done { opacity: 1; color: #10b981; }
+    .loading-step.active { opacity: 1; color: var(--gold-700); font-weight: 700; }
+    .loading-step i { font-size: 18px; }
+
+    .success-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-align: center;
+    }
+    .success-icon {
+      font-size: 80px;
+      color: #10b981;
+      margin-bottom: 16px;
+    }
+    .success-vault-card {
+      margin-top: 24px;
+      padding: 20px;
+      background: var(--gold-50);
+      border-radius: 16px;
+      border: 1px dashed var(--gold-300);
+      width: 100%;
+      max-width: 320px;
+    }
+    .success-vault-name {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--gold-700);
+      margin-bottom: 4px;
+    }
+    .success-vault-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="gold-auth-page">
+
+  <div class="auth-card">
+
+    <!-- Desktop Side Banner -->
+    <div class="auth-brand-desktop">
+      <img src="../icons/brand-mark.svg" alt="قلک طلا" class="auth-brand-logo" style="width: 80px; height: 80px; margin-bottom: 24px;">
+      <h1 class="auth-brand-desktop-title" style="color: white; font-size: 28px; margin-bottom: 32px; line-height: 1.4;">سرمایه‌گذاری امن<br>و هوشمند در طلا</h1>
+      <ul class="auth-brand-desktop-features" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
+        <li>خرید و فروش آنلاین با قیمت لحظه‌ای</li>
+        <li>پشتیبانی از تحویل فیزیکی طلا</li>
+        <li>بدون کارمزد و مالیات پنهان</li>
+      </ul>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="auth-form-panel" style="text-align: center; justify-content: center; display: flex; flex-direction: column;">
+
+      <!-- Step Indicator -->
+      <div class="auth-steps" style="margin-bottom: 32px;">
+        <div class="auth-step done">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۱</span></div>
+          <div class="auth-step-label">شماره موبایل</div>
+        </div>
+        <div class="auth-step done">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۲</span></div>
+          <div class="auth-step-label">کد تأیید</div>
+        </div>
+        <div class="auth-step done">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۳</span></div>
+          <div class="auth-step-label">اطلاعات هویتی</div>
+        </div>
+        <div class="auth-step active">
+          <div class="auth-step-circle"><span class="auth-step-circle-number">۴</span></div>
+          <div class="auth-step-label">ایجاد قلک</div>
+        </div>
+      </div>
+
+      <div id="loadingState" class="loading-container">
+        <div class="gholak-icon-wrapper">
+          <div class="gholak-pulse"></div>
+          <i class='bx bx-coin-stack gholak-coin'></i>
+          <img src="../icons/brand-mark.svg" alt="قلک طلا" style="width: 64px; height: 64px; z-index: 2;">
+        </div>
+        <h2 class="loading-text">در حال ایجاد قلک طلا...</h2>
+        <p class="loading-subtext">لطفاً چند لحظه منتظر بمانید</p>
+
+        <ul class="loading-steps">
+          <li class="loading-step" id="ls-1"><i class="bx bx-revision"></i> ثبت اطلاعات هویتی</li>
+          <li class="loading-step" id="ls-2"><i class="bx bx-revision"></i> احراز هویت اولیه</li>
+          <li class="loading-step" id="ls-3"><i class="bx bx-revision"></i> ایجاد قلک اصلی</li>
+          <li class="loading-step" id="ls-4"><i class="bx bx-revision"></i> آماده‌سازی پیش‌خوان</li>
+        </ul>
+      </div>
+
+      <div id="successState" class="success-state">
+        <i class='bx bx-check-circle success-icon'></i>
+        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 8px; color: var(--text);">قلک شما با موفقیت ایجاد شد!</h2>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">حساب شما با موفقیت ایجاد شد و قلک اصلی شما آماده استفاده است.</p>
+
+        <div class="success-vault-card">
+          <div style="display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 8px;">
+            <i class="bx bx-coin-stack" style="color: var(--gold-600); font-size: 24px;"></i>
+            <span class="success-vault-name" id="success-vault-name">قلک اصلی</span>
+          </div>
+          <div class="success-vault-meta">
+            موجودی اولیه: <strong style="color: var(--gold-700);">۰ گرم طلا</strong> ·
+            <span id="success-kyc-status">احراز هویت تأیید شد</span>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 24px;">در حال انتقال به پیش‌خوان...</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="../js/gold-trading.js"></script>
+  <script src="../js/gold-chrome.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Guard: must have completed profile
+      if (!window.GoldAuth || !GoldAuth.state || !GoldAuth.state.name) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      var steps = [
+        { el: document.getElementById('ls-1'), delay: 400 },
+        { el: document.getElementById('ls-2'), delay: 900 },
+        { el: document.getElementById('ls-3'), delay: 1500 },
+        { el: document.getElementById('ls-4'), delay: 2100 }
+      ];
+
+      steps.forEach(function (s, i) {
+        setTimeout(function () {
+          // Mark previous as done
+          if (i > 0) {
+            steps[i - 1].el.classList.remove('active');
+            steps[i - 1].el.classList.add('done');
+            var prevIcon = steps[i - 1].el.querySelector('i');
+            prevIcon.className = 'bx bx-check';
+          }
+          s.el.classList.add('active');
+        }, s.delay);
+      });
+
+      // After all steps done, finalize auth + show success
+      setTimeout(function () {
+        // Mark last step as done
+        steps[steps.length - 1].el.classList.remove('active');
+        steps[steps.length - 1].el.classList.add('done');
+        var lastIcon = steps[steps.length - 1].el.querySelector('i');
+        lastIcon.className = 'bx bx-check';
+
+        // Finalize: creates main vault, sets kycStatus='approved'
+        var state = GoldAuth.finalize();
+
+        // Hide loading, show success
+        document.getElementById('loadingState').style.display = 'none';
+        var succ = document.getElementById('successState');
+        succ.style.display = 'flex';
+
+        // Populate vault name + kyc
+        if (state.vaults && state.vaults[0]) {
+          document.getElementById('success-vault-name').textContent = state.vaults[0].name;
+        }
+
+        // Redirect to dashboard
+        setTimeout(function () {
+          window.location.href = 'index.html';
+        }, 1800);
+      }, 2700);
+    });
+  </script>
+</body>
+</html>
