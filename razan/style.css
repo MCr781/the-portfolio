@@ -1,0 +1,1121 @@
+@import "tailwindcss";
+
+        :root {
+            --razan-teal-light: #049e96;
+            --razan-teal: #028c85;
+            --razan-teal-dark: #00645f;
+            --razan-gray-100: #8e8e8e;
+            --razan-gray-200: #676767;
+            --razan-gray-300: #595959;
+            --razan-gray-400: #474646;
+            --ease-elegant: cubic-bezier(0.22, 1, 0.36, 1);
+            --intro-fly-x: 0px;
+            --intro-fly-y: 0px;
+            --intro-fly-scale: 1;
+            --dir-sign: 1;
+        }
+
+        html[dir="rtl"] {
+            --dir-sign: -1;
+            font-family: "SahelRazan", "AvantGardeRazan", sans-serif;
+        }
+
+        @font-face {
+            font-family: "AvantGardeRazan";
+            src: url("assets/fonts/AVGARDN_2.TTF") format("truetype");
+            font-weight: 300 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "SahelRazan";
+            src: url("assets/fonts/Sahel.ttf") format("truetype");
+            font-weight: 300 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            font-family: "AvantGardeRazan", "SahelRazan";
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: var(--razan-gray-400);
+            overflow-x: hidden;
+            opacity: 0;
+            transition: opacity 0.55s ease-out;
+        }
+
+        body.page-ready {
+            opacity: 1;
+        }
+
+        /* ═══════════════════════════════════════════════
+           INTRO OVERLAY
+           ═══════════════════════════════════════════════ */
+        #intro-overlay {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: opacity 0.7s var(--ease-elegant);
+        }
+
+        #intro-overlay.intro-fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro-overlay.intro-hidden {
+            display: none;
+        }
+
+        /* ── Intro Logo Wrapper ── */
+        #intro-logo-wrap {
+            position: relative;
+            /* Using a variable lets us shift exactly 2.6875% of its width at any breakpoint */
+            --logo-w: 280px;
+            width: var(--logo-w);
+            height: 275px;
+            margin-bottom: 0.5rem;
+            inset-inline-start: calc(var(--logo-w) * -0.026875);
+            transition: transform 0.85s var(--ease-elegant), opacity 0.5s var(--ease-elegant);
+            transform-origin: center center;
+            will-change: transform, opacity;
+        }
+
+        @media (min-width: 640px) {
+            #intro-logo-wrap {
+                --logo-w: 340px;
+                height: 334px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #intro-logo-wrap {
+                --logo-w: 400px;
+                height: 393px;
+            }
+        }
+
+        /* Phase 3: fly to corner */
+        #intro-overlay.intro-phase-3 #intro-logo-wrap {
+            transform: translate(var(--intro-fly-x), var(--intro-fly-y)) scale(var(--intro-fly-scale));
+            opacity: 1;
+            transition: transform 0.85s var(--ease-elegant), opacity 0.55s var(--ease-elegant);
+        }
+
+        /* ── Intro Logo Pieces ── */
+        .intro-piece {
+            position: absolute;
+            top: 0;
+            inset-inline-start: 0;
+            width: 100%;
+            height: 100%;
+            will-change: transform, opacity;
+            transition: transform 0.8s var(--ease-elegant), opacity 0.2s linear;
+            transform-origin: center center;
+        }
+
+        /* Blue center piece – always on top */
+        #intro-piece-blue {
+            z-index: 50;
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Gray pieces – stacked exactly under the blue piece (full size, invisible) */
+        #intro-piece-p1,
+        #intro-piece-p3,
+        #intro-piece-p4,
+        #intro-piece-p5 {
+            z-index: 40;
+            /* مقادیر پیش‌فرض برای متغیرهای حرکتی */
+            --off-x: 0px;
+            --off-y-initial: 0px;
+            --off-y-final: 0px;
+            /* قطعات در ابتدا مخفی هستند */
+            opacity: 0;
+            /* موقعیت اولیه: مخفی شده زیر قطعه آبی (با جابجایی منفی برای جبران فاصله) */
+            transform: translate(calc(var(--off-x) * -1 * var(--dir-sign)), calc(var(--off-y-final) * -1)) scale(1);
+        }
+
+        /* Phase 1: horizontal slide only (Y stays at blue level) */
+        #intro-overlay.intro-phase-1 #intro-piece-p1,
+        #intro-overlay.intro-phase-2 #intro-piece-p1,
+        #intro-overlay.intro-phase-3 #intro-piece-p1 {
+            transform: translate(0px, calc(var(--off-y-final) * -1)) scale(1);
+            opacity: 1;
+        }
+
+        #intro-overlay.intro-phase-1 #intro-piece-p3,
+        #intro-overlay.intro-phase-2 #intro-piece-p3,
+        #intro-overlay.intro-phase-3 #intro-piece-p3 {
+            transform: translate(0px, calc(var(--off-y-final) * -1)) scale(1);
+            opacity: 1;
+        }
+
+        #intro-overlay.intro-phase-1 #intro-piece-p4,
+        #intro-overlay.intro-phase-2 #intro-piece-p4,
+        #intro-overlay.intro-phase-3 #intro-piece-p4 {
+            transform: translate(0px, calc(var(--off-y-final) * -1)) scale(1);
+            opacity: 1;
+        }
+
+        #intro-overlay.intro-phase-1 #intro-piece-p5,
+        #intro-overlay.intro-phase-2 #intro-piece-p5,
+        #intro-overlay.intro-phase-3 #intro-piece-p5 {
+            transform: translate(0px, calc(var(--off-y-final) * -1)) scale(1);
+            opacity: 1;
+        }
+
+        /* Phase 2: top pieces move upward to final Y */
+        #intro-overlay.intro-phase-2 #intro-piece-p3,
+        #intro-overlay.intro-phase-3 #intro-piece-p3 {
+            transform: translate(0px, 0px) scale(1);
+        }
+
+        #intro-overlay.intro-phase-2 #intro-piece-p4,
+        #intro-overlay.intro-phase-3 #intro-piece-p4 {
+            transform: translate(0px, 0px) scale(1);
+        }
+
+        /* ── Intro Text ── */
+        #intro-text-block {
+            text-align: center;
+            z-index: 60;
+            transition: opacity 0.3s ease-out;
+            /* سرعت محو شدن متن را بیشتر کردیم */
+            pointer-events: none;
+            white-space: nowrap;
+            margin-top: 0.5rem;
+        }
+
+        #intro-text-block .intro-title {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 0.28em;
+            color: #474646;
+            line-height: 1.1;
+        }
+
+        #intro-text-block .intro-subtitle {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            color: #595959;
+            text-transform: uppercase;
+            margin-top: 0.4rem;
+        }
+
+        @media (min-width: 640px) {
+            #intro-text-block .intro-title {
+                font-size: 2.6rem;
+                letter-spacing: 0.32em;
+            }
+
+            #intro-text-block .intro-subtitle {
+                font-size: 0.8rem;
+                letter-spacing: 0.26em;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #intro-text-block .intro-title {
+                font-size: 3.2rem;
+                letter-spacing: 0.38em;
+            }
+
+            #intro-text-block .intro-subtitle {
+                font-size: 0.85rem;
+                letter-spacing: 0.3em;
+            }
+        }
+
+        /* Text fades out in phase 2+ */
+        #intro-overlay.intro-phase-2 #intro-text-block,
+        #intro-overlay.intro-phase-3 #intro-text-block,
+        #intro-overlay.intro-fade-out #intro-text-block {
+            opacity: 0;
+            transition: opacity 0.4s var(--ease-elegant);
+        }
+
+        /* ═══════════════════════════════════════════════
+           MAIN CONTENT FADE-IN
+           ═══════════════════════════════════════════════ */
+        [data-stage="app-root"] {
+            opacity: 0;
+            transition: opacity 0.7s var(--ease-elegant);
+        }
+
+        body.content-visible [data-stage="app-root"] {
+            opacity: 1;
+        }
+
+        /* ═══════════════════════════════════════════════
+           SIDEBAR LOGO (final position)
+           ═══════════════════════════════════════════════ */
+        [data-anim-target="logo-container"] {
+            position: relative;
+            transform-origin: center center;
+            will-change: transform, opacity;
+            z-index: 1;
+        }
+
+        [data-anim-target="logo-container"].logo-no-transition {
+            transition: none !important;
+        }
+
+        .logo-part {
+            opacity: 1;
+            /* اضافه شدن fill به ترانزیشن‌ها برای تغییر رنگ نرم */
+            transition: transform 1s var(--ease-elegant), opacity 0.9s var(--ease-elegant), fill 0.6s var(--ease-elegant);
+            transform-origin: center;
+            will-change: transform, opacity, fill;
+        }
+
+        /* ── Hover React CSS (Sidebar Logo) ── */
+        .logo-part.hover-active {
+            /* تغییر رنگ رو از اینجا هم حذف کردیم تا فقط زوم بشه */
+            transform: scale(1.09) !important;
+            animation: none !important;
+        }
+
+        /* ═══════════════════════════════════════════════
+           CONFETTI – right side only
+           ═══════════════════════════════════════════════ */
+        .confetti-piece {
+            position: absolute;
+            width: 96px;
+            height: 168px;
+            color: rgba(4, 158, 150, 0.16);
+            fill: currentColor;
+            animation: confettiDrift 13s ease-in-out infinite;
+            pointer-events: none;
+            filter: drop-shadow(0 8px 14px rgba(2, 140, 133, 0.10));
+            transition: transform 1.5s var(--ease-elegant), opacity 1.5s var(--ease-elegant);
+        }
+
+        .confetti-piece.c2 {
+            width: 84px;
+            height: 148px;
+            animation-delay: -3s;
+        }
+
+        .confetti-piece.c3 {
+            width: 108px;
+            height: 186px;
+            animation-delay: -7s;
+        }
+
+        .confetti-piece.c4 {
+            width: 72px;
+            height: 132px;
+            animation-delay: -5.2s;
+            color: rgba(2, 140, 133, 0.20);
+        }
+
+        .confetti-piece.c5 {
+            width: 90px;
+            height: 156px;
+            animation-delay: -9.4s;
+            color: rgba(4, 158, 150, 0.13);
+        }
+
+        @keyframes confettiDrift {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(16deg);
+            }
+
+            50% {
+                transform: translateY(-7px) rotate(8deg);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════
+           PANELS & VISUALS
+           ═══════════════════════════════════════════════ */
+        .panel-shell {
+            border-radius: 28px;
+            border: 1px solid rgba(2, 140, 133, 0.32);
+            background: linear-gradient(180deg, rgba(142, 142, 142, 0.12), rgba(103, 103, 103, 0.18));
+            box-shadow: 0 12px 28px rgba(71, 70, 70, 0.12);
+        }
+
+        /* ── انیمیشن ارگانیک و افترافکتی لوگو (Breathing Effect) ── */
+        .idle-pulse-group {
+            transform-origin: center center;
+            transform-box: fill-box;
+            /* ترفند نهایی فایرفاکس: تبدیل لایه به یک آبجکتِ فیلتردار برای نرم شدن لبه‌ها */
+            filter: drop-shadow(0 0 0 transparent);
+        }
+
+        .logo-part {
+            opacity: 1;
+            transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), fill 0.4s ease;
+            transform-origin: center center;
+            transform-box: fill-box;
+            outline: 1px solid transparent;
+            /* جلوگیری از پیکسلی شدن لبه ها */
+        }
+
+        .logo-part.hover-active {
+            transform: scale(1.12) !important;
+        }
+
+        /* انیمیشن اصلی برای کروم و سافاری (Scale) */
+        @keyframes aeBreathing {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(0.95);
+                opacity: 0.6;
+            }
+        }
+
+        /* 
+           ترفند اختصاصی برای فایرفاکس: 
+           چون فایرفاکس در Scale کردن وکتورها لرزش دارد، 
+           فقط در این مرورگر به جای Scale از ترنسلیت (Float) استفاده می‌کنیم تا کاملاً نرم شود.
+        */
+        @-moz-document url-prefix() {
+            @keyframes aeBreathing {
+
+                0%,
+                100% {
+                    transform: translateY(2px);
+                    opacity: 1;
+                }
+
+                50% {
+                    transform: translateY(-6px);
+                    opacity: 0.6;
+                }
+            }
+
+            .logo-part.hover-active {
+                transform: translateY(-6px) !important;
+            }
+        }
+
+        .matrix-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 6px;
+            background-color: #f4f4f4;
+            cursor: pointer;
+            --matrix-x: 0;
+            --matrix-y: 0;
+            --matrix-scale: 1;
+            transform: translate3d(var(--matrix-x), var(--matrix-y), 0) scale(var(--matrix-scale));
+            transform-origin: center center;
+            filter: grayscale(1) contrast(0.94) brightness(0.88);
+            opacity: 0.96;
+            z-index: 1;
+            contain: paint;
+            backface-visibility: hidden;
+            transition:
+                transform 1.05s var(--ease-elegant),
+                filter 0.72s ease,
+                opacity 0.72s ease,
+                box-shadow 0.72s var(--ease-elegant);
+        }
+
+        .matrix-item::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0));
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.45s var(--ease-elegant);
+            z-index: 2;
+        }
+
+        .matrix-title {
+            position: absolute;
+            inset-inline: 0.38rem;
+            bottom: 0.34rem;
+            z-index: 3;
+            color: #ffffff;
+            font-size: clamp(0.44rem, 0.85vw, 0.72rem);
+            line-height: 1.15;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            text-shadow: 0 6px 14px rgba(0, 0, 0, 0.42);
+            opacity: 0;
+            transform: translateY(0.45rem);
+            transition: opacity 0.45s var(--ease-elegant), transform 0.45s var(--ease-elegant);
+            pointer-events: none;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        #home-matrix-grid.matrix-live-grid {
+            isolation: isolate;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #home-matrix-grid.matrix-conveyor-active {
+            clip-path: inset(
+                var(--matrix-clip-top, 0)
+                var(--matrix-clip-right, 0)
+                var(--matrix-clip-bottom, 0)
+                var(--matrix-clip-left, 0)
+            );
+        }
+
+        #home-matrix-grid.matrix-conveyor-active .matrix-item.matrix-conveyor-cell {
+            z-index: var(--matrix-z, 5);
+            transition-duration: 0.9s, 0.72s, 0.72s, 0.72s;
+            transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1), ease, ease, var(--ease-elegant);
+        }
+
+        #home-matrix-grid .matrix-item:hover,
+        #home-matrix-grid .matrix-item:focus-visible {
+            --matrix-scale: 1.08;
+            filter: grayscale(0) contrast(1.02) brightness(1.02);
+            opacity: 1;
+            z-index: 8;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        #home-matrix-grid .matrix-item:hover::after,
+        #home-matrix-grid .matrix-item:focus-visible::after {
+            opacity: 1;
+        }
+
+        #home-matrix-grid .matrix-item:hover .matrix-title,
+        #home-matrix-grid .matrix-item:focus-visible .matrix-title {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #home-matrix-grid .matrix-item.matrix-conveyor-cell {
+            will-change: transform, filter, opacity;
+        }
+
+        #home-matrix-grid .matrix-item.matrix-conveyor-clone {
+            position: absolute;
+            pointer-events: none;
+            margin: 0;
+        }
+
+        #home-matrix-grid .matrix-item.matrix-conveyor-snap {
+            transition: none !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .matrix-item,
+            .matrix-item::after,
+            .matrix-title {
+                transition: none;
+            }
+
+        }
+
+        @keyframes loopPart1 {
+            0%, 15% { transform: translate(269.2px, -0.4px); opacity: 0; }
+            30% { transform: translate(0px, -0.4px); opacity: 1; }
+            45%, 55% { transform: translate(0px, 0px); opacity: 1; }
+            70% { transform: translate(0px, -0.4px); opacity: 1; }
+            85%, 100% { transform: translate(269.2px, -0.4px); opacity: 0; }
+        }
+        @keyframes loopPart3 {
+            0%, 15% { transform: translate(112.0px, 325.6px); opacity: 0; }
+            30% { transform: translate(0px, 325.6px); opacity: 1; }
+            45%, 55% { transform: translate(0px, 0px); opacity: 1; }
+            70% { transform: translate(0px, 325.6px); opacity: 1; }
+            85%, 100% { transform: translate(112.0px, 325.6px); opacity: 0; }
+        }
+        @keyframes loopPart4 {
+            0%, 15% { transform: translate(-110.7px, 326.0px); opacity: 0; }
+            30% { transform: translate(0px, 326.0px); opacity: 1; }
+            45%, 55% { transform: translate(0px, 0px); opacity: 1; }
+            70% { transform: translate(0px, 326.0px); opacity: 1; }
+            85%, 100% { transform: translate(-110.7px, 326.0px); opacity: 0; }
+        }
+        @keyframes loopPart5 {
+            0%, 15% { transform: translate(-221.5px, -0.1px); opacity: 0; }
+            30% { transform: translate(0px, -0.1px); opacity: 1; }
+            45%, 55% { transform: translate(0px, 0px); opacity: 1; }
+            70% { transform: translate(0px, -0.1px); opacity: 1; }
+            85%, 100% { transform: translate(-221.5px, -0.1px); opacity: 0; }
+        }
+
+        [data-state="idle"] .idle-pulse-1 {
+            animation: loopPart1 8s var(--ease-elegant) infinite;
+        }
+
+        [data-state="idle"] .idle-pulse-2 {
+            /* Part 2 stays in the center */
+        }
+
+        [data-state="idle"] .idle-pulse-3 {
+            animation: loopPart3 8s var(--ease-elegant) infinite;
+        }
+
+        [data-state="idle"] .idle-pulse-4 {
+            animation: loopPart4 8s var(--ease-elegant) infinite;
+        }
+
+        [data-state="idle"] .idle-pulse-5 {
+            animation: loopPart5 8s var(--ease-elegant) infinite;
+        }
+
+        .visual-fill {
+            background: linear-gradient(180deg, rgba(142, 142, 142, 0.78), rgba(89, 89, 89, 0.84)),
+                linear-gradient(125deg, rgba(4, 158, 150, 0.26), rgba(2, 140, 133, 0.08));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visual-fill::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(130deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 46%);
+            pointer-events: none;
+        }
+
+        .visual-tag {
+            position: absolute;
+            right: 1rem;
+            bottom: 0.8rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.22em;
+            color: rgba(255, 255, 255, 0.86);
+            text-transform: uppercase;
+        }
+
+        .scroll-clean {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .scroll-clean::-webkit-scrollbar {
+            display: none;
+        }
+
+        .project-col {
+            scroll-snap-type: y mandatory;
+        }
+
+        .project-col article {
+            scroll-snap-align: center;
+        }
+
+        .tab-panel {
+            transition: opacity 0.56s ease-in-out;
+            will-change: opacity;
+            transform: none;
+        }
+
+        /* ═══════════════════════════════════════════════
+           NAVIGATION – padding-based hitbox, no gaps
+           ═══════════════════════════════════════════════ */
+        .nav-item {
+            transition: color 0.5s var(--ease-elegant), text-shadow 0.5s var(--ease-elegant);
+            position: relative;
+            z-index: 10;
+            /* پدینگ بالا و پایین زیاد شده تا هیت‌باکس‌ها به هم بچسبند اما متن‌ها فاصله داشته باشند */
+            padding: 1.5rem 0.35rem;
+            padding-inline-start: 1.5rem; /* Base fallback */
+            margin: 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            text-align: start;
+            outline: none;
+        }
+
+        .nav-item:hover,
+        .nav-item[aria-selected="true"] {
+            text-shadow: 0 0 0.01px currentColor;
+        }
+
+        .spine-top strong {
+            font-weight: 700 !important;
+        }
+
+        /* ═══════════════════════════════════════════════
+           LOGO PART MARKERS IN NAV
+           ═══════════════════════════════════════════════ */
+        .logo-part-marker {
+            --marker-left: 4.45rem;
+            --marker-scale: 1;
+            --marker-shift: 0rem;
+            position: absolute;
+            top: 50%;
+            inset-inline-start: calc(var(--marker-left) * -1);
+            width: 3.5rem;
+            height: 3.5rem;
+            transform: translate(calc(-50% * var(--dir-sign)), -50%) scale(var(--marker-scale)) translateX(calc(var(--marker-shift) * var(--dir-sign)));
+            will-change: transform, inset-inline-start, opacity;
+            transition: transform 0.62s var(--ease-elegant), inset-inline-start 0.62s var(--ease-elegant), opacity 0.62s var(--ease-elegant);
+            /* رنگ سبز رو برداشتیم تا خاکستری اصلی خودشون باشن */
+            color: var(--razan-gray-200);
+            opacity: 0.22;
+            pointer-events: none;
+            overflow: visible;
+            z-index: 0;
+        }
+
+        /* برای اینکه در حالت عادی هم رنگ‌های اصلی خودشون رو داشته باشن */
+        .nav-btn-home .logo-part-marker {
+            --marker-left: 2.8rem;
+            color: #676767;
+        }
+
+        .nav-btn-news .logo-part-marker {
+            --marker-left: 2.75rem;
+            color: #676767;
+        }
+
+        /* دکمه Projects که بخش مرکزی و سبز لوگو هست */
+        .nav-btn-projects .logo-part-marker {
+            --marker-left: 2.65rem;
+            color: #028c85;
+        }
+
+        .nav-btn-about .logo-part-marker {
+            --marker-left: 2.6rem;
+            color: #676767;
+        }
+
+        .nav-btn-contact .logo-part-marker {
+            --marker-left: 3.05rem;
+            color: #676767;
+        }
+
+        .nav-item:hover .logo-part-marker,
+        .nav-item[aria-selected="true"] .logo-part-marker {
+            --marker-scale: 1.08;
+            --marker-shift: 1.8rem;
+            opacity: 1;
+        }
+
+        .nav-btn-contact:hover .logo-part-marker,
+        .nav-btn-contact[aria-selected="true"] .logo-part-marker {
+            --marker-shift: 2.6rem;
+        }
+
+        @media (min-width: 1024px) {
+            .nav-item {
+                padding-inline-start: 0.8rem;
+                transition: padding-inline-start 0.5s var(--ease-elegant), color 0.5s var(--ease-elegant), text-shadow 0.5s var(--ease-elegant);
+            }
+            .nav-btn-contact:hover,
+            .nav-btn-contact[aria-selected="true"] {
+                padding-inline-start: 1.6rem;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════
+           MOTION RISE HOVER
+           ═══════════════════════════════════════════════ */
+        .motion-rise {
+            transition: transform 0.6s var(--ease-elegant), box-shadow 0.6s var(--ease-elegant);
+        }
+
+        .motion-rise:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 26px rgba(71, 70, 70, 0.22);
+        }
+
+        #sec-news .news-article-item .motion-rise:hover {
+            transform: translateY(0);
+        }
+
+        /* ═══════════════════════════════════════════════
+   INFINITE LOGO IDLE ANIMATION (FADE & SCALE SEQUENCE)
+   ═══════════════════════════════════════════════ */
+        @keyframes continuousIdlePulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(0.92);
+                opacity: 0.3;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════
+           TIMELINE, NEWS, FILTERS, ABOUT
+           ═══════════════════════════════════════════════ */
+        .timeline-vertical {
+            position: relative;
+            padding-inline-start: 2rem;
+            border-inline-start: 2px solid var(--razan-teal-light);
+            margin-inline-start: 0.5rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--razan-teal);
+            border-radius: 50%;
+            inset-inline-start: -2.44rem;
+            top: 0.35rem;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 0 2px var(--razan-teal-light);
+        }
+
+        .timeline-year {
+            font-size: 0.75rem;
+            color: var(--razan-gray-100);
+            letter-spacing: 0.12em;
+            line-height: 1;
+            margin-bottom: 0.15rem;
+        }
+
+        .timeline-label {
+            font-size: 0.875rem;
+            color: var(--razan-gray-200);
+            font-weight: 500;
+        }
+
+        .news-year-tab {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            letter-spacing: 0.18em;
+            color: var(--razan-gray-100);
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: none;
+            cursor: pointer;
+            transition: color 0.35s var(--ease-elegant), border-color 0.35s var(--ease-elegant);
+        }
+
+        .news-year-tab:hover {
+            color: var(--razan-gray-400);
+        }
+
+        .news-year-tab.active {
+            color: var(--razan-teal);
+            border-bottom-color: var(--razan-teal);
+            font-weight: 600;
+        }
+
+        #news-articles {
+            display: grid;
+            gap: 1rem;
+            min-height: 400px;
+            transition: opacity 0.28s var(--ease-elegant);
+        }
+
+        #news-articles.news-switching {
+            opacity: 0;
+        }
+
+        .news-article-item.hidden-news {
+            display: none;
+            pointer-events: none;
+        }
+
+        /* استایل‌های مربوط به فیلترهای پروژه‌ها که به سایدبار می‌روند */
+        .project-filter-btn {
+            padding: 0.15rem 0.25rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--razan-gray-200);
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-elegant);
+            text-align: left;
+        }
+
+        .project-filter-btn:hover {
+            color: var(--razan-teal);
+        }
+
+        .project-filter-btn.active {
+            color: var(--razan-teal);
+            font-weight: bold;
+        }
+
+        /* ── ترانزیشن بسیار نرم خطوط نشانگر (Indicator) ── */
+        #sidebar-project-filters button,
+        #sidebar-about-subnav button,
+        #sidebar-news-filters button {
+            position: relative;
+        }
+
+        #sidebar-project-filters button::before,
+        #sidebar-about-subnav button::before,
+        #sidebar-news-filters button::before {
+            content: '';
+            position: absolute;
+            inset-inline-start: -0.75rem;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--razan-teal);
+            border-radius: 2px;
+            transform: scaleY(0);
+            /* خط در ابتدا بسته است */
+            transform-origin: center;
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-nav-active {
+            color: var(--razan-teal) !important;
+            font-weight: 600;
+        }
+
+        .sidebar-nav-active::before {
+            transform: scaleY(1) !important;
+            /* خط با انیمیشن نرم باز می‌شود */
+            opacity: 1 !important;
+        }
+
+        /* ═══════════════════════════════════════════════
+           RESPONSIVE
+           ═══════════════════════════════════════════════ */
+        @media (max-width: 1023px) {
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            [data-stage="app-root"] {
+                min-height: 100vh;
+                height: auto;
+                gap: 0.85rem;
+                padding-bottom: 1.25rem;
+            }
+
+            #main-nav {
+                display: grid;
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+                gap: 0;
+                padding: 0.55rem;
+                background: rgba(255, 255, 255, 0.94);
+                border: 1px solid rgba(2, 140, 133, 0.18);
+                border-radius: 20px;
+                box-shadow: 0 16px 36px rgba(71, 70, 70, 0.12);
+                overflow: visible;
+                justify-content: stretch;
+                align-items: stretch;
+                backdrop-filter: blur(12px);
+            }
+
+            #nav-btn-home,
+            #nav-btn-news,
+            #nav-btn-projects {
+                grid-column: span 2;
+            }
+
+            #nav-btn-about,
+            #nav-btn-contact {
+                grid-column: span 3;
+            }
+
+            #main-nav .nav-item {
+                justify-content: center;
+                min-height: 2.45rem;
+                padding: 0.55rem 0.65rem;
+                border: 1px solid rgba(2, 140, 133, 0.12);
+                border-radius: 999px;
+                background: #ffffff;
+                box-shadow: 0 8px 18px rgba(71, 70, 70, 0.05);
+                text-align: center;
+                font-size: 0.64rem;
+                letter-spacing: 0.13em;
+                line-height: 1.15;
+                white-space: normal;
+                margin: 0;
+            }
+
+            /* استایل موبایل برای آیتم‌های منو (اصلاح رنگ دکمه فعال طبق عکس) */
+            #main-nav .nav-item[aria-selected="true"] {
+                color: #ffffff !important;
+                background: var(--razan-teal);
+                border-color: var(--razan-teal);
+                box-shadow: 0 6px 16px rgba(2, 140, 133, 0.25);
+            }
+
+            [data-anim-target="spine-divider"] {
+                width: 100%;
+            }
+
+            [data-anim-target="spine-divider"] .spine-line {
+                width: 100%;
+                height: 1px;
+            }
+
+            [data-anim-target="spine-divider"] .spine-line .spine-top {
+                top: -1.35rem;
+                inset-inline-start: 0.6rem;
+                transform: none;
+            }
+
+            [data-anim-target="spine-divider"] .spine-line .spine-bottom {
+                bottom: -1.45rem;
+                inset-inline-end: 0.6rem;
+                inset-inline-start: auto;
+                transform: none;
+            }
+
+            [data-anim-target="content-panel"] {
+                min-height: 62vh;
+                margin-top: 0.6rem;
+            }
+
+            .logo-part-marker {
+                display: none;
+            }
+
+            .confetti-piece {
+                opacity: 0.30;
+            }
+
+            .contact-shell {
+                height: auto;
+                min-height: 100%;
+                overflow: visible;
+                padding-bottom: 5.9rem;
+                touch-action: pan-y;
+            }
+
+            .contact-submit-wrap {
+                position: sticky;
+                bottom: 0;
+                display: flex;
+                width: 100%;
+                justify-content: stretch;
+                padding-top: 1rem;
+                padding-bottom: 0.25rem;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.92) 28%, #ffffff 100%);
+            }
+
+            .contact-submit-wrap button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            #sec-contact {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+            }
+
+            #main-nav .nav-item[aria-selected="true"]:hover {
+                color: #ffffff;
+            }
+
+            #main-nav .nav-item:hover {
+                color: var(--razan-gray-400);
+            }
+
+            #main-nav .nav-item::after {
+                display: none;
+            }
+
+            .tab-panel>div>.sticky {
+                padding-top: 0.85rem;
+                padding-bottom: 0.75rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .tab-panel>div>.sticky h2 {
+                font-size: 1.45rem;
+                letter-spacing: 0.09em;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            body {
+                overflow: hidden;
+            }
+
+            #sec-contact .contact-shell {
+                overflow: hidden;
+                padding-bottom: 1.75rem;
+            }
+
+            #sec-contact .contact-shell>.sticky {
+                padding-top: 1.15rem;
+                padding-bottom: 0.95rem;
+                margin-bottom: 0.75rem;
+            }
+
+            #sec-contact .contact-shell>.grid {
+                gap: 0.85rem;
+            }
+
+            #sec-contact .contact-shell>.flex {
+                margin-top: 1.15rem;
+                gap: 2.25rem;
+            }
+        }
+
+        #global-social-icons > div:first-child {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        /* Brand text fine-tuning — adjust translateX values to center on spine line */
+        #brand-text-en {
+            transform: translateX(2px);
+        }
+
+        #brand-text-fa {
+            transform: translateX(-3px);
+        }
+
+        html[dir="rtl"] #brand-text-fa {
+            transform: translateX(-3px);
+        }
+
+        /* Persian logo 15% smaller than English in main layout */
+        html[dir="rtl"] #header-brand-logo {
+            width: 85%;
+        }
+
+        /* Shift brand text left to center on the teal gear petal */
+        @media (min-width: 1024px) {
+            #header-brand-logo-container {
+                margin-left: -27px;
+            }
+        }

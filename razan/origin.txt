@@ -1,0 +1,184 @@
+Uri: https://test.razanco.ir/
+File Name: e:\Downloaded Web Sites\test.razanco.ir\index.htm
+Content Type: text/html
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-01.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-01.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-05.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-05.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-07.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-07.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-11.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-11.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-13.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-13.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-17.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-17.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-19.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-19.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-23.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-23.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-04.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-04.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-22.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-22.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-02.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-02.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-06.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-06.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-08.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-08.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-12.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-12.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-14.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-14.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-18.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-18.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-20.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-20.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-24.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-24.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-10.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-10.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-03.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-03.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-09.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-09.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-15.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-15.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-21.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-21.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/Projects/project-seed-16.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\Projects\project-seed-16.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-01.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-01.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-02.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-02.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-03.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-03.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-04.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-04.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-05.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-05.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-06.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-06.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-07.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-07.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-08.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-08.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-09.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-09.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/News/news-seed-10.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\News\news-seed-10.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/About/about-seed-02.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\About\about-seed-02.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/About/about-seed-04.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\About\about-seed-04.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/cdn/Files/Razan/About/about-seed-01.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\cdn\Files\Razan\About\about-seed-01.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/assets/pics/Buildings/Map1.png
+File Name: e:\Downloaded Web Sites\test.razanco.ir\assets\pics\Buildings\Map1.png
+Content Type: image/png
+
+Uri: https://test.razanco.ir/assets/pics/Buildings/google-map-view.jpg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\assets\pics\Buildings\google-map-view.jpg
+Content Type: image/jpeg
+
+Uri: https://test.razanco.ir/output.css
+File Name: e:\Downloaded Web Sites\test.razanco.ir\output.css
+Content Type: text/css
+
+Uri: https://test.razanco.ir/style.css
+File Name: e:\Downloaded Web Sites\test.razanco.ir\style.css
+Content Type: text/css
+
+Uri: https://test.razanco.ir/assets/pics/RAZAN Consulting Engineering.svg
+File Name: e:\Downloaded Web Sites\test.razanco.ir\assets\pics\RAZAN Consulting Engineering.svg
+Content Type: image/svg+xml
+
+Uri: https://test.razanco.ir/script.js
+File Name: e:\Downloaded Web Sites\test.razanco.ir\script.js
+Content Type: text/javascript
+
+Uri: https://test.razanco.ir/assets/fonts/AVGARDN_2.TTF
+File Name: e:\Downloaded Web Sites\test.razanco.ir\assets\fonts\AVGARDN_2.TTF
+Content Type: application/x-font-ttf
+
+Uri: https://test.razanco.ir/assets/fonts/Sahel.ttf
+File Name: e:\Downloaded Web Sites\test.razanco.ir\assets\fonts\Sahel.ttf
+Content Type: application/x-font-ttf
+

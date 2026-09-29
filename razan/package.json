@@ -1,0 +1,41 @@
+{
+  "name": "test.razanco.ir",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "dependencies": {
+    "detect-libc": "^2.1.2",
+    "enhanced-resolve": "^5.20.0",
+    "graceful-fs": "^4.2.11",
+    "is-extglob": "^2.1.1",
+    "is-glob": "^4.0.3",
+    "jiti": "^2.6.1",
+    "lightningcss": "^1.31.1",
+    "lightningcss-win32-x64-msvc": "^1.31.1",
+    "magic-string": "^0.30.21",
+    "mri": "^1.2.0",
+    "node-addon-api": "^7.1.1",
+    "picocolors": "^1.1.1",
+    "picomatch": "^4.0.3",
+    "source-map-js": "^1.2.1",
+    "tailwindcss": "^4.2.1",
+    "tapable": "^2.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "concurrently": "^10.0.3",
+    "live-server": "^1.2.2"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run tailwind:watch\" \"npm run serve\"",
+    "serve": "live-server --ignore=node_modules",
+    "tailwind:watch": "tailwindcss -i ./style.css -o ./output.css --watch",
+    "tailwind:build": "tailwindcss -i ./style.css -o ./output.css --minify",
+    "build": "npm run tailwind:build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

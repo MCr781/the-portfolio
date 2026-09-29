@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 150" role="img" aria-label="RAZAN Consulting Engineering">
+  <style>
+    .title {
+      fill: #474646;
+      font-family: "AvantGardeRazan", "Montserrat", "Arial", sans-serif;
+      font-size: 72px;
+      font-weight: 300;
+      letter-spacing: 18px;
+    }
+
+    .subtitle {
+      fill: #8e8e8e;
+      font-family: "AvantGardeRazan", "Montserrat", "Arial", sans-serif;
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 8px;
+    }
+  </style>
+  <text class="title" x="50%" y="74" text-anchor="middle">RAZAN</text>
+  <text class="subtitle" x="50%" y="120" text-anchor="middle">Consulting Engineering</text>
+</svg>
