@@ -468,10 +468,12 @@
             -webkit-box-orient: vertical;
         }
 
+        #home-matrix-grid,
         #home-matrix-grid.matrix-live-grid {
             isolation: isolate;
             position: relative;
             overflow: hidden;
+            direction: ltr !important;
         }
 
         #home-matrix-grid.matrix-conveyor-active {
@@ -507,6 +509,11 @@
         #home-matrix-grid .matrix-item:focus-visible .matrix-title {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        html[dir="rtl"] #home-matrix-grid .matrix-title {
+            direction: rtl;
+            text-align: center;
         }
 
         #home-matrix-grid .matrix-item.matrix-conveyor-cell {
@@ -1118,4 +1125,15 @@
             #header-brand-logo-container {
                 margin-left: -27px;
             }
+        }
+
+        /* LTR numbers and bidirectional isolation in Persian */
+        html[dir="rtl"] #sec-about [dir="ltr"],
+        html[dir="rtl"] #sec-about bdi,
+        html[dir="rtl"] #sec-about .num-ltr,
+        html[dir="rtl"] #sec-contact [dir="ltr"],
+        html[dir="rtl"] #sec-contact .num-ltr {
+            direction: ltr !important;
+            unicode-bidi: isolate !important;
+            display: inline-block;
         }

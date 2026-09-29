@@ -316,6 +316,10 @@ function switchTab(activeTab) {
     targetBtn.setAttribute('tabindex', '0');
     targetPanel.classList.remove('z-0', 'opacity-0', 'pointer-events-none');
     targetPanel.classList.add('z-10', 'opacity-100');
+
+    if (document.documentElement.lang === 'fa' && (activeTab === 'about' || activeTab === 'contact')) {
+        applyLtrToNumbers(targetPanel);
+    }
 }
 
 function setAboutActive(sectionId) {
@@ -539,6 +543,47 @@ function snapToIdleLogo() {
     });
 }
 
+function applyLtrToNumbers(container) {
+    if (!container) return;
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+    const numPattern = /([+]?[\d\u06F0-\u06F9\u0660-\u0669][\d\u06F0-\u06F9\u0660-\u0669\s\-\+\/\,\.:]*[\d\u06F0-\u06F9\u0660-\u0669][+]?|[\d\u06F0-\u06F9\u0660-\u0669]+[+]?)/;
+    const nodesToReplace = [];
+    let textNode;
+
+    while ((textNode = walker.nextNode())) {
+        const parent = textNode.parentElement;
+        if (!parent || parent.closest('[dir="ltr"]') || ['SCRIPT', 'STYLE', 'SVG'].includes(parent.tagName)) {
+            continue;
+        }
+        if (numPattern.test(textNode.nodeValue)) {
+            nodesToReplace.push(textNode);
+        }
+    }
+
+    nodesToReplace.forEach(node => {
+        const parent = node.parentNode;
+        if (!parent) return;
+        const text = node.nodeValue;
+        const parts = text.split(/([+]?[\d\u06F0-\u06F9\u0660-\u0669][\d\u06F0-\u06F9\u0660-\u0669\s\-\+\/\,\.:]*[\d\u06F0-\u06F9\u0660-\u0669][+]?|[\d\u06F0-\u06F9\u0660-\u0669]+[+]?)/g);
+        const frag = document.createDocumentFragment();
+
+        parts.forEach(part => {
+            if (/[\d\u06F0-\u06F9\u0660-\u0669]/.test(part)) {
+                const span = document.createElement('span');
+                span.setAttribute('dir', 'ltr');
+                span.className = 'inline-block num-ltr';
+                span.style.direction = 'ltr';
+                span.style.unicodeBidi = 'isolate';
+                span.textContent = part;
+                frag.appendChild(span);
+            } else if (part) {
+                frag.appendChild(document.createTextNode(part));
+            }
+        });
+        parent.replaceChild(frag, node);
+    });
+}
+
 function applyLanguageChrome(lang, translateStaticContent = false) {
     const safeLang = lang === 'fa' ? 'fa' : 'en';
     document.documentElement.dir = safeLang === 'fa' ? 'rtl' : 'ltr';
@@ -575,6 +620,11 @@ function applyLanguageChrome(lang, translateStaticContent = false) {
 
     if (translateStaticContent) {
         walkAndTranslate(document.body, safeLang);
+    }
+
+    if (safeLang === 'fa') {
+        applyLtrToNumbers(document.getElementById('sec-about'));
+        applyLtrToNumbers(document.getElementById('sec-contact'));
     }
 }
 
@@ -1223,17 +1273,26 @@ function initHomeMatrix() {
     };
 
     const setMatrixClipBounds = () => {
-        const firstCell = cells[0];
-        const lastCell = cells[cells.length - 1];
-        if (!firstCell || !lastCell) return false;
+        if (!cells.length) return false;
 
         const gridRect = grid.getBoundingClientRect();
-        const firstRect = firstCell.getBoundingClientRect();
-        const lastRect = lastCell.getBoundingClientRect();
-        const clipTop = Math.max(0, firstRect.top - gridRect.top);
-        const clipRight = Math.max(0, gridRect.right - lastRect.right);
-        const clipBottom = Math.max(0, gridRect.bottom - lastRect.bottom);
-        const clipLeft = Math.max(0, firstRect.left - gridRect.left);
+        let minLeft = Infinity;
+        let maxRight = -Infinity;
+        let minTop = Infinity;
+        let maxBottom = -Infinity;
+
+        for (let i = 0; i < cells.length; i++) {
+            const r = cells[i].getBoundingClientRect();
+            if (r.left < minLeft) minLeft = r.left;
+            if (r.right > maxRight) maxRight = r.right;
+            if (r.top < minTop) minTop = r.top;
+            if (r.bottom > maxBottom) maxBottom = r.bottom;
+        }
+
+        const clipTop = Math.max(0, minTop - gridRect.top);
+        const clipRight = Math.max(0, gridRect.right - maxRight);
+        const clipBottom = Math.max(0, gridRect.bottom - maxBottom);
+        const clipLeft = Math.max(0, minLeft - gridRect.left);
 
         grid.style.setProperty('--matrix-clip-top', `${clipTop.toFixed(2)}px`);
         grid.style.setProperty('--matrix-clip-right', `${clipRight.toFixed(2)}px`);
