@@ -1333,6 +1333,7 @@
     pstartfa:  { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
     joyfa:     { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
     firefa:    { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
+    specfa:    { src: 9,  weight: 800, color: PC.gold, grid: 'half', align: 'center', nowrap: true },
     coinfa:    { src: 9,  weight: 700, color: PC.slateHi, grid: 'half', align: 'start' },
     bootfa:    { src: 8,  weight: 800, color: PC.slateHi, align: 'center' },
     bootskip:  { src: 10, weight: 700, color: PC.slate,   grid: 'half', align: 'center' }
@@ -1340,7 +1341,7 @@
 
   /* narrow screens: the same pixel twin, set a touch smaller so the
      title screen keeps its rhythm on a phone tube */
-  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, joyfa: 8, firefa: 8, bootfa: 7, bootskip: 9 };
+  var PX_MOBILE = { chip: 6, name: 12, statement: 9, para: 8, cuefa: 8, coinfa: 8, pstartfa: 8, joyfa: 8, firefa: 8, specfa: 8, bootfa: 7, bootskip: 9 };
 
   function accentOf(el) {
     var w = el.closest('[data-world]');
@@ -6191,7 +6192,7 @@ function farRow(wx, rows) {
       var HY = [
         ['FLY', 'WASD'],
         ['FIRE', 'SPACE'],
-        ['SPECIAL', '4 KILLS'],
+        ['SPECIAL', 'KEY E'],
         ['PAUSE', 'KEY P'],
         ['RESCUE', 'SHOOT CARRIER'],
         ['SECRET', 'PAGE FOOT'],
@@ -6523,6 +6524,17 @@ function farRow(wx, rows) {
       if (!e.repeat) { manualGun(); }
       return;
     }
+    if (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+      e.preventDefault();
+      touchDeck(world);
+      pbtnState[0] = 2;      /* the SPECIAL dome sinks with the key */
+      paintPBtns();
+      if (!e.repeat) {
+        fireSpecial();
+        blip(740, 60);
+      }
+      return;
+    }
     if (e.code === 'Enter') {
       e.preventDefault();
       touchDeck(world);
@@ -6537,12 +6549,17 @@ function farRow(wx, rows) {
     var k = KEYMAP[e.code];
     if (k) { keys[k] = false; syncStick(); return; }
     if (e.code === 'Space') { keys.space = false; pbtnState[1] = 0; paintPBtns(); return; }
+    if (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+      pbtnState[0] = 0;
+      paintPBtns();
+      return;
+    }
     if (e.code === 'Enter') { startState = 0; paintStart(); }
   });
   addEventListener('blur', function () {
     keys.w = keys.a = keys.s = keys.d = false;
     keys.space = false;
-    pbtnState[1] = 0;
+    pbtnState[0] = pbtnState[1] = 0;
     paintPBtns();
     syncStick();   /* the stick springs back when the tube loses focus */
   });

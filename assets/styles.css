@@ -1087,32 +1087,12 @@ html[data-show='cast'] .cast-caption {
 }
 .foot-fa { color: var(--shell-muted); font-size: .85rem; margin-top: .35rem; }
 /* the cast roll: the terrarium keepers get their marquee credit */
-.foot-cast { color: #b9b9c6; font-size: .78rem; margin-top: .3rem; }
-.foot-cast .mono {
+.foot-cast { color: #b9b9c6; font-size: .82rem; margin-top: .4rem; line-height: 1.8; }
+.foot-cast-lead {
   color: var(--c-accent);
-  letter-spacing: .22em;
-  font-size: .6rem;
-  margin-inline: .7rem;
+  font-weight: 700;
+  margin-inline-end: .4rem;
 }
-.foot-dl {
-  display: inline-block;
-  margin-top: 1.4rem;
-  padding: .62rem 1.25rem;
-  border: 2px solid var(--shell-line);
-  color: var(--shell-text);
-  font-family: "Space Mono", ui-monospace, monospace;
-  font-size: .68rem;
-  letter-spacing: .18em;
-  text-decoration: none;
-  background: transparent;
-  transition: background var(--t-fast) var(--ease-snap), color var(--t-fast) var(--ease-snap), transform var(--t-fast) var(--ease-snap);
-}
-.foot-dl:hover, .foot-dl:focus-visible {
-  background: var(--shell-line);
-  color: var(--ink);
-  transform: translateY(-1px);
-}
-.foot-dl:active { transform: translateY(1px); }
 .foot-hint {
   color: #4a4a55;
   font-size: .55rem;
