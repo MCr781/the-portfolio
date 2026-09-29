@@ -201,7 +201,7 @@
     }
   }
 
-  /* Delicate retro arcade bubble pop (45ms) — higher-pitched, sweet, and feather-light */
+  /* Delicate 2-note retro arcade bubble explosion (50ms) */
   function playArcadeExplosion(vol, pitchScale) {
     if (!soundOn || !actx) { return; }
     if (actx.state === 'suspended') { try { actx.resume(); } catch (e) {} }
@@ -210,10 +210,10 @@
     if (playSample('boom', v, false, p)) {
       return;
     }
-    /* Fallback delicate retro chiptune bubble pop: 1046Hz -> 1380Hz flick -> 820Hz release */
-    tone({ f: 1046 * p, f1: 1380 * p, d: 0.012, v: v * 0.50, type: 'sine' });
-    tone({ f: 1380 * p, f1: 820 * p, d: 0.038, v: v * 0.70, at: 0.008, type: 'sine', exp: true });
-    tone({ f: 1220 * p, f1: 760 * p, d: 0.030, v: v * 0.15, at: 0.010, type: 'triangle', exp: true });
+    /* Fallback 2-note short retro arcade explosion bubble pop: Note 1 (1320Hz -> 1180Hz) + Note 2 (880Hz -> 580Hz) */
+    tone({ f: 1320 * p, f1: 1180 * p, d: 0.016, v: v * 0.65, type: 'sine' });
+    tone({ f: 880 * p, f1: 580 * p, d: 0.035, v: v * 0.75, at: 0.015, type: 'sine', exp: true });
+    tone({ f: 880 * p, f1: 580 * p, d: 0.030, v: v * 0.15, at: 0.015, type: 'triangle', exp: true });
   }
 
   /* the legacy voice — kept for the small ui ticks */
@@ -230,7 +230,7 @@
       try { actx.resume(); } catch (e) {}
     }
     var t0 = actx.currentTime + (o.at || 0);
-    var d = Math.max(0.02, o.d || 0.1);
+    var d = Math.max(0.01, o.d || 0.1);
     var osc = actx.createOscillator();
     var g = actx.createGain();
     osc.type = o.type || 'square';
@@ -312,8 +312,8 @@
       noiseHit({ f: 5200, hp: true, d: 0.05, v: 0.03 });
     },
     boomS: function () {
-      /* Crisp, higher-toned retro bubble pop for mutants */
-      playArcadeExplosion(0.14, 1.12 + Math.random() * 0.06);
+      /* Crisp 2-note retro bubble explosion for mutants */
+      playArcadeExplosion(0.14, 1.10 + Math.random() * 0.06);
     },
     boomL: function () {
       /* Cascading delicate bubble pops for ship destruction */
@@ -323,7 +323,7 @@
       noiseHit({ f: 900, f1: 80, d: 0.22, v: 0.04, at: 0.03 });
     },
     boomLander: function () {
-      /* Delicate, higher-pitched retro arcade bubble pop (45ms) */
+      /* Delicate 2-note retro arcade bubble explosion (50ms) */
       playArcadeExplosion(0.15, 0.98 + Math.random() * 0.08);
     },
     bombDrop: function () {
