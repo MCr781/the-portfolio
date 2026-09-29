@@ -10,5 +10,26 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# AI, LLM & Generative Search Crawlers (GEO / AIO / LLMO / AXO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
 User-agent: *
 Allow: /
+
+Sitemap: https://example.com/sitemap.xml

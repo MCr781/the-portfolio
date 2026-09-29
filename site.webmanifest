@@ -1,0 +1,20 @@
+{
+  "name": "محمد‌مهدی رضائی — پورتفولیو توسعه‌ی فول‌استک",
+  "short_name": "چهار دنیا",
+  "description": "پورتفولیو و دروازه‌ی چهار دنیای وب — توسعه‌دهنده‌ی فول‌استک همراه با تیم تخصصی بک‌اند",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0C0C11",
+  "theme_color": "#0C0C11",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["portfolio", "development", "business"],
+  "lang": "fa",
+  "dir": "rtl"
+}
