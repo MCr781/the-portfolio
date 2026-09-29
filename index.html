@@ -223,9 +223,10 @@
         <div class="cart-flipper-wrap" data-cart="01">
           <div class="cartridge" data-cart="01" role="region" aria-label="Ordibehesht Gold Retro Cartridge and Real Application Showcase">
             <div class="cart-face cart-front" aria-hidden="false">
-              <button type="button" class="cart-flip-tab" aria-label="مشاهده مشخصات و نمای واقعی پروژه طلای اردیبهشت" title="نمای واقعی پروژه (پشت کارتریج)">
+              <button type="button" class="cart-flip-tab holo-flip-tab" aria-label="چرخش سه‌بعدی کارتریج طلای اردیبهشت" title="کلیک یا درگ برای چرخش سه‌بعدی">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↻</span>
-                <span class="flip-tab-label mono" dir="ltr">FLIP 3D</span>
+                <span class="flip-tab-label mono" dir="ltr">3D FLIP</span>
               </button>
               <div class="cart-grip">
                 <span class="grip-ridge"></span>
@@ -274,7 +275,8 @@
               </div>
             </div>
             <div class="cart-face cart-back" aria-hidden="true">
-              <button type="button" class="cart-flip-tab back-return" aria-label="بازگشت به نمای کارتریج طلای اردیبهشت" title="بازگشت به نمای کارتریج">
+              <button type="button" class="cart-flip-tab holo-flip-tab back-return" aria-label="بازگشت به نمای کارتریج طلای اردیبهشت" title="بازگشت به پوستر کارتریج">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↺</span>
                 <span class="flip-tab-label mono" dir="ltr">FRONT</span>
               </button>
@@ -283,26 +285,43 @@
                 <span class="cart-back-stamp mono" dir="ltr">LIVE BUILD</span>
               </div>
               <div class="cart-back-well">
-                <div class="cart-back-screens">
-                  <div class="desktop-screen">
-                    <div class="screen-chrome">
-                      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                      <span class="screen-url mono" dir="ltr">ordibehesht-gold.ir</span>
+                <div class="cart-view-tabs" role="tablist">
+                  <button type="button" class="view-tab-btn is-active" data-view="desktop" role="tab" aria-selected="true"><span class="tab-icon">🖥️</span> <span class="tab-txt">نسخه دسکتاپ</span></button>
+                  <button type="button" class="view-tab-btn" data-view="mobile" role="tab" aria-selected="false"><span class="tab-icon">📱</span> <span class="tab-txt">نسخه موبایل</span></button>
+                </div>
+                <div class="cart-screen-stage">
+                  <div class="screen-view-panel view-desktop" role="tabpanel">
+                    <div class="desktop-screen-frame" data-zoom-src="assets/preview_ordibehesht_desktop.webp" data-zoom-title="طلای اردیبهشت · نسخه دسکتاپ">
+                      <div class="screen-chrome">
+                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                        <span class="screen-url mono" dir="ltr">ordibehesht-gold.ir</span>
+                        <span class="screen-zoom-hint">🔍 بزرگ‌نمایی</span>
+                      </div>
+                      <div class="screen-img-wrap">
+                        <img src="assets/preview_ordibehesht_desktop.webp" alt="Ordibehesht Desktop Web App" loading="lazy">
+                      </div>
                     </div>
-                    <img src="assets/preview_ordibehesht_desktop.webp" alt="Ordibehesht Desktop Web App" loading="lazy">
                   </div>
-                  <div class="mobile-screen">
-                    <div class="phone-notch"></div>
-                    <img src="assets/preview_ordibehesht_mobile.webp" alt="Ordibehesht Mobile Web App" loading="lazy">
+                  <div class="screen-view-panel view-mobile" role="tabpanel" hidden>
+                    <div class="mobile-phone-frame" data-zoom-src="assets/preview_ordibehesht_mobile.webp" data-zoom-title="طلای اردیبهشت · نسخه موبایل">
+                      <div class="phone-notch"></div>
+                      <div class="mobile-img-wrap">
+                        <img src="assets/preview_ordibehesht_mobile.webp" alt="Ordibehesht Mobile Web App" loading="lazy">
+                      </div>
+                      <div class="phone-chin"></div>
+                    </div>
                   </div>
                 </div>
                 <div class="cart-back-specs">
-                  <span class="specs-heading mono" dir="ltr">PRODUCTION SPECS &amp; STACK</span>
-                  <ul class="specs-list mono" dir="ltr">
-                    <li><span class="spec-k">LIVE ENGINE:</span> <span class="spec-v">Vanilla ES6+ &amp; Custom DOM</span></li>
-                    <li><span class="spec-k">CALCULATOR:</span> <span class="spec-v">Realtime 18K/24K Gold Math</span></li>
-                    <li><span class="spec-k">TYPOGRAPHY:</span> <span class="spec-v">Vazirmatn Persian Display</span></li>
-                    <li><span class="spec-k">STATUS:</span> <span class="spec-v">Production Front-End Artifact</span></li>
+                  <div class="specs-head-row">
+                    <span class="specs-badge mono" dir="ltr">TECH SPECS</span>
+                    <span class="specs-tagline">مشخصات کلیدی و معماری پروژه</span>
+                  </div>
+                  <ul class="specs-list" dir="rtl">
+                    <li><span class="spec-k">معماری و کد:</span> <span class="spec-v">Vanilla ES6+ · ماژولار و بسیار سبک بدون فریم‌ورک اضافه</span></li>
+                    <li><span class="spec-k">امکانات مالی:</span> <span class="spec-v">محاسبه‌گر نرخ زنده ۱۸ و ۲۴ عیار + قلک دیجیتال طلا</span></li>
+                    <li><span class="spec-k">تایپوگرافی و UI:</span> <span class="spec-v">طراحی اختصاصی با فونت وزیرمتن و ویدیو هیرو زرین</span></li>
+                    <li><span class="spec-k">وضعیت انتشار:</span> <span class="spec-v badge-status-live">آماده بهره‌برداری و لایو</span></li>
                   </ul>
                 </div>
               </div>
@@ -317,10 +336,13 @@
               </div>
             </div>
           </div>
-          <button type="button" class="cart-flip-btn" aria-expanded="false" data-flip-target="01">
-            <span class="flip-icon" aria-hidden="true">🔄</span>
-            <span class="flip-text-front">چرخش به پشت کارتریج · نمای واقعی و جزئیات</span>
-            <span class="flip-text-back">چرخش به روی کارتریج · نمای رترو</span>
+          <button type="button" class="cart-flip-btn arcade-flip-cta" aria-expanded="false" data-flip-target="01" title="چرخش سه‌بعدی کارتریج">
+            <span class="arcade-btn-face">
+              <span class="flip-icon-3d" aria-hidden="true">↻</span>
+              <span class="flip-text-front">چرخاندن کارتریج ۳ بعدی · مشخصات فنی و تصاویر زنده</span>
+              <span class="flip-text-back">بازگشت به روی کارتریج · پوستر رترو</span>
+            </span>
+            <span class="flip-drag-hint">یا با ماوس به طرفین بکشید (Drag &amp; Sweep)</span>
           </button>
         </div>
       </div>
@@ -350,9 +372,10 @@
         <div class="cart-flipper-wrap" data-cart="02">
           <div class="cartridge" data-cart="02" role="region" aria-label="Talasho Luxury Retro Cartridge and Real Application Showcase">
             <div class="cart-face cart-front" aria-hidden="false">
-              <button type="button" class="cart-flip-tab" aria-label="مشاهده مشخصات و نمای واقعی پروژه طلاشو" title="نمای واقعی پروژه (پشت کارتریج)">
+              <button type="button" class="cart-flip-tab holo-flip-tab" aria-label="چرخش سه‌بعدی کارتریج طلاشو" title="کلیک یا درگ برای چرخش سه‌بعدی">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↻</span>
-                <span class="flip-tab-label mono" dir="ltr">FLIP 3D</span>
+                <span class="flip-tab-label mono" dir="ltr">3D FLIP</span>
               </button>
               <div class="cart-grip">
                 <span class="grip-ridge"></span>
@@ -401,35 +424,53 @@
               </div>
             </div>
             <div class="cart-face cart-back" aria-hidden="true">
-              <button type="button" class="cart-flip-tab back-return" aria-label="بازگشت به نمای کارتریج طلاشو" title="بازگشت به نمای کارتریج">
+              <button type="button" class="cart-flip-tab holo-flip-tab back-return" aria-label="بازگشت به نمای کارتریج طلاشو" title="بازگشت به پوستر کارتریج">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↺</span>
                 <span class="flip-tab-label mono" dir="ltr">FRONT</span>
               </button>
               <div class="cart-back-header">
-                <span class="cart-back-title mono" dir="ltr">TALASHO LUXURY</span>
-                <span class="cart-back-stamp mono" dir="ltr">LIVE BUILD</span>
+                <span class="cart-back-title mono" dir="ltr">TALASHO VIP</span>
+                <span class="cart-back-stamp mono" dir="ltr">VIP BUILD</span>
               </div>
               <div class="cart-back-well">
-                <div class="cart-back-screens">
-                  <div class="desktop-screen">
-                    <div class="screen-chrome">
-                      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                      <span class="screen-url mono" dir="ltr">talasho-barzigar.com</span>
+                <div class="cart-view-tabs" role="tablist">
+                  <button type="button" class="view-tab-btn is-active" data-view="desktop" role="tab" aria-selected="true"><span class="tab-icon">🖥️</span> <span class="tab-txt">نسخه دسکتاپ</span></button>
+                  <button type="button" class="view-tab-btn" data-view="mobile" role="tab" aria-selected="false"><span class="tab-icon">📱</span> <span class="tab-txt">نسخه موبایل</span></button>
+                </div>
+                <div class="cart-screen-stage">
+                  <div class="screen-view-panel view-desktop" role="tabpanel">
+                    <div class="desktop-screen-frame" data-zoom-src="assets/preview_talasho_desktop.webp" data-zoom-title="طلاشو VIP · نسخه دسکتاپ">
+                      <div class="screen-chrome">
+                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                        <span class="screen-url mono" dir="ltr">talasho-barzigar.com</span>
+                        <span class="screen-zoom-hint">🔍 بزرگ‌نمایی</span>
+                      </div>
+                      <div class="screen-img-wrap">
+                        <img src="assets/preview_talasho_desktop.webp" alt="Talasho Luxury Desktop Web App" loading="lazy">
+                      </div>
                     </div>
-                    <img src="assets/preview_talasho_desktop.webp" alt="Talasho Luxury Desktop Web App" loading="lazy">
                   </div>
-                  <div class="mobile-screen">
-                    <div class="phone-notch"></div>
-                    <img src="assets/preview_talasho_mobile.webp" alt="Talasho Luxury Mobile Web App" loading="lazy">
+                  <div class="screen-view-panel view-mobile" role="tabpanel" hidden>
+                    <div class="mobile-phone-frame" data-zoom-src="assets/preview_talasho_mobile.webp" data-zoom-title="طلاشو VIP · نسخه موبایل">
+                      <div class="phone-notch"></div>
+                      <div class="mobile-img-wrap">
+                        <img src="assets/preview_talasho_mobile.webp" alt="Talasho Luxury Mobile Web App" loading="lazy">
+                      </div>
+                      <div class="phone-chin"></div>
+                    </div>
                   </div>
                 </div>
                 <div class="cart-back-specs">
-                  <span class="specs-heading mono" dir="ltr">PRODUCTION SPECS &amp; STACK</span>
-                  <ul class="specs-list mono" dir="ltr">
-                    <li><span class="spec-k">LIVE ENGINE:</span> <span class="spec-v">Modern Responsive HTML5 &amp; CSS3</span></li>
-                    <li><span class="spec-k">FEATURES:</span> <span class="spec-v">Live Rates &amp; VIP Megamenu</span></li>
-                    <li><span class="spec-k">DATA SYNC:</span> <span class="spec-v">Dynamic Gold &amp; Currency Feeds</span></li>
-                    <li><span class="spec-k">STATUS:</span> <span class="spec-v">Production Front-End Artifact</span></li>
+                  <div class="specs-head-row">
+                    <span class="specs-badge mono" dir="ltr">TECH SPECS</span>
+                    <span class="specs-tagline">مشخصات کلیدی و امکانات فروشگاهی</span>
+                  </div>
+                  <ul class="specs-list" dir="rtl">
+                    <li><span class="spec-k">سامانه و معماری:</span> <span class="spec-v">پلتفرم جامع ایکامرس طلا و جواهرات برزیگر (PWA)</span></li>
+                    <li><span class="spec-k">امکانات مالی:</span> <span class="spec-v">تابلوی زنده مظنه لحظه‌ای، ماژول خرید فوری و کیف پول طلا</span></li>
+                    <li><span class="spec-k">رابط کاربری:</span> <span class="spec-v">ویترین دیجی‌کالایی با مگامنو، پیشنهاد شگفت‌انگیز و شمارشگر</span></li>
+                    <li><span class="spec-k">وضعیت انتشار:</span> <span class="spec-v badge-status-live">آماده بهره‌برداری و لایو</span></li>
                   </ul>
                 </div>
               </div>
@@ -444,10 +485,13 @@
               </div>
             </div>
           </div>
-          <button type="button" class="cart-flip-btn" aria-expanded="false" data-flip-target="02">
-            <span class="flip-icon" aria-hidden="true">🔄</span>
-            <span class="flip-text-front">چرخش به پشت کارتریج · نمای واقعی و جزئیات</span>
-            <span class="flip-text-back">چرخش به روی کارتریج · نمای رترو</span>
+          <button type="button" class="cart-flip-btn arcade-flip-cta" aria-expanded="false" data-flip-target="02" title="چرخش سه‌بعدی کارتریج">
+            <span class="arcade-btn-face">
+              <span class="flip-icon-3d" aria-hidden="true">↻</span>
+              <span class="flip-text-front">چرخاندن کارتریج ۳ بعدی · مشخصات فنی و تصاویر زنده</span>
+              <span class="flip-text-back">بازگشت به روی کارتریج · پوستر رترو</span>
+            </span>
+            <span class="flip-drag-hint">یا با ماوس به طرفین بکشید (Drag &amp; Sweep)</span>
           </button>
         </div>
       </div>
@@ -479,9 +523,10 @@
         <div class="cart-flipper-wrap" data-cart="03">
           <div class="cartridge" data-cart="03" role="region" aria-label="Razan Consulting Retro Cartridge and Real Application Showcase">
             <div class="cart-face cart-front" aria-hidden="false">
-              <button type="button" class="cart-flip-tab" aria-label="مشاهده مشخصات و نمای واقعی پروژه رازان" title="نمای واقعی پروژه (پشت کارتریج)">
+              <button type="button" class="cart-flip-tab holo-flip-tab" aria-label="چرخش سه‌بعدی کارتریج رازان" title="کلیک یا درگ برای چرخش سه‌بعدی">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↻</span>
-                <span class="flip-tab-label mono" dir="ltr">FLIP 3D</span>
+                <span class="flip-tab-label mono" dir="ltr">3D FLIP</span>
               </button>
               <div class="cart-grip">
                 <span class="grip-ridge"></span>
@@ -530,35 +575,53 @@
               </div>
             </div>
             <div class="cart-face cart-back" aria-hidden="true">
-              <button type="button" class="cart-flip-tab back-return" aria-label="بازگشت به نمای کارتریج رازان" title="بازگشت به نمای کارتریج">
+              <button type="button" class="cart-flip-tab holo-flip-tab back-return" aria-label="بازگشت به نمای کارتریج رازان" title="بازگشت به پوستر کارتریج">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↺</span>
                 <span class="flip-tab-label mono" dir="ltr">FRONT</span>
               </button>
               <div class="cart-back-header">
                 <span class="cart-back-title mono" dir="ltr">RAZAN CONSULTING</span>
-                <span class="cart-back-stamp mono" dir="ltr">LIVE BUILD</span>
+                <span class="cart-back-stamp mono" dir="ltr">ARCHITECTURAL</span>
               </div>
               <div class="cart-back-well">
-                <div class="cart-back-screens">
-                  <div class="desktop-screen">
-                    <div class="screen-chrome">
-                      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                      <span class="screen-url mono" dir="ltr">razanconsulting.com</span>
+                <div class="cart-view-tabs" role="tablist">
+                  <button type="button" class="view-tab-btn is-active" data-view="desktop" role="tab" aria-selected="true"><span class="tab-icon">🖥️</span> <span class="tab-txt">نسخه دسکتاپ</span></button>
+                  <button type="button" class="view-tab-btn" data-view="mobile" role="tab" aria-selected="false"><span class="tab-icon">📱</span> <span class="tab-txt">نسخه موبایل</span></button>
+                </div>
+                <div class="cart-screen-stage">
+                  <div class="screen-view-panel view-desktop" role="tabpanel">
+                    <div class="desktop-screen-frame" data-zoom-src="assets/preview_razan_desktop.webp" data-zoom-title="مهندسی مشاور رازان · نسخه دسکتاپ">
+                      <div class="screen-chrome">
+                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                        <span class="screen-url mono" dir="ltr">razanconsulting.com</span>
+                        <span class="screen-zoom-hint">🔍 بزرگ‌نمایی</span>
+                      </div>
+                      <div class="screen-img-wrap">
+                        <img src="assets/preview_razan_desktop.webp" alt="Razan Consulting Desktop Web App" loading="lazy">
+                      </div>
                     </div>
-                    <img src="assets/preview_razan_desktop.webp" alt="Razan Consulting Desktop Web App" loading="lazy">
                   </div>
-                  <div class="mobile-screen">
-                    <div class="phone-notch"></div>
-                    <img src="assets/preview_razan_mobile.webp" alt="Razan Consulting Mobile Web App" loading="lazy">
+                  <div class="screen-view-panel view-mobile" role="tabpanel" hidden>
+                    <div class="mobile-phone-frame" data-zoom-src="assets/preview_razan_mobile.webp" data-zoom-title="مهندسی مشاور رازان · نسخه موبایل">
+                      <div class="phone-notch"></div>
+                      <div class="mobile-img-wrap">
+                        <img src="assets/preview_razan_mobile.webp" alt="Razan Consulting Mobile Web App" loading="lazy">
+                      </div>
+                      <div class="phone-chin"></div>
+                    </div>
                   </div>
                 </div>
                 <div class="cart-back-specs">
-                  <span class="specs-heading mono" dir="ltr">PRODUCTION SPECS &amp; STACK</span>
-                  <ul class="specs-list mono" dir="ltr">
-                    <li><span class="spec-k">ORIENTATION:</span> <span class="spec-v">100% LTR &amp; Global Grid</span></li>
-                    <li><span class="spec-k">INTRO LOGO:</span> <span class="spec-v">5-Piece Geometric SVG Assembly</span></li>
-                    <li><span class="spec-k">PORTFOLIO:</span> <span class="spec-v">Commercial &amp; Residential Gallery</span></li>
-                    <li><span class="spec-k">STATUS:</span> <span class="spec-v">Production Front-End Artifact</span></li>
+                  <div class="specs-head-row">
+                    <span class="specs-badge mono" dir="ltr">TECH SPECS</span>
+                    <span class="specs-tagline">مشخصات مهندسی و هویت بصری</span>
+                  </div>
+                  <ul class="specs-list" dir="rtl">
+                    <li><span class="spec-k">زمینه فعالیت:</span> <span class="spec-v">شرکت مهندسی مشاور و معماری پروژه‌های شاخص ملی</span></li>
+                    <li><span class="spec-k">گالری پروژه‌ها:</span> <span class="spec-v">دسته‌بندی معماری، تجاری، مسکونی، فرهنگی و درمانی</span></li>
+                    <li><span class="spec-k">زبان و چیدمان:</span> <span class="spec-v">طراحی ۱۰۰٪ LTR انگلیسی با سیستم گرید مهندسی مدرن</span></li>
+                    <li><span class="spec-k">وضعیت انتشار:</span> <span class="spec-v badge-status-live">آماده بهره‌برداری و لایو</span></li>
                   </ul>
                 </div>
               </div>
@@ -573,10 +636,13 @@
               </div>
             </div>
           </div>
-          <button type="button" class="cart-flip-btn" aria-expanded="false" data-flip-target="03">
-            <span class="flip-icon" aria-hidden="true">🔄</span>
-            <span class="flip-text-front">چرخش به پشت کارتریج · نمای واقعی و جزئیات</span>
-            <span class="flip-text-back">چرخش به روی کارتریج · نمای رترو</span>
+          <button type="button" class="cart-flip-btn arcade-flip-cta" aria-expanded="false" data-flip-target="03" title="چرخش سه‌بعدی کارتریج">
+            <span class="arcade-btn-face">
+              <span class="flip-icon-3d" aria-hidden="true">↻</span>
+              <span class="flip-text-front">چرخاندن کارتریج ۳ بعدی · مشخصات فنی و تصاویر زنده</span>
+              <span class="flip-text-back">بازگشت به روی کارتریج · پوستر رترو</span>
+            </span>
+            <span class="flip-drag-hint">یا با ماوس به طرفین بکشید (Drag &amp; Sweep)</span>
           </button>
         </div>
       </div>
@@ -606,9 +672,10 @@
         <div class="cart-flipper-wrap" data-cart="04">
           <div class="cartridge" data-cart="04" role="region" aria-label="Yassi Charity Retro Cartridge and Real Application Showcase">
             <div class="cart-face cart-front" aria-hidden="false">
-              <button type="button" class="cart-flip-tab" aria-label="مشاهده مشخصات و نمای واقعی پروژه یاسی شو" title="نمای واقعی پروژه (پشت کارتریج)">
+              <button type="button" class="cart-flip-tab holo-flip-tab" aria-label="چرخش سه‌بعدی کارتریج یاسی شو" title="کلیک یا درگ برای چرخش سه‌بعدی">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↻</span>
-                <span class="flip-tab-label mono" dir="ltr">FLIP 3D</span>
+                <span class="flip-tab-label mono" dir="ltr">3D FLIP</span>
               </button>
               <div class="cart-grip">
                 <span class="grip-ridge"></span>
@@ -657,35 +724,53 @@
               </div>
             </div>
             <div class="cart-face cart-back" aria-hidden="true">
-              <button type="button" class="cart-flip-tab back-return" aria-label="بازگشت به نمای کارتریج یاسی شو" title="بازگشت به نمای کارتریج">
+              <button type="button" class="cart-flip-tab holo-flip-tab back-return" aria-label="بازگشت به نمای کارتریج یاسی شو" title="بازگشت به پوستر کارتریج">
+                <span class="flip-tab-shimmer" aria-hidden="true"></span>
                 <span class="flip-tab-icon" aria-hidden="true">↺</span>
                 <span class="flip-tab-label mono" dir="ltr">FRONT</span>
               </button>
               <div class="cart-back-header">
                 <span class="cart-back-title mono" dir="ltr">YASSI CHARITY</span>
-                <span class="cart-back-stamp mono" dir="ltr">LIVE BUILD</span>
+                <span class="cart-back-stamp mono" dir="ltr">HEALTHCARE</span>
               </div>
               <div class="cart-back-well">
-                <div class="cart-back-screens">
-                  <div class="desktop-screen">
-                    <div class="screen-chrome">
-                      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                      <span class="screen-url mono" dir="ltr">yassisho.org</span>
+                <div class="cart-view-tabs" role="tablist">
+                  <button type="button" class="view-tab-btn is-active" data-view="desktop" role="tab" aria-selected="true"><span class="tab-icon">🖥️</span> <span class="tab-txt">نسخه دسکتاپ</span></button>
+                  <button type="button" class="view-tab-btn" data-view="mobile" role="tab" aria-selected="false"><span class="tab-icon">📱</span> <span class="tab-txt">نسخه موبایل</span></button>
+                </div>
+                <div class="cart-screen-stage">
+                  <div class="screen-view-panel view-desktop" role="tabpanel">
+                    <div class="desktop-screen-frame" data-zoom-src="assets/preview_yassi_desktop.webp" data-zoom-title="یاسی شو · نسخه دسکتاپ">
+                      <div class="screen-chrome">
+                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                        <span class="screen-url mono" dir="ltr">yassisho.org</span>
+                        <span class="screen-zoom-hint">🔍 بزرگ‌نمایی</span>
+                      </div>
+                      <div class="screen-img-wrap">
+                        <img src="assets/preview_yassi_desktop.webp" alt="Yassi Charity Desktop Web App" loading="lazy">
+                      </div>
                     </div>
-                    <img src="assets/preview_yassi_desktop.webp" alt="Yassi Charity Desktop Web App" loading="lazy">
                   </div>
-                  <div class="mobile-screen">
-                    <div class="phone-notch"></div>
-                    <img src="assets/preview_yassi_mobile.webp" alt="Yassi Charity Mobile Web App" loading="lazy">
+                  <div class="screen-view-panel view-mobile" role="tabpanel" hidden>
+                    <div class="mobile-phone-frame" data-zoom-src="assets/preview_yassi_mobile.webp" data-zoom-title="یاسی شو · نسخه موبایل">
+                      <div class="phone-notch"></div>
+                      <div class="mobile-img-wrap">
+                        <img src="assets/preview_yassi_mobile.webp" alt="Yassi Charity Mobile Web App" loading="lazy">
+                      </div>
+                      <div class="phone-chin"></div>
+                    </div>
                   </div>
                 </div>
                 <div class="cart-back-specs">
-                  <span class="specs-heading mono" dir="ltr">PRODUCTION SPECS &amp; STACK</span>
-                  <ul class="specs-list mono" dir="ltr">
-                    <li><span class="spec-k">SYSTEM:</span> <span class="spec-v">Donation Flow &amp; Public Platform</span></li>
-                    <li><span class="spec-k">COMPONENTS:</span> <span class="spec-v">Project Archive &amp; Receipts</span></li>
-                    <li><span class="spec-k">MISSION:</span> <span class="spec-v">Yas Kerman Cancer Society</span></li>
-                    <li><span class="spec-k">STATUS:</span> <span class="spec-v">Production Front-End Artifact</span></li>
+                  <div class="specs-head-row">
+                    <span class="specs-badge mono" dir="ltr">TECH SPECS</span>
+                    <span class="specs-tagline">مشخصات پلتفرم درمانی و خیریه</span>
+                  </div>
+                  <ul class="specs-list" dir="rtl">
+                    <li><span class="spec-k">ماموریت سامانه:</span> <span class="spec-v">پلتفرم حامی بیماران سرطانی (انجمن خیریه یاس کرمان)</span></li>
+                    <li><span class="spec-k">ماژول‌های کلیدی:</span> <span class="spec-v">داشبورد کاشی‌های تعاملی، ثبت سفیران و جستجوی پیشرفته</span></li>
+                    <li><span class="spec-k">امکانات مالی:</span> <span class="spec-v">معرفی پروژه‌های رادیوتراپی، غربالگری و تابلوی گل نقره</span></li>
+                    <li><span class="spec-k">وضعیت انتشار:</span> <span class="spec-v badge-status-live">آماده بهره‌برداری و لایو</span></li>
                   </ul>
                 </div>
               </div>
@@ -700,10 +785,13 @@
               </div>
             </div>
           </div>
-          <button type="button" class="cart-flip-btn" aria-expanded="false" data-flip-target="04">
-            <span class="flip-icon" aria-hidden="true">🔄</span>
-            <span class="flip-text-front">چرخش به پشت کارتریج · نمای واقعی و جزئیات</span>
-            <span class="flip-text-back">چرخش به روی کارتریج · نمای رترو</span>
+          <button type="button" class="cart-flip-btn arcade-flip-cta" aria-expanded="false" data-flip-target="04" title="چرخش سه‌بعدی کارتریج">
+            <span class="arcade-btn-face">
+              <span class="flip-icon-3d" aria-hidden="true">↻</span>
+              <span class="flip-text-front">چرخاندن کارتریج ۳ بعدی · مشخصات فنی و تصاویر زنده</span>
+              <span class="flip-text-back">بازگشت به روی کارتریج · پوستر رترو</span>
+            </span>
+            <span class="flip-drag-hint">یا با ماوس به طرفین بکشید (Drag &amp; Sweep)</span>
           </button>
         </div>
       </div>
@@ -765,7 +853,21 @@
     <p class="modal-body">چیت فعال شد. اما نگران نباشید؛ چیزی برای تقلب وجود ندارد — همه‌ی این‌ها واقعی‌اند.</p>
     <button class="btn-gate" id="modalClose" type="button">
       <span class="btn-label">بستن</span></button></div></div>
-<div class="toast" id="toast" role="status" hidden>هر چهار دنیا را پیمودید. حالا نوبت ساختن دنیای بعدی است.</div>
+<div class="cart-lightbox-modal" id="cartLightbox" hidden aria-hidden="true" role="dialog" aria-label="بزرگ‌نمایی تصویر پروژه">
+  <div class="lightbox-backdrop"></div>
+  <div class="lightbox-content">
+    <div class="lightbox-header">
+      <span class="lightbox-title" id="lightboxTitle">پیش‌نمایش پروژه</span>
+      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="بستن بزرگ‌نمایی">✕</button>
+    </div>
+    <div class="lightbox-body">
+      <img src="" alt="" id="lightboxImg" class="lightbox-img">
+    </div>
+    <div class="lightbox-footer">
+      <span class="lightbox-tip">برای بستن روی علامت ✕ یا خارج از کادر تصویر کلیک کنید (Esc)</span>
+    </div>
+  </div>
+</div>
 <script src="assets/audio-data.js?v=mm2542" defer></script>
 <script src="assets/main.js?v=mm2542" defer></script>
 <script src="assets/terrarium.js?v=terr3" defer></script>

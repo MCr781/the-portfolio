@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build / generated output
+export
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local tooling / editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Project-scope scratch
+.opencode/
+.claude/
+OpenHTMLs.bat
+assets/css/test.css
+starter-resources/
+
+# Package manager local config
+bunfig.toml
+.npmrc
+.yarnrc
+.yarnrc.yml
+.gitmodules
+pnpm-lock.yaml
+yarn.lock

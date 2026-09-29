@@ -5,7 +5,7 @@
      • 8px spacing system (4px micro-adjustments allowed)
      • Tiered border radius: 20/16/14/999 by element type
      • Very subtle 2-layer shadows
-     • White cards floating on #F5F5F5 background
+     • Warm off-white cards floating on #F9F6F0 background
      • Whitespace over borders
      • Modular components, generous corner radii
    Brand:
@@ -14,6 +14,8 @@
    Build: npm run build:css
    Output: ./assets/css/style.css
    ============================================================ */
+
+@import '../assets/vendor/boxicons.min.css';
 
 /* ------------------------------------------------------------------
    1) @font-face declarations — 100% local, NO CDN
@@ -74,22 +76,58 @@
     scroll-behavior: smooth;
     /* 4px micro-adjustment grid for consistent rhythm */
     font-size: 16px;
+    /* Safety net: invisible hover panels (cart/wishlist dropdowns) hang
+       outside the container in RTL and used to create a page-level
+       horizontal scrollbar on wide-but-not-very-wide viewports.
+       clip (not hidden) never creates a scroll container, so
+       position:sticky and inner overflow-x-auto carousels are unaffected. */
+    overflow-x: clip;
   }
 
   body {
     @apply font-sans bg-background text-content-body antialiased;
-    font-feature-settings: 'ss01' on, 'tnum' on;
+    font-feature-settings: 'ss01' on;
     line-height: 1.6;
+    letter-spacing: -0.01em;
   }
 
-  /* Headings — spec-exact heading color */
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-content-heading;
-  }
+  /* Headings — color controlled by utility classes, not global rule */
 
-  /* Latin-digit price board: forces Latin numerals + tabular alignment */
+  /*
+   * Numeric values are always an isolated LTR run. This keeps decimal separators,
+   * signs and Latin/Persian digits in their expected visual order inside the RTL UI.
+   */
   .font-latin {
-    font-feature-settings: 'tnum' on, 'lnum' on;
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-feature-settings: 'lnum' on;
+    letter-spacing: -0.05em;
+  }
+
+  /*
+   * Use for a value and its counter/currency unit. The source order is unit then
+   * value so the unit is visually left of the number, while the sign remains left
+   * of its LTR number (for example: گرم +۰.۲۵۰).
+   */
+  .numeric-measure {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25em;
+    flex-wrap: wrap;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  .numeric-measure__unit {
+    direction: rtl;
+    unicode-bidi: isolate;
+    white-space: nowrap;
+  }
+
+  /* Segmented OTP inputs must advance visually from left to right in RTL pages. */
+  .otp-input-group {
+    direction: ltr;
+    unicode-bidi: isolate;
   }
 
   /* Custom Swiper pagination — small white dots on dark, dark dots on light */
@@ -126,17 +164,17 @@
 
   /* Custom scrollbar for the entire page — thin, purple-themed with gold hover */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: #F5F5F5; }
+  ::-webkit-scrollbar-track { background: #F9F6F0; }
   ::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #9F6BA0 0%, #4A154B 100%);
     border-radius: 999px;
-    border: 2px solid #F5F5F5;
+    border: 2px solid #F9F6F0;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #D4AF37 0%, #A88926 100%);
   }
   /* Firefox */
-  html { scrollbar-width: thin; scrollbar-color: #9F6BA0 #F5F5F5; }
+  html { scrollbar-width: thin; scrollbar-color: #9F6BA0 #F9F6F0; }
 
   /* Custom scrollbar for horizontal scroll containers (categories, product carousels) */
   .cat-scroll::-webkit-scrollbar { height: 6px; }
@@ -159,6 +197,119 @@
   .mega-menu-panel:hover {
     opacity: 1 !important;
     visibility: visible !important;
+  }
+
+  /* ============ HEADER ICON DROPDOWN (cart, wishlist, …) ============
+     Shared pattern for any icon in the header action bar that opens a
+     hover panel. Mirrors the mega-menu approach so behavior is consistent.
+
+     Usage:
+       Wrap the icon <a> and the panel <div class="header-dropdown-panel">
+       together inside a <div class="header-dropdown-hover-area relative">.
+     The panel is absolutely positioned below the trigger; a small CSS
+     arrow notch is rendered via ::before. */
+
+  /* Trigger wrapper — must be position:relative */
+  .header-dropdown-hover-area {
+    position: relative;
+  }
+
+  /* Panel — hidden by default, revealed on hover of wrapper OR panel itself */
+  .header-dropdown-panel {
+    position: absolute;
+    top: 100%; /* NO gap — panel starts right at the bottom of the trigger.
+                  The padding-top below creates the visual gap without a
+                  dead-zone that would lose hover and collapse the panel. */
+    padding-top: 10px; /* visual breathing room + room for the notch arrow */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(-6px);
+    z-index: 50;
+    min-width: 320px;
+  }
+
+  /* Inner visual container — carries the actual background, border, shadow */
+  .header-dropdown-panel > * {
+    /* Panels must have a single root child element (div) */
+  }
+
+  /* The real visible box sits inside the padding-top area */
+  .header-dropdown-panel > div {
+    background: rgba(254, 254, 254, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1.5px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+                0 14px 40px -4px rgba(46, 13, 46, 0.18),
+                0 28px 64px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  /* Arrow notch — sits inside the padding-top gap, pointing up to the icon */
+  .header-dropdown-panel::before {
+    content: '';
+    position: absolute;
+    top: 3px; /* inside the 10px padding-top area */
+    width: 13px;
+    height: 13px;
+    background: #FEFEFE;
+    border-top: 1.5px solid rgba(212, 175, 55, 0.4);
+    border-right: 1.5px solid rgba(212, 175, 55, 0.4);
+    border-radius: 2px;
+    z-index: 1;
+  }
+
+  /* Centered variant — centers both panel and arrow notch dead-center under the icon trigger */
+  .header-dropdown-panel--center {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) translateY(-8px) scale(0.98);
+  }
+  .header-dropdown-panel--center::before {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) rotate(-45deg);
+  }
+
+  /* Left-anchored fallback variant */
+  .header-dropdown-panel--left {
+    left: 0;
+    right: auto;
+  }
+  .header-dropdown-panel--left::before {
+    left: 18px;
+    right: auto;
+    transform: rotate(-45deg);
+  }
+
+  /* Right-anchored fallback variant */
+  .header-dropdown-panel--right {
+    right: 0;
+    left: auto;
+  }
+  .header-dropdown-panel--right::before {
+    right: 18px;
+    left: auto;
+    transform: rotate(-45deg);
+  }
+
+  /* Activated on hover — show + slide into position */
+  .header-dropdown-hover-area:hover .header-dropdown-panel,
+  .header-dropdown-panel:hover {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
+  }
+
+  .header-dropdown-hover-area:hover .header-dropdown-panel--center,
+  .header-dropdown-panel--center:hover {
+    transform: translateX(-50%) translateY(0) scale(1) !important;
   }
 
   /* Shimmer animation for countdown timer */
@@ -213,6 +364,173 @@
   .ts-card-product:hover {
     transform: translateY(-3px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /*
+   * Floating action sheet — the shared alternative to full-width bottom sheets.
+   * It follows marketplace conventions: a contained, elevated action surface that
+   * preserves visible page edges and clears the persistent mobile navigation.
+   */
+  .sheet-overlay {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0.75rem;
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .sheet-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .bottom-sheet {
+    position: relative !important;
+    inset: auto !important;
+    width: min(100%, 34rem) !important;
+    max-height: min(78dvh, 42rem) !important;
+    margin: 0 !important;
+    border-radius: 1.25rem !important;
+    box-shadow: 0 18px 48px rgba(35, 37, 74, 0.22) !important;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sheet-overlay.open .bottom-sheet {
+    transform: translateY(0);
+  }
+
+  @media (min-width: 640px) {
+    .sheet-overlay {
+      align-items: center;
+      padding: 1.5rem;
+    }
+  }
+
+  /* ============ COUNTDOWN ============ */
+  /* Premium ring countdown shared by wallet modals (buy/sell/deposit/withdraw/physical).
+     The inline SVG inside each page declares three gradients: #cd-grad (brand),
+     #cd-grad-low (amber warning) and #cd-grad-critical (red danger). JS toggles
+     .is-low / .is-critical on the wrapper and updates dashoffset every 100ms for a
+     buttery sweep, while the digits only re-render on whole-second changes. */
+  .countdown-wrap {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .countdown-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 4%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(110, 67, 110, 0.12), transparent 72%);
+    pointer-events: none;
+    transition: background 0.4s ease;
+  }
+  .countdown-wrap.is-low::before {
+    background: radial-gradient(circle, rgba(217, 119, 6, 0.14), transparent 72%);
+  }
+  .countdown-wrap.is-critical::before {
+    background: radial-gradient(circle, rgba(220, 38, 38, 0.16), transparent 72%);
+  }
+  .countdown-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    overflow: visible;
+  }
+  .countdown-track {
+    fill: none;
+    stroke: #F4F1EC;
+    stroke-width: 7;
+  }
+  .countdown-progress {
+    fill: none;
+    stroke: url(#cd-grad);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 276.46;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.12s linear, stroke 0.4s ease;
+  }
+  .countdown-wrap.is-low .countdown-progress { stroke: url(#cd-grad-low); }
+  .countdown-wrap.is-critical .countdown-progress { stroke: url(#cd-grad-critical); }
+  .countdown-tip {
+    fill: none;
+    stroke: #6E436E;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 0.1 276.46;
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0 0 5px rgba(110, 67, 110, 0.65));
+    transition: stroke-dashoffset 0.12s linear, stroke 0.4s ease, filter 0.4s ease;
+  }
+  .countdown-wrap.is-low .countdown-tip { stroke: #D97706; filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.75)); }
+  .countdown-wrap.is-critical .countdown-tip { stroke: #DC2626; filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.85)); }
+  .countdown-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+  }
+  .countdown-time {
+    direction: ltr;
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #2E0D2E;
+    letter-spacing: -0.05em;
+    font-feature-settings: 'lnum' on;
+    transition: color 0.4s ease;
+  }
+  .countdown-wrap.is-low .countdown-time { color: #B45309; }
+  .countdown-wrap.is-critical .countdown-time {
+    color: #DC2626;
+    animation: cd-pulse 0.8s ease-in-out infinite;
+  }
+  .countdown-label {
+    font-size: 0.7rem;
+    color: #948E88;
+  }
+  .countdown-time.cd-tick { animation: cd-pop 0.3s ease-out; }
+
+  @keyframes cd-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.14); }
+    100% { transform: scale(1); }
+  }
+  @keyframes cd-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.06); opacity: 0.85; }
+  }
+
+  /* Compact variant — used inside OTP sheets */
+  .countdown-compact {
+    width: 68px;
+    height: 68px;
+  }
+  .countdown-compact .countdown-progress,
+  .countdown-compact .countdown-tip,
+  .countdown-compact .countdown-track {
+    stroke-width: 6;
+  }
+  .countdown-compact .countdown-time { font-size: 0.95rem; }
+  .countdown-compact .countdown-label { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .countdown-time.cd-tick,
+    .countdown-wrap.is-critical .countdown-time,
+    .countdown-progress,
+    .countdown-tip { animation: none !important; transition: none !important; }
   }
 
   /* Promo banner — radius 20px, no shadow, no border, edge-to-edge image */
@@ -270,6 +588,112 @@
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 bg-surface border border-border-strong text-content-heading font-medium
            hover:bg-background-hover rounded-full px-5 py-2.5 text-body transition-all duration-250;
+  }
+
+
+  /* ============ FORM CONTROLS — BRAND CHECKBOX & RADIO ============
+     Custom purple/gold-styled controls. Pure CSS, no JS required:
+     appearance is removed and the :checked state is drawn via
+     background. 20px visual size; the surrounding row/label padding
+     provides the touch target. Add class="ts-checkbox" / "ts-radio". */
+  .ts-checkbox,
+  .ts-radio {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.25rem;               /* 20px */
+    height: 1.25rem;
+    margin: 0;
+    flex-shrink: 0;
+    vertical-align: middle;
+    background-color: #FEFEFE;
+    border: 2px solid #DCD6CE;
+    cursor: pointer;
+    transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ts-checkbox { border-radius: 6px; }
+  .ts-radio    { border-radius: 9999px; }
+
+  .ts-checkbox:hover,
+  .ts-radio:hover {
+    border-color: #6E436E;
+  }
+
+  .ts-checkbox:focus-visible,
+  .ts-radio:focus-visible {
+    outline: none;
+    border-color: #6E436E;
+    box-shadow: 0 0 0 3px rgba(110, 67, 110, 0.25);
+  }
+
+  /* Checked — purple fill with a white check mark */
+  .ts-checkbox:checked {
+    background-color: #6E436E;
+    border-color: #6E436E;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+    background-size: 78% 78%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  /* Checked — purple dot with a light ring inside the purple border */
+  .ts-radio:checked {
+    border-color: #6E436E;
+    background-image: radial-gradient(circle, #6E436E 0 42%, #FEFEFE 46%);
+  }
+
+  .ts-checkbox:disabled,
+  .ts-radio:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+
+  /* ============ SELECTABLE OPTION CARDS (delivery / payment) ============
+     The selected card is outlined by the radio INSIDE it via :has(), so
+     the outline always follows the actual selection — never hard-coded
+     to "the first option". The backend just toggles `checked`. */
+  .option-card {
+    @apply flex items-start gap-3 p-4 rounded-2xl border-2 border-border cursor-pointer transition-colors duration-200;
+  }
+  .option-card:hover {
+    @apply border-primary-300;
+  }
+  .option-card:has(input:checked) {
+    @apply border-primary-500 bg-primary-50/40 shadow-sm;
+  }
+  /* Gold-theme variant — money-related options (wallet, final sum) */
+  .option-card--gold {
+    @apply border-gold-400/60 bg-gold-50/50;
+  }
+  .option-card--gold:hover {
+    @apply border-gold-500;
+  }
+  .option-card--gold:has(input:checked) {
+    @apply border-gold-600 bg-gold-50/70 shadow-sm;
+  }
+
+
+  /* ============ PAYMENT RESULT PAGE — outcome panels ============
+     Pure-CSS variation switcher (no JS): each outcome is a .result-panel.
+     The success panel shows by default; appending #success / #failed /
+     #cancelled to the URL hash shows that outcome instead. */
+  .result-panel {
+    display: none;
+  }
+  #success-panel {
+    display: flex;
+  }
+  /* Show whichever panel is targeted by the URL hash (#success/#failed/#cancelled) */
+  .result-panel:target {
+    display: flex;
+  }
+  body:has(.result-panel:target) #success-panel {
+    display: none;
+  }
+  body:has(#success-panel:target) #success-panel {
+    display: flex;
   }
 
 
@@ -417,11 +841,14 @@
   /* ============ FOOTER LINK HOVER EFFECT ============ */
 
   .ts-footer-link {
-    @apply transition-all duration-250;
+    position: relative;
+    display: inline-block;
+    transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, color;
   }
   .ts-footer-link:hover {
-    color: #D4AF37;
-    padding-right: 4px;
+    color: #D4AF37 !important;
+    transform: translateX(-4px);
   }
 
 
@@ -439,6 +866,63 @@
   }
 
 
+  /* ============ LIVE GOLD MARKET CHIP (header instrument) ============ */
+
+  /* Price-cell flash on every tick — green when rising, red when falling */
+  @keyframes flash-green {
+    0% { background-color: rgba(16, 185, 129, 0.35); box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); text-shadow: 0 0 8px rgba(16, 185, 129, 0.8); }
+    100% { background-color: transparent; box-shadow: none; text-shadow: none; }
+  }
+  @keyframes flash-red {
+    0% { background-color: rgba(239, 68, 68, 0.35); box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); text-shadow: 0 0 8px rgba(239, 68, 68, 0.8); }
+    100% { background-color: transparent; box-shadow: none; text-shadow: none; }
+  }
+  .flash-up   { animation: flash-green 1.2s ease-out; }
+  .flash-down { animation: flash-red   1.2s ease-out; }
+
+  /* Pulsing "market is open" dot */
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.95); opacity: 0.8; }
+    50%  { transform: scale(1.15); opacity: 0.4; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+  }
+  .live-pulse { animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1); }
+
+  /* Gold coin icon — a diagonal sheen sweeps across it (the gleam of the metal) */
+  .gold-coin {
+    position: relative;
+    overflow: hidden;
+    border-radius: 9999px;
+  }
+  .gold-coin__sheen {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40%;
+    left: -60%;
+    background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%);
+    transform: skewX(-20deg);
+    animation: gold-sheen 3.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes gold-sheen {
+    0%        { left: -60%; }
+    55%, 100% { left: 130%; }
+  }
+
+  /* Respect users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee,
+    .animate-vertical-ticker,
+    .live-pulse,
+    .gold-coin__sheen,
+    .flash-up,
+    .flash-down {
+      animation: none !important;
+    }
+  }
+
+
   /* ============ SWIPER NAV ARROWS (hero) ============ */
 
   .ts-swiper-arrow {
@@ -452,6 +936,49 @@
   .ts-swiper-arrow svg {
     @apply w-5 h-5;
   }
+
+
+  /* ============ PRODUCT DETAIL PAGE COMPONENTS ============ */
+
+  /* Variant Chip */
+  .variant-chip {
+    @apply inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium
+           border-2 border-border rounded-full
+           text-content-heading bg-surface
+           hover:border-primary-300 hover:bg-primary-50
+           transition-all duration-200 cursor-pointer select-none;
+  }
+  .variant-chip--active {
+    @apply border-primary-500 bg-primary-50 text-primary-600 ring-2 ring-primary-500/15;
+  }
+
+  /* Product Tab */
+  .product-tab--active {
+    @apply border-primary-500 text-primary-500 font-bold;
+  }
+
+  /* Mobile Buy Bar Animation */
+  #mobileBuyBar {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* ------------------------------------------------------------------
+   6) Unlayered overrides — deliberately OUTSIDE any @layer
+   ------------------------------------------------------------------
+   Author unlayered styles win over ALL layered styles (base /
+   components / utilities) regardless of specificity. This is the only
+   reliable place for the selected preset state: the chip's own
+   `bg-gold-400/10` / `text-gold-200` utilities live in the utilities
+   layer (declared last), so any layered rule would lose to them. */
+
+/* HOME QUICK-BUY PRESET CHIPS — selected chip (aria-pressed="true",
+   toggled by mainQuickBuy JS) mirrors the hover state so the active
+   amount is clearly visible. */
+.main-quickbuy-preset[aria-pressed="true"] {
+  background-color: #D4AF37;
+  border-color: #D4AF37;
+  color: #2E0D2E;
 }
 
 /* ------------------------------------------------------------------

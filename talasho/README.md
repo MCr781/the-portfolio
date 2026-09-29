@@ -2,6 +2,15 @@
 
 A luxurious, RTL Persian e-commerce homepage for **Talasho** — a subsidiary of **VIP Barzigar Gold & Jewelry**. Built strictly with HTML5, Tailwind CSS, and Vanilla JS. No CDNs. No frameworks.
 
+## Global page shell
+
+The header and footer designed in `index.html` are maintained as shared partials:
+
+- `assets/partials/site-header.html`
+- `assets/partials/site-footer.html`
+
+Run `npm run sync:shell` after changing either partial. Use `npm run check:shell` to verify that every HTML page is synchronized.
+
 ## Quick start
 
 ```bash

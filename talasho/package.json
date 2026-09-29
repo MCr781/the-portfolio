@@ -4,6 +4,8 @@
   "description": "Talasho - VIP Royal Purple & Gold jewelry storefront (Phase 1) and melted-gold trading (Phase 2)",
   "private": true,
   "scripts": {
+    "sync:shell": "python3 scripts/sync_global_shell.py",
+    "check:shell": "python3 scripts/sync_global_shell.py --check",
     "build:css": "tailwindcss -i ./src/input.css -o ./assets/css/style.css --minify",
     "watch:css": "tailwindcss -i ./src/input.css -o ./assets/css/style.css --watch",
     "serve": "npx http-server . -p 8080 -c-1"

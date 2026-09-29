@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  طلاشو VIP — درباره ما (About Us)
+  ----------------------------------------------------------------------------
+  Page: about.html
+  Status: Redesigned & Enhanced — Digikala-inspired UX with Barzigar VIP Identity
+  Stack: HTML5 + Tailwind CSS + Vanilla JS + Boxicons
+  RTL: Persian (fa) — Vazirmatn-FD (Persian numerals)
+  ============================================================================
+-->
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#4A154B">
+
+    <title>درباره طلاشو | زیرمجموعه وی آی پی برزیگر گُلد و جولری</title>
+    <meta name="description"
+        content="داستان برند طلاشو و گروه طلا و جواهر برزیگر — بیش از ۳۰ سال اصالت، ساخت سفارشی جواهرات و سامانه هوشمند طلای دیجیتال با چشم‌انداز بین‌المللی">
+
+    <!-- PWA -->
+    <link rel="manifest" href="./pwa/manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="طلاشو">
+
+    <!-- LOCAL CSS (no CDN) -->
+    <link rel="stylesheet" href="./assets/vendor/swiper-bundle.min.css">
+    <link rel="stylesheet" href="./assets/vendor/boxicons.min.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+
+    <!-- Preload critical fonts -->
+    <link rel="preload" as="font" type="font/woff2" href="./assets/fonts/Vazirmatn-FD-Regular.woff2" crossorigin>
+    <link rel="preload" as="font" type="font/woff2" href="./assets/fonts/Vazirmatn-FD-Bold.woff2" crossorigin>
+
+    <!-- PWA icons + favicon -->
+    <link rel="icon" type="image/x-icon" href="./pwa/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="./pwa/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./pwa/icons/favicon-16.png">
+    <link rel="apple-touch-icon" href="./pwa/icons/apple-touch-icon.png">
+
+    <!-- PWA service worker -->
+    <script src="./pwa/js/sw-register.js" defer></script>
+    <script src="./assets/js/global-shell.js?v=2" defer></script>
+</head>
+
+<body class="bg-background text-content-body antialiased min-h-screen flex flex-col selection:bg-gold-500 selection:text-white">
+
+    <!-- GLOBAL SITE HEADER: START -->
+<!-- ========================================== -->
+    <!-- 1. ANNOUNCEMENT BAR (Vertical Slider)      -->
+    <!-- ========================================== -->
+    <div class="relative w-full bg-[#4A154B] text-[#D4AF37] h-10 overflow-hidden">
+
+        <!-- The animated sliding container -->
+        <div
+            class="absolute inset-x-0 top-0 flex flex-col items-center animate-vertical-ticker text-[min(3.5vw,13px)] font-medium text-center whitespace-nowrap">
+
+            <!-- Item 1 -->
+            <div class="h-10 w-full flex items-center justify-center px-4">
+                <span>✨ فروش ویژه محصولات پاییزه گالری طلاشو ✨</span>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="h-10 w-full flex items-center justify-center px-4">
+                <span>📦 ارسال بیمه‌شده و رایگان برای خریدهای بالای ۱۰ میلیون تومان 📦</span>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="h-10 w-full flex items-center justify-center px-4">
+                <span>🎁 با اولین خرید از طلاشو، ۱۰٪ تخفیف روی اجرت بگیرید 🎁</span>
+            </div>
+
+            <!-- Duplicate of Item 1 (Crucial for infinite smooth looping) -->
+            <div class="h-10 w-full flex items-center justify-center px-4">
+                <span>✨ فروش ویژه محصولات پاییزه گالری طلاشو ✨</span>
+            </div>
+
+        </div>
+
+        <!-- Keyframes logic -->
+        <style>
+            @keyframes vertical-ticker {
+
+                0%,
+                25% {
+                    transform: translateY(0);
+                }
+
+                /* Pause at item 1 */
+                33%,
+                58% {
+                    transform: translateY(-40px);
+                }
+
+                /* Slide & Pause at item 2 */
+                66%,
+                91% {
+                    transform: translateY(-80px);
+                }
+
+                /* Slide & Pause at item 3 */
+                100% {
+                    transform: translateY(-120px);
+                }
+
+                /* Slide back to Item 1 clone */
+            }
+
+            .animate-vertical-ticker {
+                animation: vertical-ticker 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            }
+        </style>
+    </div>
+    <!-- ================= SECTION: ANNOUNCEMENT BAR END ================= -->
+
+
+    <!-- ============================================================
+     SECTION 2 — MAIN HEADER (spec §2)
+     ~72px height, white background. Sticky below the announcement bar.
+     Left (RTL): Logo
+     Center: Large rounded search bar
+     Right: Profile button | Wishlist | Cart
+     Everything vertically centered.
+     ============================================================ -->
+    <!-- ================= SECTION: MAIN HEADER START ================= -->
+    <header class="sticky top-0 z-40 bg-surface shadow-xs">
+
+        <div class="container-page">
+            <!-- Use CSS Grid with 3 columns so the search bar is always truly centered.
+             Column ratio: logo (1fr) | search (2fr) | actions (1fr) — gives search
+             50% of the header width so it can grow to its max-w-3xl (768px). -->
+            <div class="flex justify-between items-center md:grid md:grid-cols-[1fr_2fr_1fr] gap-3 md:gap-6 h-16 lg:h-[72px]">
+
+                <!-- ===== COLUMN 1 (RTL: visual start = right side) — LOGO + MOBILE TOGGLE ===== -->
+                <div class="flex items-center gap-3 justify-self-start">
+
+                    <!-- Mobile menu toggle (visible < lg) -->
+                    <button id="globalMobileMenuToggle" type="button"
+                        class="lg:hidden p-2 -ms-2 text-content-heading hover:text-primary-500 transition-colors"
+                        aria-label="باز کردن منوی اصلی" aria-expanded="false" aria-controls="globalMobileMenu">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <!-- Logo -->
+                    <!-- BACKEND: INJECT LOGO IMAGE — recommended height 36-40px -->
+                    <a href="./index.html" class="flex items-center gap-2 h-12 lg:h-14" aria-label="طلاشو VIP — صفحه اصلی">
+                        <img src="./assets/images/Purple-Logo.png" alt="طلاشو VIP" class="h-full w-auto object-contain">
+                        <span
+                            class="text-xl lg:text-2xl font-black text-primary-500 leading-none md:hidden lg:inline">طلاشو VIP</span>
+                    </a>
+                </div>
+
+
+                <!-- ===== COLUMN 2 (CENTER) — SEARCH BAR ===== -->
+                <!-- BACKEND: SEARCH FORM — action + method -->
+                <form action="./products.html" method="get" class="hidden md:flex w-full max-w-3xl relative justify-self-center">
+                    <label for="globalSearchInput" class="sr-only">جستجو</label>
+                    <input id="globalSearchInput" type="text" name="q" placeholder="جستجو در میان هزاران محصول زیبا..." class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500
+                           rounded-full py-2.5 lg:py-3 ps-12 pe-4 outline-none transition-all duration-250
+                           text-body text-content-heading placeholder-content-muted">
+
+                    <!-- Search icon (positioned at the start = right side in RTL) -->
+                    <button type="submit"
+                        class="absolute inset-y-0 start-0 flex items-center ps-4 text-content-muted hover:text-primary-500 transition-colors"
+                        aria-label="جستجو">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </form>
+
+
+                <!-- ===== COLUMN 3 (RTL: visual end = left side) — ACTIONS ===== -->
+                <div class="flex items-center gap-1 md:gap-2 justify-self-end">
+
+                    <!-- Profile / Login -->
+                    <!-- BACKEND: IF USER IS LOGGED IN -> SHOW USER AVATAR/MENU, ELSE SHOW LOGIN BUTTON -->
+                    <a href="./wallet/login.html"
+                        class="hidden md:flex items-center gap-2 px-3 py-2 rounded-full hover:bg-background-hover transition-colors text-content-heading">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span class="text-body font-medium hidden lg:inline">ورود | ثبت‌نام</span>
+                    </a>
+
+                    <!-- Wishlist — with hover dropdown panel -->
+                    <!-- BACKEND: IF USER LOGGED IN → show real wishlist items via data-backend-hook -->
+                    <div class="header-dropdown-hover-area hidden md:block">
+                        <a href="./cart.html#saved-for-later"
+                            class="relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading flex items-center"
+                            aria-label="علاقه‌مندی‌ها">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <!-- BACKEND: INJECT WISHLIST COUNT -->
+                            <span
+                                class="absolute top-1 end-1 bg-status-error text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۳</span>
+                        </a>
+
+                        <!-- Wishlist Dropdown Panel (anchored inside the container) -->
+                        <div class="header-dropdown-panel header-dropdown-panel--left">
+                            <!-- Single inner div — required for the CSS > div styling rule -->
+                            <div class="w-[400px]">
+                                <!-- Panel header -->
+                                <div class="flex items-center justify-between px-5 py-4 border-b border-border/70 bg-background/50">
+                                    <div class="flex items-center gap-2.5">
+                                        <i class='bx bxs-heart text-status-error text-xl'></i>
+                                        <span class="text-base font-black text-content-heading">علاقه‌مندی‌های من</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-status-error bg-status-error-bg px-3 py-1 rounded-full">۳ کالا</span>
+                                </div>
+
+                                <!-- BACKEND: FOREACH WISHLIST ITEM — repeat this block per item -->
+                                <ul class="divide-y divide-border/50 max-h-[310px] overflow-y-auto cat-scroll">
+                                    <!-- Item 1 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/rose-gold-diamond-engagement-ring.png" alt="انگشتر سولیتر الماس" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">انگشتر سولیتر الماس ۱۸ عیار</a>
+                                            <span class="text-sm text-content-muted block">طلا روزگلد | وزن: ۲٫۴ گرم</span>
+                                            <div class="text-base font-black text-primary-700 font-latin pt-0.5">
+                                                <span class="numeric-measure">
+                                                    <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                    <span>۱۲٬۵۰۰٬۰۰۰</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از علاقه‌مندی‌ها" aria-label="حذف از علاقه‌مندی‌ها">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                    <!-- Item 2 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/Pendant.webp" alt="آویز و پلاک طلا زرد" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">آویز و پلاک طلا زرد ۱۸ عیار</a>
+                                            <span class="text-sm text-content-muted block">طرح لوکس بانوان | وزن: ۱٫۸ گرم</span>
+                                            <div class="text-base font-black text-primary-700 font-latin pt-0.5">
+                                                <span class="numeric-measure">
+                                                    <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                    <span>۸٬۳۰۰٬۰۰۰</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از علاقه‌مندی‌ها" aria-label="حذف از علاقه‌مندی‌ها">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                    <!-- Item 3 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/bracelet.png" alt="دستبند طلا کارتیر" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">دستبند طلا سفید طرح کارتیر</a>
+                                            <span class="text-sm text-content-muted block">طلای ۱۸ عیار | وزن: ۴٫۵ گرم</span>
+                                            <div class="text-base font-black text-primary-700 font-latin pt-0.5">
+                                                <span class="numeric-measure">
+                                                    <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                    <span>۲۲٬۰۰۰٬۰۰۰</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از علاقه‌مندی‌ها" aria-label="حذف از علاقه‌مندی‌ها">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <!-- BACKEND: END FOREACH -->
+
+                                <!-- CTA -->
+                                <div class="p-4 border-t border-border/70 bg-background/40">
+                                    <a href="./cart.html#saved-for-later" class="flex items-center justify-center gap-2 w-full rounded-full border border-primary-500/40 text-primary-600 hover:bg-primary-50 hover:border-primary-500 transition-all duration-250 text-sm font-black h-11">
+                                        <span>مشاهده و مدیریت لیست علاقه‌مندی‌ها</span>
+                                        <i class='bx bx-chevron-left text-xl'></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist icon visible on mobile (no dropdown) -->
+                    <a href="./cart.html#saved-for-later" class="md:hidden relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading" aria-label="علاقه‌مندی‌ها">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span class="absolute top-1 end-1 bg-status-error text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۳</span>
+                    </a>
+
+                    <!-- Cart — with hover dropdown panel -->
+                    <!-- BACKEND: IF USER LOGGED IN → show real cart items via data-backend-hook -->
+                    <div class="header-dropdown-hover-area hidden md:block">
+                        <a href="./cart.html"
+                            class="relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading flex items-center"
+                            aria-label="سبد خرید">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <!-- BACKEND: INJECT CART COUNT -->
+                            <span
+                                class="absolute top-1 end-1 bg-primary-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۲</span>
+                        </a>
+
+                        <!-- Cart Dropdown Panel (anchored inside the container) -->
+                        <div class="header-dropdown-panel header-dropdown-panel--left">
+                            <!-- Single inner div — required for the CSS > div styling rule -->
+                            <div class="w-[400px]">
+                                <!-- Panel header -->
+                                <div class="flex items-center justify-between px-5 py-4 border-b border-border/70 bg-background/50">
+                                    <div class="flex items-center gap-2.5">
+                                        <i class='bx bxs-shopping-bag text-primary-500 text-xl'></i>
+                                        <span class="text-base font-black text-content-heading">سبد خرید شما</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-primary-600 bg-primary-50 px-3 py-1 rounded-full">۲ کالا</span>
+                                </div>
+
+                                <!-- BACKEND: FOREACH CART ITEM — repeat this block per item -->
+                                <ul class="divide-y divide-border/50 max-h-[310px] overflow-y-auto cat-scroll">
+                                    <!-- Cart Item 1 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/tear-tennis-ring-1.jpg" alt="حلقه ازدواج طرح اشک تنیس" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">حلقه ازدواج طرح اشک تنیس</a>
+                                            <span class="text-sm text-content-muted block">طلای ۱۸ عیار | سایز: ۵۴</span>
+                                            <div class="flex items-center justify-between pt-1 gap-2">
+                                                <div class="text-base font-black text-primary-700 font-latin">
+                                                    <span class="numeric-measure">
+                                                        <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                        <span>۱۸٬۴۰۰٬۰۰۰</span>
+                                                    </span>
+                                                </div>
+                                                <span class="text-xs font-bold text-content-muted bg-background px-2.5 py-0.5 rounded-md border border-border/60">تعداد: ۱</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از سبد خرید" aria-label="حذف از سبد خرید">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                    <!-- Cart Item 2 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/gold-fancy-necklace.png" alt="گردنبند طلا فانتزی" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">گردنبند طلا فانتزی طرح اشک</a>
+                                            <span class="text-sm text-content-muted block">طلای ۱۸ عیار | وزن: ۲٫۱ گرم</span>
+                                            <div class="flex items-center justify-between pt-1 gap-2">
+                                                <div class="text-base font-black text-primary-700 font-latin">
+                                                    <span class="numeric-measure">
+                                                        <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                        <span>۹٬۸۰۰٬۰۰۰</span>
+                                                    </span>
+                                                </div>
+                                                <span class="text-xs font-bold text-content-muted bg-background px-2.5 py-0.5 rounded-md border border-border/60">تعداد: ۱</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از سبد خرید" aria-label="حذف از سبد خرید">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <!-- BACKEND: END FOREACH -->
+
+                                <!-- Subtotal + CTAs -->
+                                <div class="p-5 border-t border-border/70 bg-background/50 space-y-4">
+                                    <div class="flex items-center justify-between text-sm px-0.5">
+                                        <span class="text-content-body font-bold">مبلغ قابل پرداخت (۲ کالا):</span>
+                                        <span class="text-base font-black text-primary-700 font-latin">
+                                            <span class="numeric-measure">
+                                                <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                <span>۲۸٬۲۰۰٬۰۰۰</span>
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <a href="./cart.html" class="flex items-center justify-center gap-2 w-full btn-primary py-2 text-caption">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        مشاهده سبد خرید
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cart icon visible on mobile (no dropdown) -->
+                    <a href="./cart.html" class="md:hidden relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading" aria-label="سبد خرید">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span class="absolute top-1 end-1 bg-primary-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۲</span>
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- Mobile search bar (visible < md) -->
+            <form action="./products.html" method="get" class="hidden">
+                <label for="globalSearchInputMobile" class="sr-only">جستجو</label>
+                <input id="globalSearchInputMobile" type="text" name="q" placeholder="جستجو..." class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500
+                       rounded-full py-2.5 ps-11 pe-4 outline-none transition-all duration-250
+                       text-body text-content-heading placeholder-content-muted">
+                <button type="submit" class="absolute inset-y-0 start-0 flex items-center ps-3.5 text-content-muted"
+                    aria-label="جستجو">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+
+
+        <!-- ===== MEGA-MENU NAV ROW (desktop only, below the main header row) ===== -->
+        <!-- Spec doesn't explicitly call this out, but Talasho's brief requires a
+         Digikala-style secondary nav row. Sticky along with the main header. -->
+        <nav class="hidden lg:block bg-surface border-t border-border relative" aria-label="منوی اصلی">
+            <div class="container-page flex items-center">
+                 <ul class="flex-1 min-w-0 flex items-center justify-start gap-4 h-11 text-body">
+
+                    <!-- BACKEND: FOREACH MAIN-CATEGORY LOOP START -->
+
+                    <!-- Category 1: Women's Jewelry (with mega menu) -->
+                    <li class="mega-menu-hover-area relative h-full flex items-center">
+                        <a href="./products.html"
+                            class="flex items-center gap-1 ts-nav-link text-content-heading hover:text-primary-500 font-medium">
+                            جواهرات بانوان
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-content-muted" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </a>
+
+                        <!-- Mega menu panel — positioned below the trigger item,
+                             right edge aligned with the item's right edge -->
+                        <div class="mega-menu-panel absolute top-full mt-0 right-0 w-[900px] opacity-0 invisible transition-all duration-300
+                                bg-surface rounded-xl shadow-hover p-6 grid grid-cols-4 gap-6 z-50">
+
+                            <!-- Column 1 -->
+                            <div>
+                                <h4
+                                    class="text-caption font-bold text-gold-600 uppercase tracking-wider mb-3 pb-2 border-b border-border">
+                                    انگشتر و گردنبند</h4>
+                                <ul class="space-y-2.5">
+                                    <!-- BACKEND: FOREACH SUBCATEGORY LOOP START -->
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">انگشتر
+                                            نامزدی</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">انگشتر
+                                            سولیتر</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">گردنبند
+                                            پلاک متصل</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">چوکر
+                                            طلا</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">زنجیر
+                                            تک</a></li>
+                                    <!-- BACKEND: FOREACH SUBCATEGORY LOOP END -->
+                                </ul>
+                            </div>
+
+                            <!-- Column 2 -->
+                            <div>
+                                <h4
+                                    class="text-caption font-bold text-gold-600 uppercase tracking-wider mb-3 pb-2 border-b border-border">
+                                    دستبند و النگو</h4>
+                                <ul class="space-y-2.5">
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">دستبند
+                                            مینیمال</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">دستبند
+                                            کارتیر</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">النگوی
+                                            سفارشی</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">النگوی
+                                            کلاسیک</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Column 3 -->
+                            <div>
+                                <h4
+                                    class="text-caption font-bold text-gold-600 uppercase tracking-wider mb-3 pb-2 border-b border-border">
+                                    گوشواره و سرویس</h4>
+                                <ul class="space-y-2.5">
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">گوشواره
+                                            میخی</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">گوشواره
+                                            آویز</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">سرویس
+                                            جواهر</a></li>
+                                    <li><a href="./products.html"
+                                            class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">نیم‌ست
+                                            ورزشی</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Column 4: promo image -->
+                            <!-- BACKEND: INJECT MEGA MENU BANNER IMAGE -->
+                            <a href="./products.html" class="group relative rounded-lg overflow-hidden h-full min-h-[200px] block">
+                                <img src="./assets/images/car-prize-purple-bow-tie.PNG" alt="جشنواره ویژه"
+                                    class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-primary-900/90 via-primary-900/40 to-transparent">
+                                </div>
+                                <div class="absolute bottom-0 inset-x-0 p-4">
+                                    <span
+                                        class="text-gold-500 text-[10px] font-bold tracking-wider uppercase">جشنواره</span>
+                                    <h5 class="text-white font-bold text-sm leading-tight mt-1">جشنواره طلایی طلاشو</h5>
+                                </div>
+                            </a>
+                        </div>
+                    </li>
+
+                    <!-- Category 2: Men's Jewelry -->
+                    <li class="h-full flex items-center">
+                        <a href="./products.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">جواهرات
+                            آقایان</a>
+                    </li>
+
+                    <!-- Category 3: Wedding Rings -->
+                    <li class="h-full flex items-center">
+                        <a href="./products.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">حلقه
+                            ازدواج</a>
+                    </li>
+
+                    <!-- Category 4: Coins -->
+                    <li class="h-full flex items-center">
+                        <a href="./products.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">سکه
+                            طلا</a>
+                    </li>
+
+                    <!-- Category 5: Gold Box (Phase 2 — highlighted with gold) -->
+                    <li class="h-full flex items-center">
+                        <a href="./wallet/index.html"
+                            class="flex items-center gap-1.5 font-bold text-gold-600 hover:text-gold-700 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            صندوق طلای آبشده
+                            <span
+                                class="text-[9px] bg-gold-500/20 text-gold-700 px-1.5 py-0.5 rounded-full font-bold">جدید</span>
+                        </a>
+                    </li>
+
+                    <!-- Category 6: Magazine -->
+                    <li class="h-full flex items-center">
+                        <a href="./blog.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">مجله
+                            طلاشو</a>
+                    </li>
+
+                    <!-- Category 7: Special offers (red accent — Digikala pattern) -->
+                    <li class="h-full flex items-center">
+                        <a href="./products.html"
+                            class="flex items-center gap-1.5 font-bold text-status-error hover:opacity-80 transition-opacity">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            شگفت‌انگیزها
+                        </a>
+                    </li>
+                    <!-- BACKEND: FOREACH MAIN-CATEGORY LOOP END -->
+                </ul>
+
+                <!-- LIVE 18K GOLD INDEX — nav row, far-left (RTL end)
+                     Digikala-style live instrument chip: gold coin medallion with
+                     sheen sweep, live pulse beacon, numeric-measure price (flashes on change),
+                     fluctuation chip and a heartbeat sparkline.
+                     Driven by assets/js/price-board.js.
+                     Links to the live rates board (نرخ‌نامه زنده). -->
+                <a href="./wallet/rates.html"
+                    data-price-row data-price-name="طلای ۱۸ عیار" data-price-current="4545000" data-price-prev="4510000"
+                    title="قیمت لحظه‌ای طلای ۱۸ عیار — نرخ‌نامه زنده طلاشو"
+                    class="group relative hidden lg:flex items-center gap-2 h-8.5 shrink-0 px-3 rounded-full
+                           bg-gradient-to-r from-primary-950 via-[#1f0921] to-primary-950
+                           text-white border border-gold-400/40 hover:border-gold-300
+                           shadow-[0_2px_10px_rgba(46,13,46,0.25),0_0_12px_rgba(212,175,55,0.15)]
+                           hover:shadow-[0_4px_20px_rgba(212,175,55,0.35)]
+                           transition-all duration-300 select-none">
+
+                    <!-- Ambient gold glow backdrop -->
+                    <span class="absolute inset-0 rounded-full bg-gradient-to-r from-gold-500/10 via-gold-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" aria-hidden="true"></span>
+
+                    <!-- Gold coin medallion with animated sheen -->
+                    <span class="gold-coin relative w-5 h-5 rounded-full bg-gradient-to-tr from-amber-600 via-gold-400 to-amber-200 text-slate-950 flex items-center justify-center p-0.5 shadow-[0_0_8px_rgba(232,185,72,0.5)] shrink-0" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
+                            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4.4a3.4 3.4 0 1 1 0 6.8 3.4 3.4 0 0 1 0-6.8zm0 11.6c-2.9 0-5.4-1.5-6.8-3.8.04-2.3 4.6-3.5 6.8-3.5s6.76 1.2 6.8 3.5c-1.4 2.3-3.9 3.8-6.8 3.8z"/>
+                        </svg>
+                        <span class="gold-coin__sheen"></span>
+                    </span>
+
+                    <!-- Live status beacon & Instrument Label -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="relative flex h-1.5 w-1.5 shrink-0" title="بازار زنده">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                        </span>
+                        <span class="text-[11px] font-black text-gold-300 tracking-tight whitespace-nowrap">طلای ۱۸ عیار</span>
+                    </div>
+
+                    <!-- Vertical micro-divider -->
+                    <span class="w-px h-3.5 bg-gold-400/20 shrink-0" aria-hidden="true"></span>
+
+                    <!-- Live price — flashes green/red on every tick -->
+                    <span data-price-flash class="inline-flex items-center rounded-md px-1 py-0.5 transition-all duration-300">
+                        <span class="numeric-measure font-latin">
+                            <span class="numeric-measure__unit text-[9px] font-medium text-gold-200/80">تومان</span>
+                            <span class="font-latin text-[12.5px] font-black text-white tracking-tight" data-price-display>۴٬۵۴۵٬۰۰۰</span>
+                        </span>
+                    </span>
+
+                    <!-- Fluctuation chip (price-board.js swaps the up/down/flat state) -->
+                    <span data-fluctuation-display
+                        class="flex items-center gap-0.5 text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-primary-100 text-slate-800 border border-primary-200/70 transition-colors duration-300">
+                        <svg class="w-3 h-3 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14"/>
+                        </svg>
+                        <span data-fluctuation-percent dir="ltr">۰٫۰٪</span>
+                    </span>
+
+                    <!-- Heartbeat sparkline -->
+                    <svg class="w-7 h-4 shrink-0 text-gold-400 drop-shadow-[0_0_4px_rgba(232,185,72,0.4)]" data-sparkline viewBox="0 0 28 16"
+                        preserveAspectRatio="none" aria-hidden="true">
+                        <polyline fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                            stroke-linejoin="round" points="1.5,12.5 5.2,11.0 8.9,12.0 12.6,8.5 16.3,9.5 20.0,6.0 23.7,7.0 26.5,3.5"/>
+                    </svg>
+                </a>
+            </div>
+        </nav>
+
+
+        </header>
+
+        <!-- ===== MOBILE MENU DRAWER (slide-in from start side = right in RTL)
+             Placed OUTSIDE <header> (which has z-40) so the fixed drawer/overlay
+             escape its stacking context — otherwise page-level z-50 elements
+             (e.g. the mobile bottom nav) would paint over the drawer. ===== -->
+        <div id="globalMobileMenu"
+            class="fixed inset-y-0 start-0 w-72 bg-surface shadow-lg z-[60] transform translate-x-full rtl:translate-x-full transition-transform duration-300 lg:hidden flex flex-col"
+            aria-hidden="true">
+            <div class="p-4 border-b border-border flex items-center justify-between">
+                <a href="./index.html" class="flex items-center gap-2.5" aria-label="طلاشو VIP — صفحه اصلی">
+                    <img src="./assets/images/Purple-Logo.png" alt="طلاشو VIP" class="h-10 w-auto">
+                    <span class="text-lg font-black text-primary-500 leading-none">طلاشو <span class="text-gold-500">VIP</span></span>
+                </a>
+                <button id="globalMobileMenuClose" type="button"
+                    class="p-1.5 text-content-muted hover:text-primary-500 transition-colors" aria-label="بستن منو">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex-1 min-h-0 overflow-y-auto cat-scroll">
+
+                <!-- LIVE 18K GOLD CARD — mobile drawer (first thing seen when menu opens)
+                     Kept in sync with the desktop chip by assets/js/price-board.js:
+                     same data-price-name, so the engine's per-instrument walk drives both.
+                     Links to the live rates board (نرخ‌نامه زنده). -->
+                <div class="p-4 pb-0">
+                    <a href="./wallet/rates.html"
+                        data-price-row data-price-name="طلای ۱۸ عیار" data-price-current="4545000" data-price-prev="4510000"
+                        title="قیمت لحظه‌ای طلای ۱۸ عیار — نرخ‌نامه زنده طلاشو"
+                        class="group relative block overflow-hidden rounded-xl border border-gold-400/40
+                               bg-gradient-to-br from-primary-950 via-[#1f0921] to-primary-950
+                               text-white px-4 py-3.5 hover:border-gold-300
+                               shadow-[0_4px_16px_rgba(46,13,46,0.35),0_0_14px_rgba(212,175,55,0.18)]
+                               hover:shadow-[0_6px_24px_rgba(212,175,55,0.32)]
+                               transition-all duration-300 select-none">
+
+                        <!-- Ambient gold glow backdrop -->
+                        <span class="absolute inset-0 bg-gradient-to-l from-gold-500/15 via-gold-400/5 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" aria-hidden="true"></span>
+
+                        <!-- Row 1: coin medallion + label + live beacon + rates link -->
+                        <div class="relative flex items-center gap-2.5">
+                            <span class="gold-coin relative w-6 h-6 rounded-full bg-gradient-to-tr from-amber-600 via-gold-400 to-amber-200 text-slate-950 flex items-center justify-center p-0.5 shadow-[0_0_8px_rgba(232,185,72,0.5)] shrink-0" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
+                                    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4.4a3.4 3.4 0 1 1 0 6.8 3.4 3.4 0 0 1 0-6.8zm0 11.6c-2.9 0-5.4-1.5-6.8-3.8.04-2.3 4.6-3.5 6.8-3.5s6.76 1.2 6.8 3.5c-1.4 2.3-3.9 3.8-6.8 3.8z"/>
+                                </svg>
+                                <span class="gold-coin__sheen"></span>
+                            </span>
+                            <span class="flex items-center gap-1.5 min-w-0">
+                                <span class="relative flex h-1.5 w-1.5 shrink-0" title="بازار زنده">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                                </span>
+                                <span class="text-[12px] font-black text-gold-300 tracking-tight whitespace-nowrap">طلای ۱۸ عیار</span>
+                            </span>
+                            <span class="flex-1"></span>
+                            <span class="flex items-center gap-1 text-[10.5px] font-bold text-gold-200/90 whitespace-nowrap">
+                                نرخ‌نامه زنده
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </span>
+                        </div>
+
+                        <!-- Row 2: live price + fluctuation chip + sparkline -->
+                        <div class="relative flex items-end justify-between gap-2 mt-3">
+                            <span data-price-flash class="inline-flex items-center rounded-lg px-2 py-1 transition-all duration-300">
+                                <span class="numeric-measure font-latin">
+                                    <span class="numeric-measure__unit text-[10px] font-medium text-gold-200/80">تومان</span>
+                                    <span class="font-latin text-lg font-black text-white tracking-tight leading-none" data-price-display>۴٬۵۴۵٬۰۰۰</span>
+                                </span>
+                            </span>
+                            <span class="flex items-center gap-2 shrink-0">
+                                <!-- Fluctuation chip (price-board.js swaps the up/down/flat state) -->
+                                <span data-fluctuation-display
+                                    class="flex items-center gap-1 text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-primary-100 text-slate-800 border border-primary-200/70 transition-colors duration-300">
+                                    <svg class="w-3 h-3 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14"/>
+                                    </svg>
+                                    <span data-fluctuation-percent dir="ltr">۰٫۰٪</span>
+                                </span>
+                                <!-- Heartbeat sparkline -->
+                                <svg class="w-8 h-5 shrink-0 text-gold-400 drop-shadow-[0_0_4px_rgba(232,185,72,0.4)]" data-sparkline viewBox="0 0 28 16"
+                                    preserveAspectRatio="none" aria-hidden="true">
+                                    <polyline fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                                        stroke-linejoin="round" points="1.5,12.5 5.2,11.0 8.9,12.0 12.6,8.5 16.3,9.5 20.0,6.0 23.7,7.0 26.5,3.5"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Account CTA (Digikala-style) -->
+                <div class="p-4 pb-0">
+                    <a href="./wallet/login.html"
+                        class="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 hover:border-primary-300 hover:bg-primary-50 transition-colors">
+                        <span class="flex items-center gap-3 min-w-0">
+                            <span
+                                class="w-9 h-9 rounded-full bg-primary-500 text-white flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="block text-sm font-bold text-content-heading">ورود / ثبت‌نام</span>
+                                <span class="block text-xs text-content-muted truncate">برای خرید، پیگیری سفارش‌ها و صندوق طلای آبشده</span>
+                            </span>
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-content-muted shrink-0" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Search -->
+                <div class="p-4 pb-0">
+                    <form action="./products.html" method="get" class="relative">
+                        <label for="globalMobileDrawerSearch" class="sr-only">جستجو</label>
+                        <input id="globalMobileDrawerSearch" type="text" name="q" placeholder="جستجو در میان هزاران محصول زیبا..."
+                            class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500 rounded-full py-2 ps-11 pe-4 outline-none transition-all duration-250 text-body text-content-heading placeholder-content-muted">
+                        <button type="submit"
+                            class="absolute inset-y-0 start-0 flex items-center ps-3 text-content-muted hover:text-primary-500 transition-colors"
+                            aria-label="جستجو">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Categories -->
+                <nav class="p-4 pt-2" aria-label="دسته‌بندی محصولات">
+                    <p class="text-caption font-bold text-content-muted mb-1.5 px-1">دسته‌بندی محصولات</p>
+                    <ul class="space-y-0.5">
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 3h12l4 6-10 13L2 9l4-6z" />
+                                    </svg>
+                                    <span class="truncate">جواهرات بانوان</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="12" cy="11" r="6" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 5l1.5-2h-3L12 5z" />
+                                    </svg>
+                                    <span class="truncate">جواهرات آقایان</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="9" cy="15" r="5" />
+                                        <circle cx="15" cy="9" r="5" />
+                                    </svg>
+                                    <span class="truncate">حلقه ازدواج</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="9" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 7.5l1.15 2.33 2.6.38-1.88 1.83.44 2.6L12 13.35l-2.31 1.29.44-2.6-1.88-1.83 2.6-.38L12 7.5z" />
+                                    </svg>
+                                    <span class="truncate">سکه طلا</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./wallet/index.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-bold text-gold-600 min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                    </svg>
+                                    <span class="truncate">صندوق طلای آبشده</span>
+                                </span>
+                                <span class="text-[9px] bg-gold-100 text-gold-700 px-2 py-1 rounded-full font-bold shrink-0">جدید</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./blog.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 19.5A2.5 2.5 0 016.5 17H20V2H6.5A2.5 2.5 0 004 4.5v15zM4 19.5A2.5 2.5 0 006.5 22H20v-5" />
+                                    </svg>
+                                    <span class="truncate">مجله طلاشو</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-bold text-status-error min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    <span class="truncate">شگفت‌انگیزها</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+
+            </div>
+
+        </div>
+
+        <!-- Mobile menu overlay -->
+        <div id="globalMobileMenuOverlay"
+            class="fixed inset-0 bg-black/40 z-[55] hidden lg:hidden opacity-0 transition-opacity duration-300"
+            aria-hidden="true"></div>
+    
+    <!-- ================= SECTION: MAIN HEADER END ================= -->
+
+    <!-- ===== LIVE GOLD PRICE ENGINE (demo) — drives every [data-price-row] =====
+         Backend: keep this for the header instrument, but call
+         window.TALASHO.updatePrices(payload) with live data instead of the
+         built-in random-walk demo. See assets/js/price-board.js header comment. -->
+    <script src="./assets/js/price-board.js" defer></script>
+<!-- GLOBAL SITE HEADER: END -->
+
+    <!-- ============================================================
+         1. BREADCRUMB (Digikala-style)
+         ============================================================ -->
+    <div class="bg-surface border-b border-border">
+        <div class="container-page py-3">
+            <nav class="flex items-center gap-2 text-caption text-content-body" aria-label="مسیر">
+                <a href="./index.html" class="hover:text-primary-500 transition-colors flex items-center gap-1">
+                    <i class='bx bx-home text-base'></i>
+                    خانه
+                </a>
+                <i class='bx bx-chevron-left text-base text-content-muted'></i>
+                <span class="text-content-heading font-bold">درباره طلاشو</span>
+            </nav>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         2. HERO BANNER — Royal Editorial Header
+         ============================================================ -->
+    <section class="bg-gradient-to-bl from-primary-900 via-primary-700 to-primary-800 text-white relative overflow-hidden">
+        <!-- Ambient Decorative Glows -->
+        <div class="absolute top-0 start-0 w-72 h-72 bg-gold-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 end-0 w-96 h-96 bg-gold-400/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+
+        <div class="container-page py-12 lg:py-20 relative z-10">
+            <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <!-- Text Content -->
+                <div class="lg:col-span-7">
+                    <!-- Eyebrow Tag -->
+                    <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-3 py-1.5 rounded-2xl bg-gold-500/20 border border-gold-400/30 text-gold-300 text-xs font-bold mb-6 text-center">
+                        <i class='bx bxs-crown text-base text-gold-400'></i>
+                        <span>داستان برند طلاشو VIP</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                        <span>گروه طلا و جواهر برزیگر</span>
+                    </div>
+
+                    <!-- Main Title -->
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-6 tracking-tight">
+                        سه دهه اصالت، اعتماد
+                        <span class="block text-transparent bg-clip-text bg-gradient-to-l from-gold-300 via-gold-400 to-amber-200 mt-2">
+                            و هنر مدرن طلاسازی
+                        </span>
+                    </h1>
+
+                    <!-- Paragraph -->
+                    <p class="text-base lg:text-lg text-gray-200 leading-relaxed mb-8 max-w-2xl">
+                        طلاشو، بازوی نوآوری و سرمایه‌گذاری گروه طلا و جواهر برزیگر، حاصل پیوند بیش از ۳۰ سال تجربه سنتی بازار طلا با فناوری‌های نوین معامله طلای دیجیتال و ساخت سفارشی است.
+                    </p>
+
+                    <!-- CTAs -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                        <a href="./products.html" class="btn-gold px-7 py-3.5 text-sm inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-gold-500/25">
+                            <i class='bx bx-store-alt text-xl'></i>
+                            مشاهده کاتالوگ محصولات
+                        </a>
+                        <a href="#branches" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/10 border border-white/20 text-white text-sm font-bold hover:bg-white/20 transition-all backdrop-blur-sm">
+                            <i class='bx bx-map-pin text-xl text-gold-400'></i>
+                            شعب و مراکز حضوری
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Featured Hero Visual Card -->
+                <div class="lg:col-span-5 relative">
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
+                        <img src="./assets/images/about/story_mastercraft.jpg" alt="کارگاه طلاسازی برزیگر" class="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary-950/90 via-primary-950/30 to-transparent"></div>
+                        <div class="absolute bottom-0 inset-x-0 p-6 text-right">
+                            <div class="flex items-center gap-2 text-gold-400 text-xs font-bold mb-1">
+                                <i class='bx bx-award text-base'></i>
+                                <span>کارگاه اختصاصی ساخت و عیارسنجی</span>
+                            </div>
+                            <h3 class="text-white font-bold text-lg">هنر دست استادکاران برزیگر</h3>
+                            <p class="text-xs text-gray-300 mt-1">تلفیق طراحی دیجیتال سه بعدی با ساخت استاندار ۱۸ عیار</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         3. KEY METRICS BAND (طلاشو در یک نگاه - Digikala Stats Style)
+         ============================================================ -->
+    <section class="relative z-20 -mt-8">
+        <div class="container-page">
+            <div class="bg-surface rounded-2xl p-6 lg:p-8 shadow-xl border border-border">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-center md:divide-x md:divide-x-reverse divide-border/60">
+
+                    <!-- Metric 1: Experience -->
+                    <div class="px-2 md:px-3 py-2">
+                            <div class="text-base sm:text-3xl lg:text-4xl font-black text-primary-700 mb-1 flex items-center justify-center gap-1 font-latin">
+                            <span class="numeric-measure">
+                                <span class="numeric-measure__unit text-[10px] sm:text-base font-bold text-primary-500">سال</span>
+                                <span class="font-latin">۳۰+</span>
+                            </span>
+                        </div>
+                        <div class="text-caption font-bold text-content-heading">سابقه در صنعت طلا</div>
+                        <div class="text-[11px] text-content-muted mt-0.5">از ۱۳۷۶ تا به امروز</div>
+                    </div>
+
+                    <!-- Metric 2: Happy Clients -->
+                    <div class="px-2 md:px-3 py-2">
+                            <div class="text-base sm:text-3xl lg:text-4xl font-black text-primary-700 mb-1 flex items-center justify-center gap-1 font-latin">
+                            <span class="numeric-measure">
+                                <span class="numeric-measure__unit text-[10px] sm:text-base font-bold text-primary-500">مشتری</span>
+                                <span class="font-latin">۵۰,۰۰۰+</span>
+                            </span>
+                        </div>
+                        <div class="text-caption font-bold text-content-heading">خریدار راضی و وفادار</div>
+                        <div class="text-[11px] text-content-muted mt-0.5">در سراسر کشور</div>
+                    </div>
+
+                    <!-- Metric 3: Product Variety -->
+                    <div class="px-2 md:px-3 py-2">
+                            <div class="text-base sm:text-3xl lg:text-4xl font-black text-primary-700 mb-1 flex items-center justify-center gap-1 font-latin">
+                            <span class="numeric-measure">
+                                <span class="numeric-measure__unit text-[10px] sm:text-base font-bold text-primary-500">محصول</span>
+                                <span class="font-latin">۱۰,۰۰۰+</span>
+                            </span>
+                        </div>
+                        <div class="text-caption font-bold text-content-heading">تنوع طراحی و زیورآلات</div>
+                        <div class="text-[11px] text-content-muted mt-0.5">طلای ۱۸ عیار استاندارد</div>
+                    </div>
+
+                    <!-- Metric 4: Showroom Area -->
+                    <div class="px-2 md:px-3 py-2">
+                            <div class="text-base sm:text-3xl lg:text-4xl font-black text-primary-700 mb-1 flex items-center justify-center gap-1 font-latin">
+                            <span class="numeric-measure">
+                                <span class="numeric-measure__unit text-[10px] sm:text-base font-bold text-primary-500">متر مربع</span>
+                                <span class="font-latin">۶۵۰+</span>
+                            </span>
+                        </div>
+                        <div class="text-caption font-bold text-content-heading">فضای فروشگاهی و آکادمی</div>
+                        <div class="text-[11px] text-content-muted mt-0.5">کرمان، تهران و مسقط</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         4. INTERACTIVE TIMELINE / HISTORY (مسیر رشد و تاریخچه طلاشو)
+         ============================================================ -->
+    <section class="ts-section">
+        <div class="container-page">
+            <div class="text-center mb-10 max-w-2xl mx-auto">
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <span class="h-px w-10 bg-gold-400"></span>
+                    <span class="text-caption font-bold text-gold-600 uppercase tracking-wider font-latin">Our Journey</span>
+                    <span class="h-px w-10 bg-gold-400"></span>
+                </div>
+                <h2 class="text-section lg:text-3xl font-black text-content-heading mb-3">تاریخچه و مسیر رشد طلاشو</h2>
+                <p class="text-body text-content-body">مروری بر سیر تحول از شاگردی طلافروشی تا برند پیشتاز زیورآلات و طلای دیجیتال</p>
+            </div>
+
+            <!-- Timeline Interactive Tabs (Digikala Specs) -->
+            <div class="flex items-center justify-start md:justify-center gap-2 mb-10 overflow-x-auto pb-2 no-scrollbar" id="timelineTabs">
+                <button type="button" data-target="phase1" class="timeline-tab shrink-0 whitespace-nowrap px-4 py-2 md:px-5 md:py-2.5 rounded-full border text-xs md:text-sm font-bold transition-all duration-250 border-primary-500 bg-primary-500 text-white shadow-sm">
+                    ۱۳۷۶ - ۱۳۸۶ | آغاز راه
+                </button>
+                <button type="button" data-target="phase2" class="timeline-tab shrink-0 whitespace-nowrap px-4 py-2 md:px-5 md:py-2.5 rounded-full border text-xs md:text-sm font-bold transition-all duration-250 border-border bg-surface text-content-body hover:border-primary-300">
+                    ۱۳۸۶ - ۱۳۹۷ | حضور در مرکز استان
+                </button>
+                <button type="button" data-target="phase3" class="timeline-tab shrink-0 whitespace-nowrap px-4 py-2 md:px-5 md:py-2.5 rounded-full border text-xs md:text-sm font-bold transition-all duration-250 border-border bg-surface text-content-body hover:border-primary-300">
+                    ۱۳۹۷ - ۱۴۰۲ | جهش دیجیتال
+                </button>
+                <button type="button" data-target="phase4" class="timeline-tab shrink-0 whitespace-nowrap px-4 py-2 md:px-5 md:py-2.5 rounded-full border text-xs md:text-sm font-bold transition-all duration-250 border-border bg-surface text-content-body hover:border-primary-300">
+                    ۱۴۰۲ تا آینده | نسل دوم و مسقط
+                </button>
+            </div>
+
+            <!-- Timeline Content Cards Container -->
+            <div class="space-y-8" id="timelinePanels">
+
+                <!-- Phase 1 Card -->
+                <div id="phase1" class="timeline-panel ts-card-lg border border-border/80 transition-all duration-300">
+                    <div class="grid lg:grid-cols-12 gap-8 items-center">
+                        <div class="lg:col-span-5 order-2 lg:order-1">
+                            <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
+                                <img src="./assets/images/about/goldsmith_tools.jpg" alt="کارگاه اولیه طلاسازی" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                        <div class="lg:col-span-7 order-1 lg:order-2">
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="px-3 py-1 bg-gold-100 text-gold-800 text-xs font-bold rounded-full">فصل اول</span>
+                                <span class="text-caption font-bold text-gold-600 font-latin">۱۳۷۶ — ۱۳۸۶</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-content-heading mb-4">آغاز مسیر — از شاگردی تا بنکداری عمده</h3>
+                            <p class="text-body text-content-body leading-loose mb-4">
+                                از سال ۱۳۷۶، علیرضا برزیگر فعالیت خود را از شاگردی در مغازه طلافروشی آغاز کرد. علاقه عمیق به صنعت طلا، شمّ اقتصادی موروثی و یادگیری ریزه‌کاری‌های ساخت طلا سبب شد تا در ۲۳ سالگی وارد حوزه تهیه و پخش عمده طلا گردد.
+                            </p>
+                            <div class="flex items-start gap-2 text-xs font-bold text-primary-600 bg-primary-50 px-4 py-2.5 rounded-xl">
+                                <i class='bx bx-check-circle text-lg'></i>
+                                <span>دست‌آورد اصلی: شکل‌گیری زنجیره تامین و شناخت عمیق عیارسنجی و بازار بنکداری</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2 Card -->
+                <div id="phase2" class="timeline-panel ts-card-lg border border-border/80 transition-all duration-300">
+                    <div class="grid lg:grid-cols-12 gap-8 items-center">
+                        <div class="lg:col-span-7">
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="px-3 py-1 bg-gold-100 text-gold-800 text-xs font-bold rounded-full">فصل دوم</span>
+                                <span class="text-caption font-bold text-gold-600 font-latin">۱۳۸۶ — ۱۳۹۷</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-content-heading mb-4">توسعه در کرمان — ورود به خرده‌فروشی مدرن</h3>
+                            <p class="text-body text-content-body leading-loose mb-4">
+                                سال ۱۳۸۶ نقطه‌عطفی در تاریخ برزیگر بود. انتقال مجموعه به بازار بزرگ طلای کرمان و سپس راه‌اندازی فروشگاه لوکس در مرکز استان، موجب تحول در نحوه ارائه زیورآلات و جلب اعتماد هزاران خریدار محترمی شد که اصالت را می‌جستند.
+                            </p>
+                            <div class="flex items-start gap-2 text-xs font-bold text-primary-600 bg-primary-50 px-4 py-2.5 rounded-xl">
+                                <i class='bx bx-check-circle text-lg'></i>
+                                <span>دست‌آورد اصلی: احداث یکی از معتبرترین گالری‌های طلا در جنوب شرق کشور</span>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-5">
+                            <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
+                                <img src="./assets/images/about/boutique_showroom.jpg" alt="گالری طلا در کرمان" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 3 Card -->
+                <div id="phase3" class="timeline-panel ts-card-lg border border-border/80 transition-all duration-300">
+                    <div class="grid lg:grid-cols-12 gap-8 items-center">
+                        <div class="lg:col-span-5 order-2 lg:order-1">
+                            <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
+                                <img src="./assets/images/about/story_mastercraft.jpg" alt="تولید زیورآلات اختصاصی طلاشو" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                        <div class="lg:col-span-7 order-1 lg:order-2">
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="px-3 py-1 bg-gold-100 text-gold-800 text-xs font-bold rounded-full">فصل سوم</span>
+                                <span class="text-caption font-bold text-gold-600 font-latin">۱۳۹۷ — ۱۴۰۲</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-content-heading mb-4">تولد برند طلاشو — جهش در فضای دیجیتال</h3>
+                            <p class="text-body text-content-body leading-loose mb-4">
+                                همزمان با دگرگونی الگوی خرید مردم و دوران کرونا، مجموعه برزیگر با تعریف برند «طلاشو» بستری شفاف برای مشاهده آنلاین، سفارش ساخت سه بعدی و خرید مطمئن طلا فراهم ساخت.
+                            </p>
+                            <div class="flex items-start gap-2 text-xs font-bold text-primary-600 bg-primary-50 px-4 py-2.5 rounded-xl">
+                                <i class='bx bx-check-circle text-lg'></i>
+                                <span>دست‌آورد اصلی: راه‌اندازی فروشگاه اینترنتی با ارسال بیمه‌شده سراسری</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 4 Card -->
+                <div id="phase4" class="timeline-panel ts-card-lg border border-border/80 transition-all duration-300">
+                    <div class="grid lg:grid-cols-12 gap-8 items-center">
+                        <div class="lg:col-span-7">
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="px-3 py-1 bg-gold-100 text-gold-800 text-xs font-bold rounded-full">فصل چهارم</span>
+                                <span class="text-caption font-bold text-gold-600 font-latin">۱۴۰۲ — ۱۴۰۵+</span>
+                            </div>
+                            <h3 class="text-2xl font-black text-content-heading mb-4">ورود نسل دوم و افق بین‌المللی مسقط</h3>
+                            <p class="text-body text-content-body leading-loose mb-4">
+                                با پیوستن فردین برزیگر (نسل دوم) پس از تجارب تخصصی در بازار تهران، هم‌افزایی دانش مدرن و تجربه سنتی شکل گرفت. تأسیس آکادمی ۲۵۰ متری، مجتمع تخصصی ۴۰۰ متری و افتتاح شعبه مسقط عمان، گام جدید طلاشو است.
+                            </p>
+                            <div class="flex items-start gap-2 text-xs font-bold text-primary-600 bg-primary-50 px-4 py-2.5 rounded-xl">
+                                <i class='bx bx-check-circle text-lg'></i>
+                                <span>دست‌آورد اصلی: معامله آنلاین صندوق طلای آبشده و صادرات زیورآلات به خلیج فارس</span>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-5">
+                            <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
+                                <img src="./assets/images/about/vision_future.jpg" alt="شعبه بین‌المللی طلاشو" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         5. QUOTE BAND — Founder Statement
+         ============================================================ -->
+    <section class="bg-primary-900 text-white relative overflow-hidden my-6">
+        <div class="absolute inset-0 bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:32px_32px] opacity-10"></div>
+        <div class="container-page py-16 lg:py-20 relative z-10 text-center max-w-4xl mx-auto">
+            <i class='bx bxs-quote-alt-left text-5xl lg:text-6xl text-gold-400 mb-4 inline-block opacity-80'></i>
+            <blockquote class="text-xl sm:text-2xl lg:text-3xl font-black leading-snug tracking-tight mb-8">
+                طلا تنها یک فلز گران‌بها نیست؛
+                <span class="block text-gold-300 mt-3 font-extrabold">طلا روایتی است زنده از اصالت، اعتماد پابرجا و آینده‌نگری هوشمندانه.</span>
+            </blockquote>
+            <div class="flex items-center justify-center gap-3">
+                <span class="h-px w-12 bg-gold-400/60"></span>
+                <span class="text-sm font-bold text-gold-300 tracking-wider">علیرضا برزیگر — بنیان‌گذار گروه برزیگر و طلاشو</span>
+                <span class="h-px w-12 bg-gold-400/60"></span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         6. VALUES GRID (باورها و ارزش‌های طلاشو - 4 Col Digikala Style)
+         ============================================================ -->
+    <section class="ts-section bg-surface">
+        <div class="container-page">
+            <div class="text-center mb-10 max-w-2xl mx-auto">
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <span class="h-px w-10 bg-gold-400"></span>
+                    <span class="text-caption font-bold text-gold-600 uppercase tracking-wider font-latin">Core Values</span>
+                    <span class="h-px w-10 bg-gold-400"></span>
+                </div>
+                <h2 class="text-section lg:text-3xl font-black text-content-heading mb-3">باورها و ارکان ارزش در طلاشو</h2>
+                <p class="text-body text-content-body">ارزش‌هایی که راهنمای هر تصمیم، طراحی و معامله در مجموعه ما است</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- Value 1 -->
+                <div class="ts-card hover:-translate-y-1 transition-all duration-300 border border-border group relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center text-3xl mb-5 group-hover:bg-primary-500 group-hover:text-white transition-colors">
+                        <i class='bx bx-shield-quarter'></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-content-heading mb-2">اصالت و عیارسنجی قانونی</h3>
+                    <p class="text-caption text-content-body leading-relaxed">
+                        تمامی محصولات طلاشو همراه با فاکتور رسمی اصناف، کد رهگیری عیارسنجی اتحادیه و تضمین ۱۰۰٪ طلای ۱۸ عیار ارائه می‌شود.
+                    </p>
+                </div>
+
+                <!-- Value 2 -->
+                <div class="ts-card hover:-translate-y-1 transition-all duration-300 border border-border group relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-gold-50 text-gold-600 flex items-center justify-center text-3xl mb-5 group-hover:bg-gold-500 group-hover:text-white transition-colors">
+                        <i class='bx bx-coin-stack'></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-content-heading mb-2">صندوق طلای آبشده هوشمند</h3>
+                    <p class="text-caption text-content-body leading-relaxed">
+                        امکان معامله آنلاین طلای آبشده حتی با مبالغ خرد، همراه با قابلیت تحویل فیزیکی شمش استاندارد در هر زمان.
+                    </p>
+                </div>
+
+                <!-- Value 3 -->
+                <div class="ts-card hover:-translate-y-1 transition-all duration-300 border border-border group relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center text-3xl mb-5 group-hover:bg-primary-500 group-hover:text-white transition-colors">
+                        <i class='bx bx-palette'></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-content-heading mb-2">طراحی و ساخت سفارشی</h3>
+                    <p class="text-caption text-content-body leading-relaxed">
+                        تیم طراحی آتلیه طلاشو ایده و طرح دلخواه شما را با مدلسازی دقیق سه بعدی به محصولی بی‌نظیر تبدیل می‌کند.
+                    </p>
+                </div>
+
+                <!-- Value 4 -->
+                <div class="ts-card hover:-translate-y-1 transition-all duration-300 border border-border group relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-gold-50 text-gold-600 flex items-center justify-center text-3xl mb-5 group-hover:bg-gold-500 group-hover:text-white transition-colors">
+                        <i class='bx bx-headphone'></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-content-heading mb-2">پشتیبانی و مشاوره ۲۴/۷</h3>
+                    <p class="text-caption text-content-body leading-relaxed">
+                        کارشناسان مجرب طلاشو در تمام روزهای هفته آماده ارائه مشاوره سرمایه‌گذاری طلا و پاسخگویی به سوالات شما هستند.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         7. PHYSICAL SHOWROOMS & ACADEMY (شعب و مراکز حضوری)
+         ============================================================ -->
+    <section class="ts-section" id="branches">
+        <div class="container-page">
+            <div class="text-center mb-10 max-w-2xl mx-auto">
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <span class="h-px w-10 bg-gold-400"></span>
+                    <span class="text-caption font-bold text-gold-600 uppercase tracking-wider font-latin">Our Locations</span>
+                    <span class="h-px w-10 bg-gold-400"></span>
+                </div>
+                <h2 class="text-section lg:text-3xl font-black text-content-heading mb-3">مراکز حضوری و شعب طلاشو</h2>
+                <p class="text-body text-content-body">میزبان حضور گرم شما در شعب و آکادمی‌های تخصصی طلاشو هستیم</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+
+                <!-- Branch 1: Kerman Flagship -->
+                <div class="ts-card border border-border flex flex-col justify-between hover:shadow-card transition-shadow">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center text-2xl mb-4">
+                            <i class='bx bx-store-alt'></i>
+                        </div>
+                        <span class="text-xs font-bold text-gold-600 uppercase font-latin">Flagship Showroom</span>
+                        <h3 class="text-xl font-bold text-content-heading mt-1 mb-3">مجتمع تخصصی طلاشو (کرمان)</h3>
+                        <p class="text-caption text-content-body leading-relaxed mb-4">
+                            ۴۰۰ متر مربع فضای فروشگاهی لوکس VIP شامل ویترین‌های اختصاصی جواهرات، سالن تشریفات و مشاوره سرمایه‌گذاری.
+                        </p>
+                        <div class="space-y-2 text-xs text-content-muted">
+                            <div class="flex items-center gap-2">
+                                <i class='bx bx-map text-base text-primary-500'></i>
+                                <span>کرمان، خیابان شریعتی، مجتمع طلاشو VIP</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class='bx bx-phone text-base text-primary-500'></i>
+                                <span dir="ltr" class="font-latin">۰۳۴ - ۳۲۲۲۰۰۰۰</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-border/60">
+                        <a href="./contact.html" class="text-xs font-bold text-primary-600 hover:text-primary-800 flex items-center gap-1">
+                            <span>مسیریابی و تماس</span>
+                            <i class='bx bx-left-arrow-alt text-base'></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Branch 2: Academy -->
+                <div class="ts-card border border-border flex flex-col justify-between hover:shadow-card transition-shadow">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center text-2xl mb-4">
+                            <i class='bx bx-book-open'></i>
+                        </div>
+                        <span class="text-xs font-bold text-gold-600 uppercase font-latin">Training & Design Lab</span>
+                        <h3 class="text-xl font-bold text-content-heading mt-1 mb-3">آکادمی تخصصی طلاشو</h3>
+                        <p class="text-caption text-content-body leading-relaxed mb-4">
+                            ۲۵۰ متر مربع کارگاه مجهز آموزشی، طراحی ۳D جواهرات و سنجش عیار برای علاقه‌مندان و فعالان صنعت طلا.
+                        </p>
+                        <div class="space-y-2 text-xs text-content-muted">
+                            <div class="flex items-center gap-2">
+                                <i class='bx bx-map text-base text-gold-600'></i>
+                                <span>کرمان، مرکز رشد صنایع دستی و طلا</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class='bx bx-phone text-base text-gold-600'></i>
+                                <span dir="ltr" class="font-latin">۰۳۴ - ۳۲۲۲۱۱۱۱</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-border/60">
+                        <a href="./contact.html" class="text-xs font-bold text-gold-700 hover:text-gold-900 flex items-center gap-1">
+                            <span>اطلاعات دوره و بازدید</span>
+                            <i class='bx bx-left-arrow-alt text-base'></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Branch 3: Muscat Oman -->
+                <div class="ts-card border border-border flex flex-col justify-between hover:shadow-card transition-shadow">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center text-2xl mb-4">
+                            <i class='bx bx-globe'></i>
+                        </div>
+                        <span class="text-xs font-bold text-gold-600 uppercase font-latin">International Muscat Branch</span>
+                        <h3 class="text-xl font-bold text-content-heading mt-1 mb-3">شعبه بین‌المللی مسقط (عمان)</h3>
+                        <p class="text-caption text-content-body leading-relaxed mb-4">
+                            ارائه خدمات صادراتی، طراحی زیورآلات فاخر خاورمیانه و پذیرش سفارش‌های خریداران بین‌المللی در عمان.
+                        </p>
+                        <div class="space-y-2 text-xs text-content-muted">
+                            <div class="flex items-center gap-2">
+                                <i class='bx bx-map text-base text-primary-500'></i>
+                                <span>Muscat, Sultanate of Oman</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class='bx bx-phone text-base text-primary-500'></i>
+                                <span dir="ltr" class="font-latin">+968 9000 0000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-border/60">
+                        <a href="./contact.html" class="text-xs font-bold text-primary-600 hover:text-primary-800 flex items-center gap-1">
+                            <span>ارتباط با دفتر مسقط</span>
+                            <i class='bx bx-left-arrow-alt text-base'></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         8. TRUST BADGES & GUARANTEES (نمادهای اعتماد و مجوزها)
+         ============================================================ -->
+    <section class="ts-section bg-surface border-t border-b border-border">
+        <div class="container-page">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div>
+                    <div class="inline-flex items-center gap-2 text-xs font-bold text-primary-600 mb-2">
+                        <i class='bx bx-check-shield text-lg'></i>
+                        <span>تضمین حقوق خریدار</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-content-heading mb-2">مجوزهای رسمی و ضمانت قانونی</h3>
+                    <p class="text-body text-content-body max-w-xl">
+                        طلاشو دارای اینماد تک‌ستاره رسمی، پروانه کسب اتحادیه طلا و جواهر و گواهی بیمه‌نامه ارسال پست سفارشی در سراسر ایران است.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+                    <div class="p-4 bg-background rounded-2xl border border-border flex items-center justify-center gap-3 w-full sm:w-auto">
+                        <img src="./assets/images/enamad.webp" alt="اینماد" class="w-14 h-14 object-contain shrink-0">
+                        <div>
+                            <div class="text-sm font-bold text-content-heading">نماد اعتماد الکترونیکی</div>
+                            <div class="text-xs text-content-muted">وزارت صمت ایران</div>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-background rounded-2xl border border-border flex items-center justify-center gap-3 w-full sm:w-auto">
+                        <img src="./assets/images/union.png" alt="اتحادیه طلا" class="w-14 h-14 object-contain shrink-0">
+                        <div>
+                            <div class="text-sm font-bold text-content-heading">اتحادیه طلا و جواهر</div>
+                            <div class="text-xs text-content-muted">پروانه رسمی کد ۷۷۲</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ============================================================
+         9. DUAL CTA BAND (آماده خرید یا سرمایه‌گذاری هستید؟)
+         ============================================================ -->
+    <section class="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-900 text-white relative overflow-hidden py-14 lg:py-16">
+        <div class="absolute top-0 start-0 w-64 h-64 bg-gold-400/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 end-0 w-64 h-64 bg-gold-400/10 rounded-full blur-3xl"></div>
+
+        <div class="container-page relative z-10">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div class="text-center lg:text-right">
+                    <h2 class="text-2xl sm:text-3xl font-black mb-3">به خانواده خریداران طلاشو بپیوندید</h2>
+                    <p class="text-white/80 text-base max-w-xl">
+                        از جدیدترین کاتالوگ زیورآلات دیدن کنید یا با معامله طلای آبشده در صندوق هوشمند، سرمایه خود را حفظ نمایید.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-4 justify-center">
+                    <a href="./products.html" class="btn-gold px-7 py-3.5 text-sm inline-flex items-center gap-2">
+                        <i class='bx bx-shopping-bag text-lg'></i>
+                        مشاهده ویترین محصولات
+                    </a>
+                    <a href="./wallet/login.html" class="px-6 py-3.5 rounded-full bg-white/10 border border-white/30 text-white font-bold text-sm hover:bg-white/20 transition-all inline-flex items-center gap-2">
+                        <i class='bx bx-wallet text-lg text-gold-400'></i>
+                        ورود به صندوق طلای آبشده
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- GLOBAL SITE FOOTER: START -->
+<footer class="bg-[#200B21] border-t-4 border-[#D4AF37] pt-12 mt-12 text-gray-300 font-medium pb-24 md:pb-0">
+            <div class="container mx-auto px-4 md:px-6">
+
+                <!-- === Top Tier: Brand, Phone, Back to Top === -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
+
+                    <!-- Brand Details (Logo + Luxury Typography) -->
+                    <div class="flex items-center">
+                        <!-- Logo Element -->
+                        <img src="./assets/images/White-Logo.png" alt="طلاشو"
+                            class="h-16 md:h-20 w-auto object-contain shrink-0 pl-4 border-l border-white/10 drop-shadow-md">
+
+                        <!-- Beautiful VIP Typography (Visually on the Left) -->
+                        <div class="flex flex-col pr-4 text-right">
+                            <span class="text-xl md:text-2xl font-bold text-white mb-1 drop-shadow-md">
+                                طلا و جواهر <span class="text-[#D4AF37] font-black">برزیگر</span>
+                            </span>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="h-[1.5px] w-6 md:w-8 bg-[#D4AF37] rounded-full drop-shadow"></span>
+                                <span
+                                    class="text-[#D4AF37] text-[10px] md:text-xs font-black font-latin tracking-[0.25em] drop-shadow">VIP
+                                    GALLERY</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back to Top Button (Luxury Style) -->
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+                        class="flex items-center gap-2 border border-white/20 text-gray-300 rounded-lg px-4 py-2.5 text-xs md:text-sm hover:border-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all duration-300 group shrink-0">
+                        بازگشت به بالا
+                        <svg class="w-4 h-4 group-hover:-translate-y-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Phone Support Bar (High Contrast) -->
+                <div class="flex flex-wrap items-center gap-2 text-xs md:text-sm mb-12 pb-8 border-b border-white/10">
+                    <span class="text-gray-400">تلفن پشتیبانی:</span>
+                    <span class="font-bold text-white text-base font-latin tracking-wider mx-1" dir="ltr">۰۲۱ -
+                        ۱۲۳۴۵۶۷۸</span>
+                    <span class="hidden md:inline text-white/20 mx-3">|</span>
+                    <span class="text-gray-400">هفت روز هفته، ۲۴ ساعت شبانه‌روز پاسخگوی شما هستیم</span>
+                </div>
+
+                <!-- === Middle Tier: Links & Interaction === -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-y-10 gap-x-8 mb-12">
+
+                    <!-- Column 1: Buying Guide -->
+                    <div class="lg:col-span-2">
+                        <h3 class="text-white font-bold text-base mb-6 border-r-2 border-[#D4AF37] pr-3">راهنمای خرید
+                        </h3>
+                        <ul class="space-y-4 text-[13px] text-gray-400">
+                            <li><a href="./terms.html" class="ts-footer-link">نحوه
+                                    ثبت سفارش</a></li>
+                            <li><a href="./terms.html" class="ts-footer-link">رویه
+                                    ارسال کالا</a></li>
+                            <li><a href="./terms.html"
+                                    class="ts-footer-link">شیوه‌های
+                                    پرداخت</a></li>
+                            <li><a href="./wallet/rates.html"
+                                    class="ts-footer-link">محاسبه‌گر
+                                    قیمت طلا</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 2: Customer Service -->
+                    <div class="lg:col-span-2">
+                        <h3 class="text-white font-bold text-base mb-6 border-r-2 border-[#D4AF37] pr-3">خدمات مشتریان
+                        </h3>
+                        <ul class="space-y-4 text-[13px] text-gray-400">
+                            <li><a href="./contact.html"
+                                    class="ts-footer-link">پرسش‌های
+                                    متداول</a></li>
+                            <li><a href="./terms.html" class="ts-footer-link">رویه
+                                    بازگرداندن کالا</a></li>
+                            <li><a href="./terms.html" class="ts-footer-link">شرایط
+                                    استفاده</a></li>
+                            <li><a href="./terms.html" class="ts-footer-link">حریم
+                                    خصوصی</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 3: About & Info -->
+                    <div class="lg:col-span-2">
+                        <h3 class="text-white font-bold text-base mb-6 border-r-2 border-[#D4AF37] pr-3">با طلاشو</h3>
+                        <ul class="space-y-4 text-[13px] text-gray-400">
+                            <li><a href="./about.html"
+                                    class="ts-footer-link">درباره ما</a>
+                            </li>
+                            <li><a href="./contact.html" class="ts-footer-link">تماس
+                                    با گالری</a></li>
+                            <li><a href="./contact.html"
+                                    class="ts-footer-link">شعبه‌های
+                                    فیزیکی</a></li>
+                            <li><a href="./blog.html" class="ts-footer-link">مجله
+                                    طلا و جواهر</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 4 & 5: Newsletter, Social & Trust -->
+                    <div
+                        class="lg:col-span-6 flex flex-col md:pr-10 border-t md:border-t-0 border-white/10 pt-8 md:pt-0 mt-2 md:mt-0">
+
+                        <!-- Luxury Dark Newsletter Box -->
+                        <div class="mb-10">
+                            <h3 class="text-white font-bold text-base mb-3">عضویت در خبرنامه</h3>
+                            <p class="text-[13px] text-gray-400 mb-4 leading-relaxed">برای اطلاع از جشنواره‌ها، رونمایی
+                                کالکشن‌های جدید و <span class="text-[#D4AF37]">تحلیل هفتگی مظنه طلا</span>، ایمیل خود را
+                                وارد کنید.</p>
+                            <form
+                                class="flex w-full md:w-3/4 bg-[#2A0F2B] rounded-lg p-1.5 border border-white/10 focus-within:border-[#D4AF37]/50 transition-colors">
+                                <input type="email" placeholder="ایمیل شما"
+                                    class="flex-grow bg-transparent border-none text-white focus:outline-none focus:ring-0 px-4 text-sm font-latin placeholder-gray-500"
+                                    required>
+                                <button type="submit"
+                                    class="bg-[#D4AF37] text-[#200B21] text-[13px] font-black px-6 py-2.5 rounded hover:bg-yellow-500 transition-colors">ثبت</button>
+                            </form>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-8 sm:gap-6">
+
+                            <!-- Elegant Thin Social Icons -->
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <!-- Instagram -->
+                                <a href="#"
+                                    class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-gray-400 hover:text-white hover:border-white hover:bg-white/10 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                                    </svg>
+                                </a>
+                                <!-- Telegram -->
+                                <a href="#"
+                                    class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-gray-400 hover:text-white hover:border-white hover:bg-white/10 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                                    </svg>
+                                </a>
+                                <!-- WhatsApp -->
+                                <a href="#"
+                                    class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-gray-400 hover:text-white hover:border-white hover:bg-white/10 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                    </svg>
+                                </a>
+
+                                <!-- PINTEREST (Perfect clean SVG scaling path) -->
+                                <a href="#"
+                                    class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-gray-400 hover:text-white hover:border-white hover:bg-white/10 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.951-7.252 4.182 0 7.439 2.981 7.439 6.941 0 4.156-2.615 7.498-6.241 7.498-1.22 0-2.368-.636-2.759-1.385l-.754 2.876c-.274 1.042-1.018 2.344-1.515 3.14A11.93 11.93 0 0012.017 24c6.621 0 11.988-5.368 11.988-11.987 0-6.621-5.367-11.987-11.988-11.987z" />
+                                    </svg>
+                                </a>
+
+                                <!-- YouTube -->
+                                <a href="#"
+                                    class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-gray-400 hover:text-white hover:border-white hover:bg-white/10 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                    </svg>
+                                </a>
+                                <!-- LinkedIn -->
+                                <a href="#"
+                                    class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-gray-400 hover:text-white hover:border-white hover:bg-white/10 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                                    </svg>
+                                </a>
+                            </div>
+
+                            <!-- Trust Badges (Enamad & Union with bright background) -->
+                            <div class="flex items-center gap-4">
+                                <a href="#"
+                                    class="w-20 h-20 rounded-2xl flex items-center justify-center p-2 bg-white hover:bg-gray-100 transition-colors shadow-sm hover:shadow-md">
+                                    <img src="./assets/images/enamad.webp" alt="نماد اعتماد الکترونیکی"
+                                        class="w-full h-full object-contain">
+                                </a>
+                                <a href="#"
+                                    class="w-20 h-20 rounded-2xl flex items-center justify-center p-2 bg-white hover:bg-gray-100 transition-colors shadow-sm hover:shadow-md">
+                                    <img src="./assets/images/union.png" alt="اتحادیه طلا و جواهر"
+                                        class="w-full h-full object-contain">
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === Bottom Tier: Copyright === -->
+                <div class="border-t border-white/10 py-8 text-center flex flex-col items-center">
+                    <p class="text-[11px] md:text-xs text-gray-500 leading-relaxed max-w-3xl">
+                        استفاده از مطالب گالری <span class="text-gray-300 font-bold">طلاشو</span> فقط برای مقاصد
+                        غیرتجاری و با ذکر منبع بلامانع است. کلیه حقوق مادی و معنوی این سایت محفوظ می‌باشد.
+                    </p>
+                    <!-- Sleek Developer / Watermark Tag -->
+                    <span class="block mt-3 text-[10px] text-gray-600 font-latin tracking-widest uppercase"
+                        dir="ltr">2026 TALASHO GALLERY © | ALL RIGHTS RESERVED.</span>
+                </div>
+
+            </div>
+        </footer>
+<!-- GLOBAL SITE FOOTER: END -->
+
+    
+
+    <!-- SCRIPTS -->
+    <script src="./assets/js/vendor/swiper-bundle.min.js"></script>
+    <script src="./assets/js/main.js?v=6"></script>
+    <script>
+        // Timeline Tab switching logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.timeline-tab');
+            const panels = document.querySelectorAll('.timeline-panel');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.getAttribute('data-target');
+                    
+                    // Reset all tabs
+                    tabs.forEach(t => {
+                        t.classList.remove('border-primary-500', 'bg-primary-500', 'text-white', 'shadow-sm');
+                        t.classList.add('border-border', 'bg-surface', 'text-content-body');
+                    });
+
+                    // Highlight active tab
+                    tab.classList.remove('border-border', 'bg-surface', 'text-content-body');
+                    tab.classList.add('border-primary-500', 'bg-primary-500', 'text-white', 'shadow-sm');
+
+                    // Show target panel with smooth scroll
+                    const targetPanel = document.getElementById(target);
+                    if (targetPanel) {
+                        targetPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                });
+            });
+        });
+    </script>
+
+
+<!-- GLOBAL SITE BOTTOM NAV: START -->
+<!-- ========================================== -->
+    <!-- MOBILE BOTTOM NAV — Storefront (Digikala-style) -->
+    <!-- Injected by sync_global_shell.py into catalog/content
+         pages. Active tab is highlighted by global-shell.js from
+         the current URL — never hard-code active state here. -->
+    <!-- ========================================== -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-surface border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50 bottom-nav pb-[env(safe-area-inset-bottom,0.5rem)]" aria-label="ناوبری موبایل">
+        <div class="grid grid-cols-4 h-14">
+
+            <!-- Home -->
+            <a href="./index.html" class="flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                <span class="text-[10px] font-bold">خانه</span>
+            </a>
+
+            <!-- Categories — opens the global mobile drawer (same as the burger) -->
+            <button type="button" class="js-open-mobile-menu flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors" aria-label="دسته‌بندی">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                <span class="text-[10px] font-bold">دسته‌بندی</span>
+            </button>
+
+            <!-- Cart -->
+            <a href="./cart.html" class="flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors">
+                <span class="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <!-- BACKEND: INJECT CART COUNT -->
+                    <span class="absolute -top-1 -end-1.5 bg-primary-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] rounded-full flex items-center justify-center px-1">۲</span>
+                </span>
+                <span class="text-[10px] font-bold">سبد خرید</span>
+            </a>
+
+            <!-- Account -->
+            <a href="./wallet/login.html" class="flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <span class="text-[10px] font-bold">حساب</span>
+            </a>
+
+        </div>
+    </nav>
+    <!-- ================= MOBILE BOTTOM NAV END ================= -->
+<!-- GLOBAL SITE BOTTOM NAV: END -->
+</body>
+
+</html>

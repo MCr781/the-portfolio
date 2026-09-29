@@ -28,7 +28,21 @@
     <meta name="description"
         content="طلاشو، زیرمجموعه وی آی پی برزیگر گُلد و جولری — خرید لوکس آنلاین جواهرات، طلای آبشده و سکه با تضمین اصالت کالا">
 
-    <meta name="theme-color" content="#4A154B">
+    <meta name="theme-color" content="#6E436E">
+
+    <!-- ===== PWA MANIFEST =====
+         Links the app manifest at /pwa/manifest.webmanifest. The manifest
+         defines app name, icons, shortcuts, display mode, and theme color
+         so the app can be installed to the home screen and launched as a
+         standalone app. See /pwa/BACKEND_NOTES.md for critical integration notes. -->
+    <link rel="manifest" href="./pwa/manifest.webmanifest">
+
+    <!-- ===== APPLE PWA META TAGS =====
+         iOS Safari doesn't support web manifests, so these meta tags are
+         required separately for "Add to Home Screen" on iPhone/iPad. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="طلاشو">
 
     <!-- ===== LOCAL CSS (no CDN) ===== -->
     <link rel="stylesheet" href="./assets/vendor/swiper-bundle.min.css">
@@ -38,7 +52,18 @@
     <link rel="preload" as="font" type="font/woff2" href="./assets/fonts/Vazirmatn-FD-Regular.woff2" crossorigin>
     <link rel="preload" as="font" type="font/woff2" href="./assets/fonts/Vazirmatn-FD-Bold.woff2" crossorigin>
 
-    <link rel="icon" type="image/png" href="./assets/images/White-Logo.png">
+    <!-- ===== PWA ICONS + FAVICON =====
+         Multiple icon formats for cross-browser compatibility:
+           • favicon.ico (16/32/48 multi-res) — legacy browsers, Windows tile
+           • favicon-32.png / favicon-16.png — modern browsers (sharp at small sizes)
+           • apple-touch-icon.png (180×180) — iOS home screen icon
+         All icons live in /pwa/icons/. Generated from Purple-Logo.png (and
+         White-Logo.png for the maskable variants). See /pwa/icons/README.md
+         (via /pwa/BACKEND_NOTES.md) for icon generation details. -->
+    <link rel="icon" type="image/x-icon" href="./pwa/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="./pwa/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./pwa/icons/favicon-16.png">
+    <link rel="apple-touch-icon" href="./pwa/icons/apple-touch-icon.png">
 
     <style>
         /* Announcement marquee */
@@ -86,24 +111,23 @@
         .ts-nav-link:hover {
             color: #4A154B;
         }
-
-        /* Footer link hover effect */
-        .ts-footer-link {
-            position: relative;
-            transition: color 0.25s ease, padding-right 0.25s ease;
-        }
-
-        .ts-footer-link:hover {
-            color: #D4AF37;
-            padding-right: 4px;
-        }
     </style>
+
+    <!-- ===== PWA SERVICE WORKER REGISTRATION =====
+         Registers /sw.js (at repo root for native scope '/' control).
+         The SW precaches critical assets and serves them offline-first.
+         Loaded with `defer` so it never blocks first paint — it only runs
+         after the page is interactive. See /pwa/BACKEND_NOTES.md for details
+         on update flow, cache versioning, and offline behavior. -->
+    <script src="./pwa/js/sw-register.js" defer></script>
+  <script src="./assets/js/global-shell.js?v=2" defer></script>
 </head>
 
 <body class="bg-background text-content-body antialiased">
 
 
-    <!-- ========================================== -->
+    <!-- GLOBAL SITE HEADER: START -->
+<!-- ========================================== -->
     <!-- 1. ANNOUNCEMENT BAR (Vertical Slider)      -->
     <!-- ========================================== -->
     <div class="relative w-full bg-[#4A154B] text-[#D4AF37] h-10 overflow-hidden">
@@ -192,9 +216,9 @@
                 <div class="flex items-center gap-3 justify-self-start">
 
                     <!-- Mobile menu toggle (visible < lg) -->
-                    <button id="mobileMenuToggle" type="button"
+                    <button id="globalMobileMenuToggle" type="button"
                         class="lg:hidden p-2 -ms-2 text-content-heading hover:text-primary-500 transition-colors"
-                        aria-label="باز کردن منوی اصلی" aria-expanded="false" aria-controls="mobileMenu">
+                        aria-label="باز کردن منوی اصلی" aria-expanded="false" aria-controls="globalMobileMenu">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -204,19 +228,19 @@
 
                     <!-- Logo -->
                     <!-- BACKEND: INJECT LOGO IMAGE — recommended height 36-40px -->
-                    <a href="/" class="flex items-center gap-2 h-12 lg:h-14" aria-label="طلاشو — صفحه اصلی">
-                        <img src="./assets/images/Purple-Logo.png" alt="طلاشو" class="h-full w-auto object-contain">
+                    <a href="./index.html" class="flex items-center gap-2 h-12 lg:h-14" aria-label="طلاشو VIP — صفحه اصلی">
+                        <img src="./assets/images/Purple-Logo.png" alt="طلاشو VIP" class="h-full w-auto object-contain">
                         <span
-                            class="text-xl lg:text-2xl font-black text-primary-500 leading-none">طلاشو</span>
+                            class="text-xl lg:text-2xl font-black text-primary-500 leading-none md:hidden lg:inline">طلاشو VIP</span>
                     </a>
                 </div>
 
 
                 <!-- ===== COLUMN 2 (CENTER) — SEARCH BAR ===== -->
                 <!-- BACKEND: SEARCH FORM — action + method -->
-                <form action="#" method="get" class="hidden md:flex w-full max-w-3xl relative justify-self-center">
-                    <label for="searchInput" class="sr-only">جستجو</label>
-                    <input id="searchInput" type="text" name="q" placeholder="جستجو در میان هزاران محصول زیبا..." class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500
+                <form action="./products.html" method="get" class="hidden md:flex w-full max-w-3xl relative justify-self-center">
+                    <label for="globalSearchInput" class="sr-only">جستجو</label>
+                    <input id="globalSearchInput" type="text" name="q" placeholder="جستجو در میان هزاران محصول زیبا..." class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500
                            rounded-full py-2.5 lg:py-3 ps-12 pe-4 outline-none transition-all duration-250
                            text-body text-content-heading placeholder-content-muted">
 
@@ -238,7 +262,7 @@
 
                     <!-- Profile / Login -->
                     <!-- BACKEND: IF USER IS LOGGED IN -> SHOW USER AVATAR/MENU, ELSE SHOW LOGIN BUTTON -->
-                    <a href="#"
+                    <a href="./wallet/login.html"
                         class="hidden md:flex items-center gap-2 px-3 py-2 rounded-full hover:bg-background-hover transition-colors text-content-heading">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -248,40 +272,229 @@
                         <span class="text-body font-medium hidden lg:inline">ورود | ثبت‌نام</span>
                     </a>
 
-                    <!-- Wishlist -->
-                    <a href="#"
-                        class="relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading"
-                        aria-label="علاقه‌مندی‌ها">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    <!-- Wishlist — with hover dropdown panel -->
+                    <!-- BACKEND: IF USER LOGGED IN → show real wishlist items via data-backend-hook -->
+                    <div class="header-dropdown-hover-area hidden md:block">
+                        <a href="./cart.html#saved-for-later"
+                            class="relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading flex items-center"
+                            aria-label="علاقه‌مندی‌ها">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <!-- BACKEND: INJECT WISHLIST COUNT -->
+                            <span
+                                class="absolute top-1 end-1 bg-status-error text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۳</span>
+                        </a>
+
+                        <!-- Wishlist Dropdown Panel (anchored inside the container) -->
+                        <div class="header-dropdown-panel header-dropdown-panel--left">
+                            <!-- Single inner div — required for the CSS > div styling rule -->
+                            <div class="w-[400px]">
+                                <!-- Panel header -->
+                                <div class="flex items-center justify-between px-5 py-4 border-b border-border/70 bg-background/50">
+                                    <div class="flex items-center gap-2.5">
+                                        <i class='bx bxs-heart text-status-error text-xl'></i>
+                                        <span class="text-base font-black text-content-heading">علاقه‌مندی‌های من</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-status-error bg-status-error-bg px-3 py-1 rounded-full">۳ کالا</span>
+                                </div>
+
+                                <!-- BACKEND: FOREACH WISHLIST ITEM — repeat this block per item -->
+                                <ul class="divide-y divide-border/50 max-h-[310px] overflow-y-auto cat-scroll">
+                                    <!-- Item 1 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/rose-gold-diamond-engagement-ring.png" alt="انگشتر سولیتر الماس" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">انگشتر سولیتر الماس ۱۸ عیار</a>
+                                            <span class="text-sm text-content-muted block">طلا روزگلد | وزن: ۲٫۴ گرم</span>
+                                            <div class="text-base font-black text-primary-700 font-latin pt-0.5">
+                                                <span class="numeric-measure">
+                                                    <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                    <span>۱۲٬۵۰۰٬۰۰۰</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از علاقه‌مندی‌ها" aria-label="حذف از علاقه‌مندی‌ها">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                    <!-- Item 2 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/Pendant.webp" alt="آویز و پلاک طلا زرد" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">آویز و پلاک طلا زرد ۱۸ عیار</a>
+                                            <span class="text-sm text-content-muted block">طرح لوکس بانوان | وزن: ۱٫۸ گرم</span>
+                                            <div class="text-base font-black text-primary-700 font-latin pt-0.5">
+                                                <span class="numeric-measure">
+                                                    <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                    <span>۸٬۳۰۰٬۰۰۰</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از علاقه‌مندی‌ها" aria-label="حذف از علاقه‌مندی‌ها">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                    <!-- Item 3 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/bracelet.png" alt="دستبند طلا کارتیر" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">دستبند طلا سفید طرح کارتیر</a>
+                                            <span class="text-sm text-content-muted block">طلای ۱۸ عیار | وزن: ۴٫۵ گرم</span>
+                                            <div class="text-base font-black text-primary-700 font-latin pt-0.5">
+                                                <span class="numeric-measure">
+                                                    <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                    <span>۲۲٬۰۰۰٬۰۰۰</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از علاقه‌مندی‌ها" aria-label="حذف از علاقه‌مندی‌ها">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <!-- BACKEND: END FOREACH -->
+
+                                <!-- CTA -->
+                                <div class="p-4 border-t border-border/70 bg-background/40">
+                                    <a href="./cart.html#saved-for-later" class="flex items-center justify-center gap-2 w-full rounded-full border border-primary-500/40 text-primary-600 hover:bg-primary-50 hover:border-primary-500 transition-all duration-250 text-sm font-black h-11">
+                                        <span>مشاهده و مدیریت لیست علاقه‌مندی‌ها</span>
+                                        <i class='bx bx-chevron-left text-xl'></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist icon visible on mobile (no dropdown) -->
+                    <a href="./cart.html#saved-for-later" class="md:hidden relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading" aria-label="علاقه‌مندی‌ها">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
-                        <!-- BACKEND: INJECT WISHLIST COUNT (optional) -->
-                        <span
-                            class="absolute top-1 end-1 bg-status-error text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۳</span>
+                        <span class="absolute top-1 end-1 bg-status-error text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۳</span>
                     </a>
 
-                    <!-- Cart -->
-                    <!-- BACKEND: INJECT CART COUNT -->
-                    <a href="#"
-                        class="relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading"
-                        aria-label="سبد خرید">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <!-- Cart — with hover dropdown panel -->
+                    <!-- BACKEND: IF USER LOGGED IN → show real cart items via data-backend-hook -->
+                    <div class="header-dropdown-hover-area hidden md:block">
+                        <a href="./cart.html"
+                            class="relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading flex items-center"
+                            aria-label="سبد خرید">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <!-- BACKEND: INJECT CART COUNT -->
+                            <span
+                                class="absolute top-1 end-1 bg-primary-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۲</span>
+                        </a>
+
+                        <!-- Cart Dropdown Panel (anchored inside the container) -->
+                        <div class="header-dropdown-panel header-dropdown-panel--left">
+                            <!-- Single inner div — required for the CSS > div styling rule -->
+                            <div class="w-[400px]">
+                                <!-- Panel header -->
+                                <div class="flex items-center justify-between px-5 py-4 border-b border-border/70 bg-background/50">
+                                    <div class="flex items-center gap-2.5">
+                                        <i class='bx bxs-shopping-bag text-primary-500 text-xl'></i>
+                                        <span class="text-base font-black text-content-heading">سبد خرید شما</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-primary-600 bg-primary-50 px-3 py-1 rounded-full">۲ کالا</span>
+                                </div>
+
+                                <!-- BACKEND: FOREACH CART ITEM — repeat this block per item -->
+                                <ul class="divide-y divide-border/50 max-h-[310px] overflow-y-auto cat-scroll">
+                                    <!-- Cart Item 1 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/tear-tennis-ring-1.jpg" alt="حلقه ازدواج طرح اشک تنیس" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">حلقه ازدواج طرح اشک تنیس</a>
+                                            <span class="text-sm text-content-muted block">طلای ۱۸ عیار | سایز: ۵۴</span>
+                                            <div class="flex items-center justify-between pt-1 gap-2">
+                                                <div class="text-base font-black text-primary-700 font-latin">
+                                                    <span class="numeric-measure">
+                                                        <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                        <span>۱۸٬۴۰۰٬۰۰۰</span>
+                                                    </span>
+                                                </div>
+                                                <span class="text-xs font-bold text-content-muted bg-background px-2.5 py-0.5 rounded-md border border-border/60">تعداد: ۱</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از سبد خرید" aria-label="حذف از سبد خرید">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                    <!-- Cart Item 2 -->
+                                    <li class="flex items-center gap-4 px-5 py-4 hover:bg-background/80 transition-colors group">
+                                        <a href="./product/tear-tennis-gold-ring.html" class="w-16 h-16 rounded-xl bg-surface border border-border/80 p-1.5 flex items-center justify-center shrink-0 overflow-hidden group-hover:border-primary-400 transition-colors">
+                                            <img src="./assets/images/products/gold-fancy-necklace.png" alt="گردنبند طلا فانتزی" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                        </a>
+                                        <div class="flex-1 min-w-0 space-y-1">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="text-sm font-bold text-content-heading line-clamp-1 group-hover:text-primary-600 transition-colors">گردنبند طلا فانتزی طرح اشک</a>
+                                            <span class="text-sm text-content-muted block">طلای ۱۸ عیار | وزن: ۲٫۱ گرم</span>
+                                            <div class="flex items-center justify-between pt-1 gap-2">
+                                                <div class="text-base font-black text-primary-700 font-latin">
+                                                    <span class="numeric-measure">
+                                                        <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                        <span>۹٬۸۰۰٬۰۰۰</span>
+                                                    </span>
+                                                </div>
+                                                <span class="text-xs font-bold text-content-muted bg-background px-2.5 py-0.5 rounded-md border border-border/60">تعداد: ۱</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="p-2 rounded-full text-content-muted hover:text-status-error hover:bg-status-error-bg opacity-70 group-hover:opacity-100 transition-all shrink-0 ms-1" title="حذف از سبد خرید" aria-label="حذف از سبد خرید">
+                                            <i class='bx bx-trash text-lg'></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <!-- BACKEND: END FOREACH -->
+
+                                <!-- Subtotal + CTAs -->
+                                <div class="p-5 border-t border-border/70 bg-background/50 space-y-4">
+                                    <div class="flex items-center justify-between text-sm px-0.5">
+                                        <span class="text-content-body font-bold">مبلغ قابل پرداخت (۲ کالا):</span>
+                                        <span class="text-base font-black text-primary-700 font-latin">
+                                            <span class="numeric-measure">
+                                                <span class="numeric-measure__unit text-sm text-content-muted font-normal">تومان</span>
+                                                <span>۲۸٬۲۰۰٬۰۰۰</span>
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <a href="./cart.html" class="flex items-center justify-center gap-2 w-full btn-primary py-2 text-caption">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        مشاهده سبد خرید
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cart icon visible on mobile (no dropdown) -->
+                    <a href="./cart.html" class="md:hidden relative p-2 rounded-full hover:bg-background-hover transition-colors text-content-heading" aria-label="سبد خرید">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        <span
-                            class="absolute top-1 end-1 bg-primary-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۲</span>
+                        <span class="absolute top-1 end-1 bg-primary-500 text-white text-[10px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1">۲</span>
                     </a>
+
                 </div>
             </div>
 
             <!-- Mobile search bar (visible < md) -->
-            <form action="#" method="get" class="hidden">
-                <label for="searchInputMobile" class="sr-only">جستجو</label>
-                <input id="searchInputMobile" type="text" name="q" placeholder="جستجو..." class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500
+            <form action="./products.html" method="get" class="hidden">
+                <label for="globalSearchInputMobile" class="sr-only">جستجو</label>
+                <input id="globalSearchInputMobile" type="text" name="q" placeholder="جستجو..." class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500
                        rounded-full py-2.5 ps-11 pe-4 outline-none transition-all duration-250
                        text-body text-content-heading placeholder-content-muted">
                 <button type="submit" class="absolute inset-y-0 start-0 flex items-center ps-3.5 text-content-muted"
@@ -300,14 +513,14 @@
         <!-- Spec doesn't explicitly call this out, but Talasho's brief requires a
          Digikala-style secondary nav row. Sticky along with the main header. -->
         <nav class="hidden lg:block bg-surface border-t border-border relative" aria-label="منوی اصلی">
-            <div class="container-page">
-                <ul class="flex items-center justify-center gap-8 h-11 text-body">
+            <div class="container-page flex items-center">
+                 <ul class="flex-1 min-w-0 flex items-center justify-start gap-4 h-11 text-body">
 
                     <!-- BACKEND: FOREACH MAIN-CATEGORY LOOP START -->
 
                     <!-- Category 1: Women's Jewelry (with mega menu) -->
-                    <li class="mega-menu-hover-area static h-full flex items-center">
-                        <a href="#"
+                    <li class="mega-menu-hover-area relative h-full flex items-center">
+                        <a href="./products.html"
                             class="flex items-center gap-1 ts-nav-link text-content-heading hover:text-primary-500 font-medium">
                             جواهرات بانوان
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-content-muted" fill="none"
@@ -317,10 +530,10 @@
                             </svg>
                         </a>
 
-                        <!-- Mega menu panel — anchored to <nav> (which is position: relative), 900px wide, centered -->
-                        <div class="mega-menu-panel absolute top-full mt-0 opacity-0 invisible transition-all duration-300
-                                bg-surface rounded-xl shadow-hover p-6 grid grid-cols-4 gap-6 z-50"
-                            style="left: 50%; width: 900px; transform: translateX(-50%);">
+                        <!-- Mega menu panel — positioned below the trigger item,
+                             right edge aligned with the item's right edge -->
+                        <div class="mega-menu-panel absolute top-full mt-0 right-0 w-[900px] opacity-0 invisible transition-all duration-300
+                                bg-surface rounded-xl shadow-hover p-6 grid grid-cols-4 gap-6 z-50">
 
                             <!-- Column 1 -->
                             <div>
@@ -329,19 +542,19 @@
                                     انگشتر و گردنبند</h4>
                                 <ul class="space-y-2.5">
                                     <!-- BACKEND: FOREACH SUBCATEGORY LOOP START -->
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">انگشتر
                                             نامزدی</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">انگشتر
                                             سولیتر</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">گردنبند
                                             پلاک متصل</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">چوکر
                                             طلا</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">زنجیر
                                             تک</a></li>
                                     <!-- BACKEND: FOREACH SUBCATEGORY LOOP END -->
@@ -354,16 +567,16 @@
                                     class="text-caption font-bold text-gold-600 uppercase tracking-wider mb-3 pb-2 border-b border-border">
                                     دستبند و النگو</h4>
                                 <ul class="space-y-2.5">
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">دستبند
                                             مینیمال</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">دستبند
                                             کارتیر</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">النگوی
                                             سفارشی</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">النگوی
                                             کلاسیک</a></li>
                                 </ul>
@@ -375,16 +588,16 @@
                                     class="text-caption font-bold text-gold-600 uppercase tracking-wider mb-3 pb-2 border-b border-border">
                                     گوشواره و سرویس</h4>
                                 <ul class="space-y-2.5">
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">گوشواره
                                             میخی</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">گوشواره
                                             آویز</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">سرویس
                                             جواهر</a></li>
-                                    <li><a href="#"
+                                    <li><a href="./products.html"
                                             class="text-body text-content-body hover:text-primary-500 hover:translate-x-1 transition-all inline-block">نیم‌ست
                                             ورزشی</a></li>
                                 </ul>
@@ -392,7 +605,7 @@
 
                             <!-- Column 4: promo image -->
                             <!-- BACKEND: INJECT MEGA MENU BANNER IMAGE -->
-                            <a href="#" class="group relative rounded-lg overflow-hidden h-full min-h-[200px] block">
+                            <a href="./products.html" class="group relative rounded-lg overflow-hidden h-full min-h-[200px] block">
                                 <img src="./assets/images/car-prize-purple-bow-tie.PNG" alt="جشنواره ویژه"
                                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                 <div
@@ -409,25 +622,25 @@
 
                     <!-- Category 2: Men's Jewelry -->
                     <li class="h-full flex items-center">
-                        <a href="#" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">جواهرات
+                        <a href="./products.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">جواهرات
                             آقایان</a>
                     </li>
 
                     <!-- Category 3: Wedding Rings -->
                     <li class="h-full flex items-center">
-                        <a href="#" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">حلقه
+                        <a href="./products.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">حلقه
                             ازدواج</a>
                     </li>
 
                     <!-- Category 4: Coins -->
                     <li class="h-full flex items-center">
-                        <a href="#" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">سکه
+                        <a href="./products.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">سکه
                             طلا</a>
                     </li>
 
                     <!-- Category 5: Gold Box (Phase 2 — highlighted with gold) -->
                     <li class="h-full flex items-center">
-                        <a href="#"
+                        <a href="./wallet/index.html"
                             class="flex items-center gap-1.5 font-bold text-gold-600 hover:text-gold-700 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -442,13 +655,13 @@
 
                     <!-- Category 6: Magazine -->
                     <li class="h-full flex items-center">
-                        <a href="#" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">مجله
+                        <a href="./blog.html" class="ts-nav-link text-content-heading hover:text-primary-500 font-medium">مجله
                             طلاشو</a>
                     </li>
 
                     <!-- Category 7: Special offers (red accent — Digikala pattern) -->
                     <li class="h-full flex items-center">
-                        <a href="#"
+                        <a href="./products.html"
                             class="flex items-center gap-1.5 font-bold text-status-error hover:opacity-80 transition-opacity">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -460,17 +673,89 @@
                     </li>
                     <!-- BACKEND: FOREACH MAIN-CATEGORY LOOP END -->
                 </ul>
+
+                <!-- LIVE 18K GOLD INDEX — nav row, far-left (RTL end)
+                     Digikala-style live instrument chip: gold coin medallion with
+                     sheen sweep, live pulse beacon, numeric-measure price (flashes on change),
+                     fluctuation chip and a heartbeat sparkline.
+                     Driven by assets/js/price-board.js.
+                     Links to the live rates board (نرخ‌نامه زنده). -->
+                <a href="./wallet/rates.html"
+                    data-price-row data-price-name="طلای ۱۸ عیار" data-price-current="4545000" data-price-prev="4510000"
+                    title="قیمت لحظه‌ای طلای ۱۸ عیار — نرخ‌نامه زنده طلاشو"
+                    class="group relative hidden lg:flex items-center gap-2 h-8.5 shrink-0 px-3 rounded-full
+                           bg-gradient-to-r from-primary-950 via-[#1f0921] to-primary-950
+                           text-white border border-gold-400/40 hover:border-gold-300
+                           shadow-[0_2px_10px_rgba(46,13,46,0.25),0_0_12px_rgba(212,175,55,0.15)]
+                           hover:shadow-[0_4px_20px_rgba(212,175,55,0.35)]
+                           transition-all duration-300 select-none">
+
+                    <!-- Ambient gold glow backdrop -->
+                    <span class="absolute inset-0 rounded-full bg-gradient-to-r from-gold-500/10 via-gold-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" aria-hidden="true"></span>
+
+                    <!-- Gold coin medallion with animated sheen -->
+                    <span class="gold-coin relative w-5 h-5 rounded-full bg-gradient-to-tr from-amber-600 via-gold-400 to-amber-200 text-slate-950 flex items-center justify-center p-0.5 shadow-[0_0_8px_rgba(232,185,72,0.5)] shrink-0" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
+                            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4.4a3.4 3.4 0 1 1 0 6.8 3.4 3.4 0 0 1 0-6.8zm0 11.6c-2.9 0-5.4-1.5-6.8-3.8.04-2.3 4.6-3.5 6.8-3.5s6.76 1.2 6.8 3.5c-1.4 2.3-3.9 3.8-6.8 3.8z"/>
+                        </svg>
+                        <span class="gold-coin__sheen"></span>
+                    </span>
+
+                    <!-- Live status beacon & Instrument Label -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="relative flex h-1.5 w-1.5 shrink-0" title="بازار زنده">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                        </span>
+                        <span class="text-[11px] font-black text-gold-300 tracking-tight whitespace-nowrap">طلای ۱۸ عیار</span>
+                    </div>
+
+                    <!-- Vertical micro-divider -->
+                    <span class="w-px h-3.5 bg-gold-400/20 shrink-0" aria-hidden="true"></span>
+
+                    <!-- Live price — flashes green/red on every tick -->
+                    <span data-price-flash class="inline-flex items-center rounded-md px-1 py-0.5 transition-all duration-300">
+                        <span class="numeric-measure font-latin">
+                            <span class="numeric-measure__unit text-[9px] font-medium text-gold-200/80">تومان</span>
+                            <span class="font-latin text-[12.5px] font-black text-white tracking-tight" data-price-display>۴٬۵۴۵٬۰۰۰</span>
+                        </span>
+                    </span>
+
+                    <!-- Fluctuation chip (price-board.js swaps the up/down/flat state) -->
+                    <span data-fluctuation-display
+                        class="flex items-center gap-0.5 text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-primary-100 text-slate-800 border border-primary-200/70 transition-colors duration-300">
+                        <svg class="w-3 h-3 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14"/>
+                        </svg>
+                        <span data-fluctuation-percent dir="ltr">۰٫۰٪</span>
+                    </span>
+
+                    <!-- Heartbeat sparkline -->
+                    <svg class="w-7 h-4 shrink-0 text-gold-400 drop-shadow-[0_0_4px_rgba(232,185,72,0.4)]" data-sparkline viewBox="0 0 28 16"
+                        preserveAspectRatio="none" aria-hidden="true">
+                        <polyline fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                            stroke-linejoin="round" points="1.5,12.5 5.2,11.0 8.9,12.0 12.6,8.5 16.3,9.5 20.0,6.0 23.7,7.0 26.5,3.5"/>
+                    </svg>
+                </a>
             </div>
         </nav>
 
 
-        <!-- ===== MOBILE MENU DRAWER (slide-in from start side = right in RTL) ===== -->
-        <div id="mobileMenu"
+        </header>
+
+        <!-- ===== MOBILE MENU DRAWER (slide-in from start side = right in RTL)
+             Placed OUTSIDE <header> (which has z-40) so the fixed drawer/overlay
+             escape its stacking context — otherwise page-level z-50 elements
+             (e.g. the mobile bottom nav) would paint over the drawer. ===== -->
+        <div id="globalMobileMenu"
             class="fixed inset-y-0 start-0 w-72 bg-surface shadow-lg z-[60] transform translate-x-full rtl:translate-x-full transition-transform duration-300 lg:hidden flex flex-col"
             aria-hidden="true">
             <div class="p-4 border-b border-border flex items-center justify-between">
-                <img src="./assets/images/Purple-Logo.png" alt="طلاشو" class="h-10 w-auto">
-                <button id="mobileMenuClose" type="button"
+                <a href="./index.html" class="flex items-center gap-2.5" aria-label="طلاشو VIP — صفحه اصلی">
+                    <img src="./assets/images/Purple-Logo.png" alt="طلاشو VIP" class="h-10 w-auto">
+                    <span class="text-lg font-black text-primary-500 leading-none">طلاشو <span class="text-gold-500">VIP</span></span>
+                </a>
+                <button id="globalMobileMenuClose" type="button"
                     class="p-1.5 text-content-muted hover:text-primary-500 transition-colors" aria-label="بستن منو">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -479,52 +764,253 @@
                     </svg>
                 </button>
             </div>
-            <nav class="flex-1 overflow-y-auto p-4">
-                <a href="#"
-                    class="block py-3 text-content-heading hover:text-primary-500 transition-colors text-body font-medium border-b border-border">جواهرات
-                    بانوان</a>
-                <a href="#"
-                    class="block py-3 text-content-heading hover:text-primary-500 transition-colors text-body font-medium border-b border-border">جواهرات
-                    آقایان</a>
-                <a href="#"
-                    class="block py-3 text-content-heading hover:text-primary-500 transition-colors text-body font-medium border-b border-border">حلقه
-                    ازدواج</a>
-                <a href="#"
-                    class="block py-3 text-content-heading hover:text-primary-500 transition-colors text-body font-medium border-b border-border">سکه
-                    طلا</a>
-                <a href="#"
-                    class="block py-3 text-gold-600 font-bold hover:text-gold-700 transition-colors text-body border-b border-border flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    صندوق طلای آبشده
-                </a>
-                <a href="#"
-                    class="block py-3 text-content-heading hover:text-primary-500 transition-colors text-body font-medium border-b border-border">مجله
-                    طلاشو</a>
-                <a href="#"
-                    class="block py-3 text-status-error font-bold hover:opacity-80 transition-opacity text-body border-b border-border">شگفت‌انگیزها</a>
-            </nav>
-            <div class="p-4 border-t border-border">
-                <a href="#" class="flex items-center justify-center gap-2 w-full btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    ورود / ثبت‌نام
-                </a>
+
+            <div class="flex-1 min-h-0 overflow-y-auto cat-scroll">
+
+                <!-- LIVE 18K GOLD CARD — mobile drawer (first thing seen when menu opens)
+                     Kept in sync with the desktop chip by assets/js/price-board.js:
+                     same data-price-name, so the engine's per-instrument walk drives both.
+                     Links to the live rates board (نرخ‌نامه زنده). -->
+                <div class="p-4 pb-0">
+                    <a href="./wallet/rates.html"
+                        data-price-row data-price-name="طلای ۱۸ عیار" data-price-current="4545000" data-price-prev="4510000"
+                        title="قیمت لحظه‌ای طلای ۱۸ عیار — نرخ‌نامه زنده طلاشو"
+                        class="group relative block overflow-hidden rounded-xl border border-gold-400/40
+                               bg-gradient-to-br from-primary-950 via-[#1f0921] to-primary-950
+                               text-white px-4 py-3.5 hover:border-gold-300
+                               shadow-[0_4px_16px_rgba(46,13,46,0.35),0_0_14px_rgba(212,175,55,0.18)]
+                               hover:shadow-[0_6px_24px_rgba(212,175,55,0.32)]
+                               transition-all duration-300 select-none">
+
+                        <!-- Ambient gold glow backdrop -->
+                        <span class="absolute inset-0 bg-gradient-to-l from-gold-500/15 via-gold-400/5 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" aria-hidden="true"></span>
+
+                        <!-- Row 1: coin medallion + label + live beacon + rates link -->
+                        <div class="relative flex items-center gap-2.5">
+                            <span class="gold-coin relative w-6 h-6 rounded-full bg-gradient-to-tr from-amber-600 via-gold-400 to-amber-200 text-slate-950 flex items-center justify-center p-0.5 shadow-[0_0_8px_rgba(232,185,72,0.5)] shrink-0" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
+                                    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4.4a3.4 3.4 0 1 1 0 6.8 3.4 3.4 0 0 1 0-6.8zm0 11.6c-2.9 0-5.4-1.5-6.8-3.8.04-2.3 4.6-3.5 6.8-3.5s6.76 1.2 6.8 3.5c-1.4 2.3-3.9 3.8-6.8 3.8z"/>
+                                </svg>
+                                <span class="gold-coin__sheen"></span>
+                            </span>
+                            <span class="flex items-center gap-1.5 min-w-0">
+                                <span class="relative flex h-1.5 w-1.5 shrink-0" title="بازار زنده">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                                </span>
+                                <span class="text-[12px] font-black text-gold-300 tracking-tight whitespace-nowrap">طلای ۱۸ عیار</span>
+                            </span>
+                            <span class="flex-1"></span>
+                            <span class="flex items-center gap-1 text-[10.5px] font-bold text-gold-200/90 whitespace-nowrap">
+                                نرخ‌نامه زنده
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </span>
+                        </div>
+
+                        <!-- Row 2: live price + fluctuation chip + sparkline -->
+                        <div class="relative flex items-end justify-between gap-2 mt-3">
+                            <span data-price-flash class="inline-flex items-center rounded-lg px-2 py-1 transition-all duration-300">
+                                <span class="numeric-measure font-latin">
+                                    <span class="numeric-measure__unit text-[10px] font-medium text-gold-200/80">تومان</span>
+                                    <span class="font-latin text-lg font-black text-white tracking-tight leading-none" data-price-display>۴٬۵۴۵٬۰۰۰</span>
+                                </span>
+                            </span>
+                            <span class="flex items-center gap-2 shrink-0">
+                                <!-- Fluctuation chip (price-board.js swaps the up/down/flat state) -->
+                                <span data-fluctuation-display
+                                    class="flex items-center gap-1 text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-primary-100 text-slate-800 border border-primary-200/70 transition-colors duration-300">
+                                    <svg class="w-3 h-3 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 12h14"/>
+                                    </svg>
+                                    <span data-fluctuation-percent dir="ltr">۰٫۰٪</span>
+                                </span>
+                                <!-- Heartbeat sparkline -->
+                                <svg class="w-8 h-5 shrink-0 text-gold-400 drop-shadow-[0_0_4px_rgba(232,185,72,0.4)]" data-sparkline viewBox="0 0 28 16"
+                                    preserveAspectRatio="none" aria-hidden="true">
+                                    <polyline fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                                        stroke-linejoin="round" points="1.5,12.5 5.2,11.0 8.9,12.0 12.6,8.5 16.3,9.5 20.0,6.0 23.7,7.0 26.5,3.5"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Account CTA (Digikala-style) -->
+                <div class="p-4 pb-0">
+                    <a href="./wallet/login.html"
+                        class="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 hover:border-primary-300 hover:bg-primary-50 transition-colors">
+                        <span class="flex items-center gap-3 min-w-0">
+                            <span
+                                class="w-9 h-9 rounded-full bg-primary-500 text-white flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="block text-sm font-bold text-content-heading">ورود / ثبت‌نام</span>
+                                <span class="block text-xs text-content-muted truncate">برای خرید، پیگیری سفارش‌ها و صندوق طلای آبشده</span>
+                            </span>
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-content-muted shrink-0" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Search -->
+                <div class="p-4 pb-0">
+                    <form action="./products.html" method="get" class="relative">
+                        <label for="globalMobileDrawerSearch" class="sr-only">جستجو</label>
+                        <input id="globalMobileDrawerSearch" type="text" name="q" placeholder="جستجو در میان هزاران محصول زیبا..."
+                            class="w-full bg-background border border-border focus:bg-surface focus:border-primary-500 rounded-full py-2 ps-11 pe-4 outline-none transition-all duration-250 text-body text-content-heading placeholder-content-muted">
+                        <button type="submit"
+                            class="absolute inset-y-0 start-0 flex items-center ps-3 text-content-muted hover:text-primary-500 transition-colors"
+                            aria-label="جستجو">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Categories -->
+                <nav class="p-4 pt-2" aria-label="دسته‌بندی محصولات">
+                    <p class="text-caption font-bold text-content-muted mb-1.5 px-1">دسته‌بندی محصولات</p>
+                    <ul class="space-y-0.5">
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 3h12l4 6-10 13L2 9l4-6z" />
+                                    </svg>
+                                    <span class="truncate">جواهرات بانوان</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="12" cy="11" r="6" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 5l1.5-2h-3L12 5z" />
+                                    </svg>
+                                    <span class="truncate">جواهرات آقایان</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="9" cy="15" r="5" />
+                                        <circle cx="15" cy="9" r="5" />
+                                    </svg>
+                                    <span class="truncate">حلقه ازدواج</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="9" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 7.5l1.15 2.33 2.6.38-1.88 1.83.44 2.6L12 13.35l-2.31 1.29.44-2.6-1.88-1.83 2.6-.38L12 7.5z" />
+                                    </svg>
+                                    <span class="truncate">سکه طلا</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./wallet/index.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-bold text-gold-600 min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                    </svg>
+                                    <span class="truncate">صندوق طلای آبشده</span>
+                                </span>
+                                <span class="text-[9px] bg-gold-100 text-gold-700 px-2 py-1 rounded-full font-bold shrink-0">جدید</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./blog.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-medium text-content-heading min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 19.5A2.5 2.5 0 016.5 17H20V2H6.5A2.5 2.5 0 004 4.5v15zM4 19.5A2.5 2.5 0 006.5 22H20v-5" />
+                                    </svg>
+                                    <span class="truncate">مجله طلاشو</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./products.html"
+                                class="flex items-center justify-between gap-3 rounded-xl px-3 py-1.5 hover:bg-background-hover transition-colors">
+                                <span class="flex items-center gap-3 text-body font-bold text-status-error min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    <span class="truncate">شگفت‌انگیزها</span>
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-content-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+
             </div>
+
         </div>
 
         <!-- Mobile menu overlay -->
-        <div id="mobileMenuOverlay"
+        <div id="globalMobileMenuOverlay"
             class="fixed inset-0 bg-black/40 z-[55] hidden lg:hidden opacity-0 transition-opacity duration-300"
             aria-hidden="true"></div>
-    </header>
+    
     <!-- ================= SECTION: MAIN HEADER END ================= -->
+
+    <!-- ===== LIVE GOLD PRICE ENGINE (demo) — drives every [data-price-row] =====
+         Backend: keep this for the header instrument, but call
+         window.TALASHO.updatePrices(payload) with live data instead of the
+         built-in random-walk demo. See assets/js/price-board.js header comment. -->
+    <script src="./assets/js/price-board.js" defer></script>
+<!-- GLOBAL SITE HEADER: END -->
 
 
     <!-- ============================================================
@@ -581,8 +1067,8 @@
                                             گزیده‌ای از نفیس‌ترین طراحی‌های الهام‌گرفته از هنر ایرانی، با بالاترین تراش الماس و طلای ۱۸ عیار.
                                         </p>
                                         <div class="flex flex-row items-center gap-3 self-start">
-                                            <a href="#" class="inline-flex items-center justify-center bg-gold-500 hover:bg-gold-600 text-white font-bold rounded-full text-sm py-2.5 px-6 transition-all shadow-lg shadow-gold-500/20">مشاهده کالکشن</a>
-                                            <a href="#" class="text-gold-400 hover:text-gold-300 transition-colors text-sm font-medium">بازدید از گالری ←</a>
+                                            <a href="./products.html" class="inline-flex items-center justify-center bg-gold-500 hover:bg-gold-600 text-white font-bold rounded-full text-sm py-2.5 px-6 transition-all shadow-lg shadow-gold-500/20">مشاهده کالکشن</a>
+                                            <a href="./products.html" class="text-gold-400 hover:text-gold-300 transition-colors text-sm font-medium">بازدید از گالری ←</a>
                                         </div>
                                     </div>
 
@@ -614,8 +1100,8 @@
                                         درخشش جاودان جواهرات برزیگر
                                     </h2>
                                     <div class="flex flex-row items-center gap-2">
-                                        <a href="#" class="inline-flex items-center justify-center bg-gold-500 text-white font-bold rounded-full text-[10px] py-1.5 px-3 transition-all">مشاهده کالکشن</a>
-                                        <a href="#" class="text-gold-400 text-[10px] font-medium">بازدید از گالری ←</a>
+                                        <a href="./products.html" class="inline-flex items-center justify-center bg-gold-500 text-white font-bold rounded-full text-[10px] py-1.5 px-3 transition-all">مشاهده کالکشن</a>
+                                        <a href="./products.html" class="text-gold-400 text-[10px] font-medium">بازدید از گالری ←</a>
                                     </div>
                                 </div>
                             </div>
@@ -643,8 +1129,8 @@
                                             صندوق طلای طلاشو؛ اولین پلتفرم معتبر ایران برای سرمایه‌گذاری خرد روی طلای آبشده. کیف پول، تاریخچه تراکنش و تسویه آنی.
                                         </p>
                                         <div class="flex flex-row items-center gap-3 self-start">
-                                            <a href="#" class="inline-flex items-center justify-center bg-gold-500 hover:bg-gold-600 text-white font-bold rounded-full text-sm py-2.5 px-6 transition-all shadow-lg shadow-gold-500/20">آگاه‌سازی من</a>
-                                            <a href="#" class="text-gold-400 hover:text-gold-300 transition-colors text-sm font-medium">بیشتر بدانید ←</a>
+                                            <a href="./wallet/index.html" class="inline-flex items-center justify-center bg-gold-500 hover:bg-gold-600 text-white font-bold rounded-full text-sm py-2.5 px-6 transition-all shadow-lg shadow-gold-500/20">آگاه‌سازی من</a>
+                                            <a href="./wallet/index.html" class="text-gold-400 hover:text-gold-300 transition-colors text-sm font-medium">بیشتر بدانید ←</a>
                                         </div>
                                     </div>
 
@@ -673,8 +1159,8 @@
                                         تجارت طلای آبشده به میلی‌گرم
                                     </h2>
                                     <div class="flex flex-row items-center gap-2">
-                                        <a href="#" class="inline-flex items-center justify-center bg-gold-500 text-white font-bold rounded-full text-[10px] py-1.5 px-3 transition-all">آگاه‌سازی من</a>
-                                        <a href="#" class="text-gold-400 text-[10px] font-medium">بیشتر بدانید ←</a>
+                                        <a href="./wallet/index.html" class="inline-flex items-center justify-center bg-gold-500 text-white font-bold rounded-full text-[10px] py-1.5 px-3 transition-all">آگاه‌سازی من</a>
+                                        <a href="./wallet/index.html" class="text-gold-400 text-[10px] font-medium">بیشتر بدانید ←</a>
                                     </div>
                                 </div>
                             </div>
@@ -694,11 +1180,11 @@
                  Same height as the carousel.
                  ==================================================== -->
                     <!-- BACKEND: INJECT PRIZE BANNER LINK + IMAGE + COPY -->
-                    <!-- NOTE: Mobile order-3 puts prize banner visually on the LEFT (RTL col 2),
+                    <!-- NOTE: Mobile order-4 puts prize banner visually on the LEFT (RTL col 2),
                                 lg:order-2 keeps it on the visual left on desktop (400px column).
                                 shadow-card added on mobile to harmonize with the categories card. -->
-                    <a href="#"
-                        class="ts-banner col-span-1 lg:col-span-1 relative overflow-hidden h-[220px] md:h-[360px] lg:h-[420px] w-full flex-shrink-0 group block order-3 lg:order-2 rounded-2xl lg:rounded-l-none lg:rounded-r-2xl shadow-card lg:shadow-none">
+                    <a href="./products.html"
+                        class="ts-banner col-span-1 lg:col-span-1 relative overflow-hidden h-[220px] md:h-[360px] lg:h-[420px] w-full flex-shrink-0 group block order-4 lg:order-2 rounded-2xl lg:rounded-l-none lg:rounded-r-2xl shadow-card lg:shadow-none">
                         <!-- Background gradient -->
                         <div class="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500">
                         </div>
@@ -743,6 +1229,170 @@
                     </a>
 
         <!-- ============================================================
+     SECTION 3.5 — QUICK GOLD BUY INTERACTIVE WIDGET
+     Full-width row placed BETWEEN the hero banners (carousel + prize)
+     and the categories shortcut row, per user request.
+
+     Design rationale (revised per ui-ux-design skill + user feedback):
+       • SELF-CONTAINED CONTRAST: The widget sits on a light page
+         background, so unlike the wallet's hero (which had a dark
+         card next to it), it needs its own dark surface to give the
+         inner elements (inputs, chips, CTA) a consistent contrast
+         baseline. Gradient lightened per user feedback (card was too
+         dark): primary-700 → primary-500 now, still a premium purple
+         family that keeps the interior white/gold accents readable.
+       • COMPACT 3-ZONE LAYOUT (was 5 disjointed sections):
+           Zone 1: Header (icon + title + live rate badge)
+           Zone 2: Inputs row (2 inputs side-by-side on all breakpoints)
+           Zone 3: Presets row (4 chips inline) + CTA button
+         No separate trust-signals row (those belong in the site
+         footer, not inside a buy widget — they were adding visual
+         noise without aiding the decision).
+       • Single accent color (gold) for ALL interactive elements —
+         inputs border on focus, chip active state, CTA. Unifies
+         the visual language.
+       • WCAG 2.2: focus-visible rings on every interactive element;
+         aria-describedby on inputs; aria-live on rate badge;
+         aria-pressed on preset chips; semantic <section aria-label>.
+       • Micro-interactions: hover:scale-[1.02] + active:scale-[0.98]
+         on chips, 200ms transitions.
+     ============================================================ -->
+        <section class="col-span-2 lg:col-span-2 w-full order-2 lg:order-3 mt-0" aria-label="خرید آنلاین و فوری طلا">
+            <div class="relative rounded-2xl overflow-hidden shadow-card bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500">
+
+                <!-- Premium gold top accent — a jewel-setting hairline, sets the gold identity -->
+                <div class="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-gold-400 to-transparent" aria-hidden="true"></div>
+                <!-- Ambient gold glow (top-end corner) — carries the gold identity -->
+                <div class="absolute top-0 end-0 w-48 h-48 bg-gold-500/15 rounded-full blur-[60px] pointer-events-none" aria-hidden="true"></div>
+                <!-- Subtle gold dot pattern (very faint) — texture, not noise -->
+                <div class="absolute inset-0 opacity-[0.06] pointer-events-none" style="background-image: radial-gradient(circle, #E8B948 1px, transparent 1px); background-size: 24px 24px;" aria-hidden="true"></div>
+
+                <div class="relative p-4 lg:p-5">
+
+                    <!-- ─────────────────────────────────────────────────────────────
+                         DENSE SINGLE-ROW LAYOUT (desktop ≥1024px)
+                         Every column has a job — no "sad empty space":
+                           • Header block (icon + title + live badge) — anchored right (RTL start)
+                           • Toman input — flex-1, fills available width
+                           • Gram input — fixed narrow width (gram values are short)
+                           • Presets — 4 chips; share remaining width and
+                             wrap to a second row only when space is tight
+                           • CTA — fills remaining space, always visible
+                         On mobile/tablet (<1024px) the form is a 2-col grid:
+                         header (full) → [toman | gram] → presets (full) → CTA (full).
+                         ───────────────────────────────────────────────────────────── -->
+                    <!--
+                      RESPONSIVE MODEL:
+                        • <lg (mobile/tablet): 2-col grid. Header spans both
+                          columns; the two inputs share one row; presets + CTA
+                          each span both columns so they never overflow.
+                        • ≥lg (desktop): switches to a single flex row —
+                           header | divider | toman(flex-1) | gram(fixed) |
+                           presets | CTA(flex-1). `lg:flex` overrides the grid.
+                    -->
+                    <form action="./wallet/buy.html" method="get" id="mainQuickBuyForm"
+                          class="grid grid-cols-2 gap-x-3 gap-y-4 lg:flex lg:items-end lg:gap-3" novalidate>
+
+                        <!-- ═══ HEADER BLOCK (right-anchored in RTL; pill docks to card's top-left on mobile) ═══ -->
+                        <header class="col-span-2 lg:col-span-1 lg:shrink-0 lg:max-w-[270px] flex items-start justify-between gap-3 lg:block">
+                            <div class="flex items-center gap-2.5 min-w-0 flex-1 lg:flex-none">
+                                <div class="w-10 h-10 lg:w-11 lg:h-11 rounded-xl bg-gradient-to-br from-gold-300 to-gold-500 text-primary-950 flex items-center justify-center shadow-[0_4px_14px_rgba(212,175,55,0.35)] ring-1 ring-gold-300/50 shrink-0" aria-hidden="true">
+                                    <i class='bx bx-cart-add text-lg lg:text-xl'></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <h2 class="text-sm lg:text-base font-black text-white leading-tight truncate">خرید آنلاین و فوری طلا</h2>
+                                    <p id="mainBuySubtitle" class="flex items-center gap-1 text-caption text-primary-200 mt-0.5 truncate">
+                                        <i class='bx bx-flash text-gold-400' aria-hidden="true"></i>
+                                        <span>محاسبه آنی، بدون کارمزد</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <!-- Live rate badge — docks to the card's top-left on mobile, under the title on desktop -->
+                            <div role="status" aria-live="polite" aria-atomic="true"
+                                 class="mt-0.5 lg:mt-2.5 shrink-0 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-gold-400/15 border border-gold-400/30 text-gold-300 text-caption font-bold whitespace-nowrap">
+                                <span class="flex items-center gap-1.5" aria-hidden="true">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-pulse"></span>
+                                    <span class="hidden sm:inline text-[10px] font-medium text-gold-300/80 tracking-wide">لحظه‌ای</span>
+                                </span>
+                                <span class="hidden sm:block w-px h-3 bg-gold-400/30" aria-hidden="true"></span>
+                                <span><span class="font-latin" dir="rtl">۴٬۵۴۵٬۰۰۰</span> <span class="text-gold-300/80">ت/گرم</span></span>
+                            </div>
+                        </header>
+
+                        <!-- Vertical divider (desktop only) — visually separates header from form fields -->
+                        <div class="hidden lg:block w-px self-stretch bg-white/10" aria-hidden="true"></div>
+
+                        <!-- ═══ INPUT: Toman Amount (flex-1, fills available width) ═══ -->
+                        <div class="col-span-1 lg:col-span-1 lg:flex-1 lg:min-w-0">
+                            <label for="mainBuyRial" class="block text-caption font-bold text-primary-100 mb-1.5">
+                                مبلغ خرید <span class="text-primary-300 font-medium">(تومان)</span>
+                            </label>
+                            <div class="relative flex items-center bg-primary-950/40 border border-primary-700 focus-within:border-gold-400 focus-within:ring-2 focus-within:ring-gold-400/30 rounded-lg px-3 py-2.5 transition-all duration-200">
+                                <input type="text" id="mainBuyRial" name="amount" placeholder="۵٬۰۰۰٬۰۰۰" inputmode="numeric"
+                                       class="w-full bg-transparent text-sm lg:text-product font-bold text-white placeholder-primary-300 outline-none border-none focus:ring-0 p-0 text-start min-w-0" dir="rtl" autocomplete="off"
+                                       aria-describedby="mainBuyRialHint" aria-required="true">
+                                <span id="mainBuyRialHint" class="text-caption font-bold text-gold-300 whitespace-nowrap flex-shrink-0 ms-2" aria-hidden="true">تومان</span>
+                            </div>
+                        </div>
+
+                        <!-- ═══ INPUT: Gram Weight (fixed narrow width on desktop) ═══ -->
+                        <div class="col-span-1 lg:col-span-1 lg:w-40 lg:shrink-0">
+                            <label for="mainBuyGram" class="block text-caption font-bold text-primary-100 mb-1.5">
+                                وزن معادل <span class="text-primary-300 font-medium">(گرم)</span>
+                            </label>
+                            <div class="relative flex items-center bg-primary-950/40 border border-primary-700 focus-within:border-gold-400 focus-within:ring-2 focus-within:ring-gold-400/30 rounded-lg px-3 py-2.5 transition-all duration-200">
+                                <input type="text" id="mainBuyGram" name="gram" placeholder="۱.۱۰۰" inputmode="decimal"
+                                       class="w-full bg-transparent text-sm lg:text-product font-bold text-gold-300 placeholder-primary-300 outline-none border-none focus:ring-0 p-0 text-start min-w-0" dir="rtl" autocomplete="off"
+                                       aria-describedby="mainBuyGramHint" aria-required="true">
+                                <span id="mainBuyGramHint" class="text-caption font-bold text-gold-300 whitespace-nowrap flex-shrink-0 ms-2" aria-hidden="true">گرم</span>
+                            </div>
+                        </div>
+
+                        <!-- ═══ PRESETS (4 chips — wrap + distribute on mobile, compact row on desktop) ═══ -->
+                        <div class="col-span-2 lg:col-span-1" role="group" aria-label="مبالغ پیشنهادی">
+                            <span class="flex items-center gap-1 text-caption font-bold text-primary-100 mb-1.5 lg:sr-only">
+                                <i class='bx bx-bolt text-gold-400' aria-hidden="true"></i>
+                                انتخاب سریع
+                            </span>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button"
+                                        class="main-quickbuy-preset flex-1 min-w-[4.5rem] py-2 px-2.5 bg-gold-400/10 hover:bg-gold-400 text-gold-200 hover:text-primary-950 rounded-lg text-caption font-bold transition-all duration-200 border border-gold-400/25 hover:border-gold-400 hover:scale-[1.03] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 whitespace-nowrap shadow-sm"
+                                        data-rial="1000000" aria-pressed="false" aria-label="۱ میلیون تومان">
+                                    <span>۱ میلیون</span>
+                                </button>
+                                <button type="button"
+                                        class="main-quickbuy-preset flex-1 min-w-[4.5rem] py-2 px-2.5 bg-gold-400/10 hover:bg-gold-400 text-gold-200 hover:text-primary-950 rounded-lg text-caption font-bold transition-all duration-200 border border-gold-400/25 hover:border-gold-400 hover:scale-[1.03] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 whitespace-nowrap shadow-sm"
+                                        data-rial="5000000" aria-pressed="false" aria-label="۵ میلیون تومان">
+                                    <span>۵ میلیون</span>
+                                </button>
+                                <button type="button"
+                                        class="main-quickbuy-preset flex-1 min-w-[4.5rem] py-2 px-2.5 bg-gold-400/10 hover:bg-gold-400 text-gold-200 hover:text-primary-950 rounded-lg text-caption font-bold transition-all duration-200 border border-gold-400/25 hover:border-gold-400 hover:scale-[1.03] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 whitespace-nowrap shadow-sm"
+                                        data-rial="10000000" aria-pressed="false" aria-label="۱۰ میلیون تومان">
+                                    <span>۱۰ میلیون</span>
+                                </button>
+                                <button type="button"
+                                        class="main-quickbuy-preset flex-1 min-w-[4.5rem] py-2 px-2.5 bg-gold-400/10 hover:bg-gold-400 text-gold-200 hover:text-primary-950 rounded-lg text-caption font-bold transition-all duration-200 border border-gold-400/25 hover:border-gold-400 hover:scale-[1.03] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 whitespace-nowrap shadow-sm"
+                                        data-gram="1" aria-pressed="false" aria-label="۱ گرم طلا">
+                                    <span>۱ گرم</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ═══ CTA (flex-1 on desktop, fills remaining width) ═══ -->
+                        <button type="submit"
+                                class="col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[160px] inline-flex items-center justify-center gap-2 bg-gradient-to-r from-gold-300 via-gold-400 to-gold-500 hover:from-gold-400 hover:via-gold-500 hover:to-gold-600 text-primary-950 font-bold rounded-lg py-2.5 px-4 text-caption lg:text-body transition-all duration-200 shadow-[0_4px_20px_rgba(212,175,55,0.35)] hover:shadow-[0_6px_24px_rgba(212,175,55,0.45)] hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2 focus-visible:ring-offset-primary-600 whitespace-nowrap">
+                            <i class='bx bx-cart-add text-base lg:text-lg' aria-hidden="true"></i>
+                            <span>ثبت سفارش و ادامه خرید</span>
+                            <i class='bx bx-chevron-left text-base lg:text-lg' aria-hidden="true"></i>
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
      SECTION 4 — CATEGORIES SHORTCUT ROW (spec §3)
      Horizontally scrollable row of 64px circular category tiles.
      Each tile = circular image + label underneath. 20px spacing.
@@ -769,17 +1419,19 @@
            echoes the prize banner's purple gradient (yin-yang pairing)
          - Compact mobile header ("دسته‌بندی‌ها") with gold accent bar
            mirrors the prize banner's "قرعه‌کشی بزرگ سال" badge
-         - order-2 on mobile puts it visually on the RIGHT (RTL col 1)
+         - order-3 on mobile puts it visually on the RIGHT (RTL col 1),
+           sitting beside the prize banner (order-4 mobile) — with the new
+           Quick Gold Buy widget (order-2 mobile) above both as a full-width row.
      ============================================================ -->
         <!-- ================= SECTION: CATEGORIES SHORTCUT ROW START ================= -->
-        <div class="col-span-1 lg:col-span-2 w-full order-2 lg:order-3 mt-0 relative rounded-2xl lg:rounded-none bg-gradient-to-br from-primary-50/80 via-surface to-surface lg:bg-transparent shadow-card lg:shadow-none ring-1 ring-primary-100/70 lg:ring-0 h-[220px] md:h-[360px] lg:h-auto overflow-hidden">
+        <div class="col-span-1 lg:col-span-2 w-full order-3 lg:order-4 mt-0 relative rounded-2xl lg:rounded-none bg-gradient-to-br from-primary-50/80 via-surface to-surface lg:bg-transparent shadow-card lg:shadow-none ring-1 ring-primary-100/70 lg:ring-0 h-[220px] md:h-[360px] lg:h-auto overflow-hidden">
             <!-- Mobile-only compact header — pairs visually with the prize banner's badge -->
             <div class="lg:hidden flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-primary-100/60">
                 <div class="flex items-center gap-1.5">
                     <span class="block w-1 h-3 rounded-full bg-gold-500"></span>
                     <span class="text-[11px] font-bold text-primary-700 tracking-wide">دسته‌بندی‌ها</span>
                 </div>
-                <a href="#" class="text-[10px] text-primary-500 hover:text-primary-700 font-medium transition-colors">همه ←</a>
+                <a href="./products.html" class="text-[10px] text-primary-500 hover:text-primary-700 font-medium transition-colors">همه ←</a>
             </div>
             <!--
               Scrolling behavior:
@@ -804,7 +1456,7 @@
                     <div
                         class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-2 gap-y-3 md:gap-y-4 lg:gap-4 pb-2 lg:pb-3">
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #FEE2E2; color: #DC2626;">
                             <!-- BACKEND: INJECT CATEGORY IMAGE (recommended: 80×80 PNG with transparent bg) -->
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -815,7 +1467,7 @@
                         <span class="ts-cat-tile__label">انگشتر طلا</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #EDE9FE; color: #6D28D9;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path fill="currentColor"
@@ -825,7 +1477,7 @@
                         <span class="ts-cat-tile__label">گردنبند</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #DBEAFE; color: #2563EB;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                                 <path fill="currentColor"
@@ -835,7 +1487,7 @@
                         <span class="ts-cat-tile__label">گوشواره</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #D1FAE5; color: #059669;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path fill="currentColor"
@@ -845,7 +1497,7 @@
                         <span class="ts-cat-tile__label">دستبند</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #FEF3C7; color: #D97706;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path
@@ -856,7 +1508,7 @@
                         <span class="ts-cat-tile__label">سکه طلا</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #FCE7F3; color: #DB2777;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path fill="currentColor"
@@ -866,7 +1518,7 @@
                         <span class="ts-cat-tile__label">سرویس جواهر</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #CFFAFE; color: #0891B2;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path fill="currentColor"
@@ -876,7 +1528,7 @@
                         <span class="ts-cat-tile__label">نیم‌ست</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #FED7AA; color: #EA580C;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path fill="currentColor"
@@ -886,7 +1538,7 @@
                         <span class="ts-cat-tile__label">زنجیر</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #FECACA; color: #DC2626;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                                 <path fill="currentColor"
@@ -896,7 +1548,7 @@
                         <span class="ts-cat-tile__label">حلقه نامزدی</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #E0E7FF; color: #4F46E5;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path fill="currentColor"
@@ -906,7 +1558,7 @@
                         <span class="ts-cat-tile__label">جواهرات آقایان</span>
                     </a>
 
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./products.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle" style="background-color: #CCFBF1; color: #0D9488;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path fill="currentColor"
@@ -917,7 +1569,7 @@
                     </a>
 
                     <!-- Phase 2 highlighted tile (gold accent) -->
-                    <a href="#" class="ts-cat-tile group">
+                    <a href="./wallet/index.html" class="ts-cat-tile group">
                         <div class="ts-cat-tile__circle relative"
                             style="background-color: #FCFAF2; border: 1.5px solid #D4AF37; color: #D4AF37;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -993,7 +1645,7 @@
                                 </div>
                             </div>
 
-                            <a href="#"
+                            <a href="./products.html"
                                 class="lg:hidden flex flex-shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-white/40 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm transition-all hover:border-gold-500 hover:bg-gold-500/20 hover:text-gold-200">
                                 مشاهده همه
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -1006,7 +1658,7 @@
 
                         <!-- WIDE, CAPSULE-SHAPED COUNTDOWN WITH HIGH CONTRAST & SHIMMER -->
                         <!-- BACKEND: INJECT COUNTDOWN TARGET DATETIME -->
-                        <div data-countdown="2026-07-21 23:59:59"
+                        <div data-countdown="2026-07-21 23:59:59" data-countdown-cycle-days="7"
                             class="relative overflow-hidden flex w-full lg:w-auto items-center justify-center gap-1.5 sm:gap-2 lg:gap-3 rounded-full border border-white/30 bg-primary-950/80 px-3 py-2 lg:px-5 lg:py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md"
                             aria-label="زمان باقی‌مانده">
 
@@ -1061,7 +1713,7 @@
                         </div>
 
                         <!-- Desktop 'View All' -->
-                        <a href="#"
+                        <a href="./products.html"
                             class="hidden lg:flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition-all duration-250 hover:border-gold-500 hover:bg-gold-500/20 hover:text-gold-200">
                             مشاهده همه
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -1086,7 +1738,7 @@
 
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="گردنبند طلا ۱۸ عیار طرح قلب و الماس">
                                                 <img src="./assets/images/products/gold-fancy-necklace.png"
                                                     alt="گردنبند طلا ۱۸ عیار طرح قلب و الماس"
@@ -1127,7 +1779,7 @@
                                         </div>
 
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 گردنبند طلا ۱۸ عیار طرح قلب و الماس
                                             </a>
@@ -1151,9 +1803,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۲۰٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۱۰,۰۰۰,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۱۰,۰۰۰,۰۰۰</span></span></span>
                                             </div>
 
                                             <div class="flex flex-col gap-1.5 pt-2">
@@ -1174,7 +1825,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="دستبند طلا زنجیری کلاسیک">
                                                 <img src="./assets/images/products/bracelet.png"
                                                     alt="دستبند طلا زنجیری کلاسیک"
@@ -1211,7 +1862,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 دستبند طلا زنجیری کلاسیک
                                             </a>
@@ -1233,9 +1884,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۱۵٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۱۵,۴۷۰,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۱۵,۴۷۰,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1255,7 +1905,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="گوشواره طلا ۱۸ عیار میخی طرح پروانه">
                                                 <img src="./assets/images/products/Earrings.png"
                                                     alt="گوشواره طلا ۱۸ عیار میخی طرح پروانه"
@@ -1292,7 +1942,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 گوشواره طلا ۱۸ عیار میخی طرح پروانه
                                             </a>
@@ -1314,9 +1964,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۲۵٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۴,۸۰۰,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۴,۸۰۰,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1336,7 +1985,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="انگشتر طلا ۱۸ عیار سولیتر با نگین">
                                                 <img src="./assets/images/products/rose-gold-diamond-engagement-ring.png"
                                                     alt="انگشتر طلا ۱۸ عیار سولیتر با نگین"
@@ -1373,7 +2022,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 انگشتر طلا ۱۸ عیار سولیتر با نگین
                                             </a>
@@ -1395,9 +2044,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۱۸٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۸,۰۳۶,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۸,۰۳۶,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1417,7 +2065,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="سرویس جواهر سه‌تکه برلیان رویال">
                                                 <img src="./assets/images/products/bridal-set.png"
                                                     alt="سرویس جواهر سه‌تکه برلیان رویال"
@@ -1454,7 +2102,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 سرویس جواهر سه‌تکه برلیان رویال
                                             </a>
@@ -1476,9 +2124,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۳۰٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۸۴,۰۰۰,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۸۴,۰۰۰,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1498,7 +2145,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="النگوی طلا ۱۸ عیار مدل کارتیر">
                                                 <img src="./assets/images/products/bangle.png"
                                                     alt="النگوی طلا ۱۸ عیار مدل کارتیر"
@@ -1535,7 +2182,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 النگوی طلا ۱۸ عیار مدل کارتیر
                                             </a>
@@ -1557,9 +2204,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۱۰٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۵۸,۵۰۰,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۵۸,۵۰۰,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1579,7 +2225,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="انگشتر طلا دو حلقه متصل">
                                                 <img src="./assets/images/products/double-ring.png"
                                                     alt="انگشتر طلا دو حلقه متصل"
@@ -1616,7 +2262,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 انگشتر طلا دو حلقه متصل
                                             </a>
@@ -1638,9 +2284,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۲۲٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۳,۳۵۴,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۳,۳۵۴,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1660,7 +2305,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0" aria-label="چوکر طلا مدل رومی">
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0" aria-label="چوکر طلا مدل رومی">
                                                 <img src="./assets/images/products/gold-fancy-necklace.png"
                                                     alt="چوکر طلا مدل رومی"
                                                     class="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
@@ -1696,7 +2341,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 چوکر طلا مدل رومی
                                             </a>
@@ -1718,9 +2363,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۲۸٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۱۵,۸۴۰,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۱۵,۸۴۰,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1740,7 +2384,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="گردنبند پلاک اسم شخصی‌سازی شده">
                                                 <img src="./assets/images/products/Pendant.webp"
                                                     alt="گردنبند پلاک اسم شخصی‌سازی شده"
@@ -1777,7 +2421,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 گردنبند پلاک اسم شخصی‌سازی شده
                                             </a>
@@ -1799,9 +2443,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۱۲٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۷,۸۳۲,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۷,۸۳۲,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1821,7 +2464,7 @@
                                         class="group relative flex flex-col h-full rounded-2xl overflow-hidden bg-white shadow-[0_4px_16px_rgba(0,0,0,0.22)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.32)] transition-all duration-300 hover:-translate-y-2">
                                         <div
                                             class="relative aspect-square bg-gradient-to-br from-primary-50 to-white overflow-hidden">
-                                            <a href="#" class="absolute inset-0 z-0"
+                                            <a href="./product/tear-tennis-gold-ring.html" class="absolute inset-0 z-0"
                                                 aria-label="ست کامل نامزدی طلا و نگین">
                                                 <img src="./assets/images/products/bridal-set.png"
                                                     alt="ست کامل نامزدی طلا و نگین"
@@ -1858,7 +2501,7 @@
                                             </button>
                                         </div>
                                         <div class="flex flex-col gap-2 p-4 flex-1">
-                                            <a href="#"
+                                            <a href="./product/tear-tennis-gold-ring.html"
                                                 class="text-[15px] text-content-heading font-bold leading-snug line-clamp-2 min-h-[2.75rem] hover:text-primary-600 transition-colors">
                                                 ست کامل نامزدی طلا و نگین
                                             </a>
@@ -1880,9 +2523,8 @@
                                                         class="text-[11px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded">۳۵٪</span>
                                                 </div>
                                                 <span
-                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight">۲۹,۲۵۰,۰۰۰
-                                                    <span
-                                                        class="text-xs font-medium text-content-muted">تومان</span></span>
+                                                    class="text-xl font-black text-primary-700 font-latin ltr leading-tight"><span class="numeric-measure"><span
+                                                        class="numeric-measure__unit text-xs font-medium text-content-muted">تومان</span><span class="font-latin">۲۹,۲۵۰,۰۰۰</span></span></span>
                                             </div>
                                             <div class="flex flex-col gap-1.5 pt-2">
                                                 <div class="w-full h-2 bg-primary-50 rounded-full overflow-hidden">
@@ -1918,7 +2560,7 @@
 
                     <!-- ================= BANNER 1: The Royal Brand ================= -->
                     <!-- Gradient Background: Royal Purple -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="relative overflow-hidden rounded-2xl flex items-center justify-between p-6 md:p-8 group bg-gradient-to-l from-[#4A154B] to-purple-800 hover:shadow-lg hover:shadow-purple-900/20 transition-all duration-300">
 
                         <!-- Text Content -->
@@ -1958,7 +2600,7 @@
 
                     <!-- ================= BANNER 2: The Golden Elegance ================= -->
                     <!-- Gradient Background: Soft Luxury Gold/Sand -->
-                    <a href="#"
+                    <a href="./wallet/rates.html"
                         class="relative overflow-hidden rounded-2xl flex items-center justify-between p-6 md:p-8 group bg-gradient-to-l from-[#F5E6CC] to-[#FFF8E7] hover:shadow-lg transition-all duration-300 border border-[#D4AF37]/20">
 
                         <!-- Text Content -->
@@ -1995,7 +2637,7 @@
 
                     <!-- ================= BANNER 3: Minimal & Clean ================= -->
                     <!-- Gradient Background: Platinum/Silver -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="relative overflow-hidden rounded-2xl flex items-center justify-between p-6 md:p-8 group bg-gradient-to-l from-gray-100 to-gray-50 hover:shadow-lg transition-all duration-300">
 
                         <!-- Text Content -->
@@ -2030,7 +2672,7 @@
 
                     <!-- ================= BANNER 4: Men's Luxury ================= -->
                     <!-- Gradient Background: Charcoal / Dark -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="relative overflow-hidden rounded-2xl flex items-center justify-between p-6 md:p-8 group bg-gradient-to-l from-gray-900 to-[#1A1A1A] hover:shadow-lg hover:shadow-gray-900/30 transition-all duration-300">
 
                         <!-- Text Content -->
@@ -2084,11 +2726,10 @@
                 <div class="flex flex-wrap justify-center gap-x-6 gap-y-12 md:gap-x-12">
 
                     <!-- ================= 1. Rings ================= -->
-                    <a href="#" class="group flex flex-col items-center w-[90px] md:w-[110px]">
+<a href="./products.html" class="group flex flex-col items-center w-[90px] md:w-[110px]">
                         <!-- The Background Circle (Stays same size, no hidden overflow) -->
                         <div
                             class="relative w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 md:mb-5 transition-colors group-hover:bg-gray-200">
-                            <!-- The Image (Scaled to 135% to break the border, with a contour drop shadow) -->
                             <img src="assets/images/products/rings.webp" alt="انگشتر طلا"
                                 class="w-full h-full object-contain scale-[1.35] md:scale-[1.4] group-hover:scale-[1.5] drop-shadow-md transition-transform duration-300 ease-out z-10" />
                         </div>
@@ -2098,7 +2739,7 @@
                     </a>
 
                     <!-- ================= 2. Necklaces/Pendants ================= -->
-                    <a href="#" class="group flex flex-col items-center w-[90px] md:w-[110px]">
+                    <a href="./products.html" class="group flex flex-col items-center w-[90px] md:w-[110px]">
                         <div
                             class="relative w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 md:mb-5 transition-colors group-hover:bg-gray-200">
                             <img src="assets/images/products/Pendant.webp" alt="گردنبند و پلاک"
@@ -2110,7 +2751,7 @@
                     </a>
 
                     <!-- ================= 3. Bracelets/Bangles ================= -->
-                    <a href="#" class="group flex flex-col items-center w-[90px] md:w-[110px]">
+                    <a href="./products.html" class="group flex flex-col items-center w-[90px] md:w-[110px]">
                         <div
                             class="relative w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 md:mb-5 transition-colors group-hover:bg-gray-200">
                             <img src="assets/images/products/bangle.png" alt="دستبند و النگو"
@@ -2122,7 +2763,7 @@
                     </a>
 
                     <!-- ================= 4. Earrings ================= -->
-                    <a href="#" class="group flex flex-col items-center w-[90px] md:w-[110px]">
+                    <a href="./products.html" class="group flex flex-col items-center w-[90px] md:w-[110px]">
                         <div
                             class="relative w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 md:mb-5 transition-colors group-hover:bg-gray-200">
                             <img src="assets/images/products/Earrings.png" alt="گوشواره"
@@ -2133,7 +2774,7 @@
                     </a>
 
                     <!-- ================= 5. Coins & Bars ================= -->
-                    <a href="#" class="group flex flex-col items-center w-[90px] md:w-[110px]">
+                    <a href="./products.html" class="group flex flex-col items-center w-[90px] md:w-[110px]">
                         <div
                             class="relative w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 md:mb-5 transition-colors group-hover:bg-gray-200">
                             <img src="assets/images/products/coins-bars.png" alt="سکه و شمش"
@@ -2145,7 +2786,7 @@
                     </a>
 
                     <!-- ================= 6. Wedding & Bridal ================= -->
-                    <a href="#" class="group flex flex-col items-center w-[90px] md:w-[110px]">
+                    <a href="./products.html" class="group flex flex-col items-center w-[90px] md:w-[110px]">
                         <div
                             class="relative w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 md:mb-5 transition-colors group-hover:bg-gray-200">
                             <img src="assets/images/products/bridal-set.png" alt="سرویس عروس"
@@ -2170,13 +2811,10 @@
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center gap-2">
                         <!-- Minimalist Trend Icon in Gold -->
-                        <svg class="w-6 h-6 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
+                        <i class="bx bx-trending-up text-xl text-[#D4AF37]"></i>
                         <h2 class="text-lg md:text-xl font-bold text-gray-900">پرفروش‌ترین کالاها</h2>
                     </div>
-                    <a href="#"
+                    <a href="./products.html"
                         class="text-xs md:text-sm font-medium text-gray-500 hover:text-[#4A154B] transition-colors">
                         مشاهده همه
                     </a>
@@ -2190,7 +2828,7 @@
                     <!-- ================= Column 1 (Ranks 1-3) ================= -->
                     <div class="flex flex-col pl-0 lg:pl-6">
                         <!-- Rank 1 -->
-                        <a href="#"
+                        <a href="./product/tear-tennis-gold-ring.html"
                             class="group flex items-center gap-3 py-3.5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors rounded-lg px-2">
                             <!-- Highly Visible Solid Number -->
                             <div class="w-6 flex justify-center">
@@ -2210,13 +2848,8 @@
                                 <!-- Data Tags (Fills space, adds real e-commerce value) -->
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><svg
-                                            class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5h.01">
-                                            </path>
-                                        </svg>۲.۸ گرم</span>
+                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><i
+                                            class="bx bx-purchase-tag text-xs text-gray-400"></i>۲.۸ گرم</span>
                                     <span
                                         class="bg-[#4A154B]/10 text-[#4A154B] text-[10px] px-1.5 py-0.5 rounded font-bold">ارسال
                                         فردا</span>
@@ -2224,14 +2857,13 @@
                                 <!-- Price Left Aligned -->
                                 <div class="text-left w-full mt-auto">
                                     <span
-                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۱۲,۴۰۰,۰۰۰
-                                        <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۱۲,۴۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
 
                         <!-- Rank 2 -->
-                        <a href="#"
+                        <a href="./product/tear-tennis-gold-ring.html"
                             class="group flex items-center gap-3 py-3.5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors rounded-lg px-2">
                             <div class="w-6 flex justify-center">
                                 <span class="text-3xl font-black font-latin text-[#4A154B]">2</span>
@@ -2247,26 +2879,20 @@
                                     گردنبند طلا ۱۸ عیار طرح ون‌کلیف کد ۴۵۲</h3>
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><svg
-                                            class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5h.01">
-                                            </path>
-                                        </svg>۴.۱ گرم</span>
+                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><i
+                                            class="bx bx-purchase-tag text-xs text-gray-400"></i>۴.۱ گرم</span>
                                     <span class="text-gray-400 text-[10px] flex items-center gap-1"><span
                                             class="w-1.5 h-1.5 rounded-full bg-green-500"></span>موجود در گالری</span>
                                 </div>
                                 <div class="text-left w-full mt-auto">
                                     <span
-                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۱۸,۵۰۰,۰۰۰
-                                        <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۱۸,۵۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
 
                         <!-- Rank 3 -->
-                        <a href="#"
+                        <a href="./wallet/buy.html"
                             class="group flex items-center gap-3 py-3.5 hover:bg-gray-50 transition-colors rounded-lg px-2 border-b border-gray-100 md:border-b-0 lg:border-b">
                             <div class="w-6 flex justify-center">
                                 <span class="text-3xl font-black font-latin text-[#4A154B]">3</span>
@@ -2291,8 +2917,7 @@
                                 <div class="text-left w-full mt-auto flex flex-col items-end">
                                     <div class="text-left w-full mt-auto">
                                         <span
-                                            class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۳۲,۱۰۰,۰۰۰
-                                            <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                            class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۳۲,۱۰۰,۰۰۰</span></span></span>
                                     </div>
                                 </div>
                             </div>
@@ -2303,7 +2928,7 @@
                     <div class="flex flex-col hidden md:flex pl-0 lg:pl-6 pr-0 lg:pr-6">
 
                         <!-- Rank 4 -->
-                        <a href="#"
+                        <a href="./product/tear-tennis-gold-ring.html"
                             class="group flex items-center gap-3 py-3.5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors rounded-lg px-2">
                             <div class="w-6 flex justify-center">
                                 <span
@@ -2320,24 +2945,18 @@
                                     النگو طلا ۱۸ عیار مدل آینه‌ای ضخیم طرح جدید</h3>
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><svg
-                                            class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5h.01">
-                                            </path>
-                                        </svg>۵.۲ گرم</span>
+                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><i
+                                            class="bx bx-purchase-tag text-xs text-gray-400"></i>۵.۲ گرم</span>
                                 </div>
                                 <div class="text-left w-full mt-auto">
                                     <span
-                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۲۱,۸۰۰,۰۰۰
-                                        <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۲۱,۸۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
 
                         <!-- Rank 5 -->
-                        <a href="#"
+                        <a href="./product/tear-tennis-gold-ring.html"
                             class="group flex items-center gap-3 py-3.5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors rounded-lg px-2">
                             <div class="w-6 flex justify-center">
                                 <span
@@ -2354,26 +2973,20 @@
                                     گوشواره طلا ۱۸ عیار طرح حلقه مینیمال</h3>
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><svg
-                                            class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5h.01">
-                                            </path>
-                                        </svg>۱.۸ گرم</span>
+                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><i
+                                            class="bx bx-purchase-tag text-xs text-gray-400"></i>۱.۸ گرم</span>
                                     <span class="text-[#D4AF37] text-[10px] font-bold">فروش ویژه</span>
                                 </div>
                                 <div class="text-left w-full mt-auto flex items-center justify-between">
                                     <span
                                         class="text-gray-400 line-through text-[11px] font-latin mr-2">۹,۵۰۰,۰۰۰</span>
-                                    <span class="text-red-500 font-bold text-[15px] font-latin tracking-tight">۸,۲۰۰,۰۰۰
-                                        <span class="text-[10px] text-red-400 font-medium">تومان</span></span>
+                                    <span class="text-red-500 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-red-400 font-medium">تومان</span><span class="font-latin">۸,۲۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
 
                         <!-- Rank 6 -->
-                        <a href="#"
+                        <a href="./product/tear-tennis-gold-ring.html"
                             class="group flex items-center gap-3 py-3.5 hover:bg-gray-50 transition-colors rounded-lg px-2 border-b border-gray-100 lg:border-b">
                             <div class="w-6 flex justify-center">
                                 <span
@@ -2390,18 +3003,12 @@
                                     انگشتر طلا ۱۸ عیار طرح نگین‌دار سولیتر</h3>
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><svg
-                                            class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5h.01">
-                                            </path>
-                                        </svg>۳.۶ گرم</span>
+                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><i
+                                            class="bx bx-purchase-tag text-xs text-gray-400"></i>۳.۶ گرم</span>
                                 </div>
                                 <div class="text-left w-full mt-auto">
                                     <span
-                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۱۶,۹۰۰,۰۰۰
-                                        <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۱۶,۹۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
@@ -2412,7 +3019,7 @@
                     <div class="flex flex-col hidden lg:flex pr-6">
 
                         <!-- Rank 7 -->
-                        <a href="#"
+                        <a href="./product/tear-tennis-gold-ring.html"
                             class="group flex items-center gap-3 py-3.5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors rounded-lg px-2">
                             <div class="w-6 flex justify-center">
                                 <span class="text-3xl font-black font-latin text-gray-400">7</span>
@@ -2428,24 +3035,18 @@
                                     سرویس طلا ۱۸ عیار کامل طرح کلاسیک</h3>
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><svg
-                                            class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5h.01">
-                                            </path>
-                                        </svg>۲۸.۵ گرم</span>
+                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><i
+                                            class="bx bx-purchase-tag text-xs text-gray-400"></i>۲۸.۵ گرم</span>
                                 </div>
                                 <div class="text-left w-full mt-auto">
                                     <span
-                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۱۴۵,۰۰۰,۰۰۰
-                                        <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۱۴۵,۰۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
 
                         <!-- Rank 8 -->
-                        <a href="#"
+                        <a href="./wallet/buy.html"
                             class="group flex items-center gap-3 py-3.5 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors rounded-lg px-2">
                             <div class="w-6 flex justify-center">
                                 <span class="text-3xl font-black font-latin text-gray-400">8</span>
@@ -2466,14 +3067,13 @@
                                 </div>
                                 <div class="text-left w-full mt-auto">
                                     <span
-                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۲۴,۸۰۰,۰۰۰
-                                        <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۲۴,۸۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
 
                         <!-- Rank 9 -->
-                        <a href="#"
+                        <a href="./product/tear-tennis-gold-ring.html"
                             class="group flex items-center gap-3 py-3.5 hover:bg-gray-50 transition-colors rounded-lg px-2 border-b-0">
                             <div class="w-6 flex justify-center">
                                 <span class="text-3xl font-black font-latin text-gray-400">9</span>
@@ -2489,18 +3089,12 @@
                                     پلاک طلا ۱۸ عیار حروف الفبا سفارشی</h3>
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><svg
-                                            class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5h.01">
-                                            </path>
-                                        </svg>۰.۹ گرم</span>
+                                        class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium"><i
+                                            class="bx bx-purchase-tag text-xs text-gray-400"></i>۰.۹ گرم</span>
                                 </div>
                                 <div class="text-left w-full mt-auto">
                                     <span
-                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight">۴,۱۰۰,۰۰۰
-                                        <span class="text-[10px] text-gray-500 font-medium">تومان</span></span>
+                                        class="text-gray-900 font-bold text-[15px] font-latin tracking-tight"><span class="numeric-measure"><span class="numeric-measure__unit text-[10px] text-gray-500 font-medium">تومان</span><span class="font-latin">۴,۱۰۰,۰۰۰</span></span></span>
                                 </div>
                             </div>
                         </a>
@@ -2532,7 +3126,7 @@
 
                     <!-- ================= 1. The Royal Bridal (Deep Black) ================= -->
                     <!-- Black background creates a jewelry-store velvet display effect -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="group relative h-36 md:h-40 bg-[#111111] overflow-hidden flex items-center p-6 transition-colors duration-500 hover:bg-black rounded-lg">
                         <!-- Giant out-of-focus background element -->
                         <div
@@ -2552,7 +3146,7 @@
 
                     <!-- ================= 2. Brand Purple Core (Van Cleef / Rings) ================= -->
                     <!-- Using your signature #4A154B -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="group relative h-36 md:h-40 bg-[#4A154B] overflow-hidden flex items-center p-6 transition-colors duration-500 hover:bg-[#39103a] rounded-lg">
                         <div
                             class="absolute left-[-5%] top-0 bottom-0 w-1/2 opacity-30 group-hover:opacity-70 group-hover:scale-110 transition-all duration-700 ease-in-out mix-blend-screen">
@@ -2570,7 +3164,7 @@
 
                     <!-- ================= 3. The Gold Standard (Coins/Bars) ================= -->
                     <!-- Crisp White but with stark, heavy editorial contrast -->
-                    <a href="#"
+                    <a href="./wallet/rates.html"
                         class="group relative h-36 md:h-40 bg-white border border-gray-200 overflow-hidden flex items-center p-6 transition-shadow duration-500 hover:shadow-xl hover:border-gray-300 rounded-lg">
                         <div
                             class="absolute left-[-10%] top-[10%] bottom-[10%] w-1/2 opacity-80 group-hover:opacity-100 group-hover:-translate-x-2 transition-all duration-700 ease-in-out">
@@ -2588,7 +3182,7 @@
 
                     <!-- ================= 4. Warm Ivory/Gold (Earrings) ================= -->
                     <!-- A rich, muted champagne color (classic for Cartier/high end) -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="group relative h-36 md:h-40 bg-[#F7F3EB] overflow-hidden flex items-center p-6 transition-colors duration-500 hover:bg-[#F2EBE0] rounded-lg">
                         <div
                             class="absolute left-0 top-0 bottom-[-20%] w-[55%] opacity-70 group-hover:opacity-100 group-hover:rotate-3 transition-all duration-700 ease-in-out mix-blend-multiply">
@@ -2605,7 +3199,7 @@
                     </a>
 
                     <!-- ================= 5. Deep Slate / Monochrome (Pendants) ================= -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="group relative h-36 md:h-40 bg-[#2A2B2E] overflow-hidden flex items-center p-6 transition-colors duration-500 hover:bg-[#1E1F21] rounded-lg">
                         <div
                             class="absolute left-0 top-[10%] bottom-[10%] w-[45%] opacity-40 group-hover:opacity-70 group-hover:-translate-y-2 transition-all duration-700 ease-in-out mix-blend-screen">
@@ -2623,7 +3217,7 @@
 
                     <!-- ================= 6. Steel & Gold (Bangles/Bracelets) ================= -->
                     <!-- High contrast cool-gray interacting with gold jewelry -->
-                    <a href="#"
+                    <a href="./products.html"
                         class="group relative h-36 md:h-40 bg-gradient-to-r from-gray-100 to-white border border-gray-200 overflow-hidden flex items-center p-6 transition-shadow duration-500 hover:shadow-lg rounded-lg">
                         <div
                             class="absolute left-[-5%] top-[-10%] bottom-[-10%] w-[60%] opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-in-out">
@@ -2650,7 +3244,7 @@
             <div class="container mx-auto px-4">
 
                 <!-- Ultra-Crisp Responsive Grid: 2 on mobile, 4 on desktop -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 divide-x divide-x-reverse divide-gray-100">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 lg:divide-x lg:divide-x-reverse divide-gray-100">
 
                     <!-- 1. Carat / Authenticity Guarantee -->
                     <div
@@ -2732,7 +3326,8 @@
         <!-- ========================================== -->
         <!-- 15. MAIN MEGA FOOTER (Dark Luxury Filled)  -->
         <!-- ========================================== -->
-        <footer class="bg-[#200B21] border-t-4 border-[#D4AF37] pt-12 mt-12 text-gray-300 font-medium">
+        <!-- GLOBAL SITE FOOTER: START -->
+<footer class="bg-[#200B21] border-t-4 border-[#D4AF37] pt-12 mt-12 text-gray-300 font-medium pb-24 md:pb-0">
             <div class="container mx-auto px-4 md:px-6">
 
                 <!-- === Top Tier: Brand, Phone, Back to Top === -->
@@ -2787,15 +3382,15 @@
                         <h3 class="text-white font-bold text-base mb-6 border-r-2 border-[#D4AF37] pr-3">راهنمای خرید
                         </h3>
                         <ul class="space-y-4 text-[13px] text-gray-400">
-                            <li><a href="#" class="ts-footer-link inline-block hover:text-white transition-colors">نحوه
+                            <li><a href="./terms.html" class="ts-footer-link">نحوه
                                     ثبت سفارش</a></li>
-                            <li><a href="#" class="ts-footer-link inline-block hover:text-white transition-colors">رویه
+                            <li><a href="./terms.html" class="ts-footer-link">رویه
                                     ارسال کالا</a></li>
-                            <li><a href="#"
-                                    class="ts-footer-link inline-block hover:text-white transition-colors">شیوه‌های
+                            <li><a href="./terms.html"
+                                    class="ts-footer-link">شیوه‌های
                                     پرداخت</a></li>
-                            <li><a href="#"
-                                    class="ts-footer-link inline-block hover:text-white transition-colors">محاسبه‌گر
+                            <li><a href="./wallet/rates.html"
+                                    class="ts-footer-link">محاسبه‌گر
                                     قیمت طلا</a></li>
                         </ul>
                     </div>
@@ -2805,14 +3400,14 @@
                         <h3 class="text-white font-bold text-base mb-6 border-r-2 border-[#D4AF37] pr-3">خدمات مشتریان
                         </h3>
                         <ul class="space-y-4 text-[13px] text-gray-400">
-                            <li><a href="#"
-                                    class="ts-footer-link inline-block hover:text-white transition-colors">پرسش‌های
+                            <li><a href="./contact.html"
+                                    class="ts-footer-link">پرسش‌های
                                     متداول</a></li>
-                            <li><a href="#" class="ts-footer-link inline-block hover:text-white transition-colors">رویه
+                            <li><a href="./terms.html" class="ts-footer-link">رویه
                                     بازگرداندن کالا</a></li>
-                            <li><a href="#" class="ts-footer-link inline-block hover:text-white transition-colors">شرایط
+                            <li><a href="./terms.html" class="ts-footer-link">شرایط
                                     استفاده</a></li>
-                            <li><a href="#" class="ts-footer-link inline-block hover:text-white transition-colors">حریم
+                            <li><a href="./terms.html" class="ts-footer-link">حریم
                                     خصوصی</a></li>
                         </ul>
                     </div>
@@ -2821,15 +3416,15 @@
                     <div class="lg:col-span-2">
                         <h3 class="text-white font-bold text-base mb-6 border-r-2 border-[#D4AF37] pr-3">با طلاشو</h3>
                         <ul class="space-y-4 text-[13px] text-gray-400">
-                            <li><a href="#"
-                                    class="ts-footer-link inline-block hover:text-white transition-colors">درباره ما</a>
+                            <li><a href="./about.html"
+                                    class="ts-footer-link">درباره ما</a>
                             </li>
-                            <li><a href="#" class="ts-footer-link inline-block hover:text-white transition-colors">تماس
+                            <li><a href="./contact.html" class="ts-footer-link">تماس
                                     با گالری</a></li>
-                            <li><a href="#"
-                                    class="ts-footer-link inline-block hover:text-white transition-colors">شعبه‌های
+                            <li><a href="./contact.html"
+                                    class="ts-footer-link">شعبه‌های
                                     فیزیکی</a></li>
-                            <li><a href="#" class="ts-footer-link inline-block hover:text-white transition-colors">مجله
+                            <li><a href="./blog.html" class="ts-footer-link">مجله
                                     طلا و جواهر</a></li>
                         </ul>
                     </div>
@@ -2941,92 +3536,167 @@
 
             </div>
         </footer>
+<!-- GLOBAL SITE FOOTER: END -->
 
         <!-- ===== LOCAL JS (no CDN) ===== -->
         <script src="./assets/js/vendor/swiper-bundle.min.js"></script>
         <script src="./assets/js/main.js?v=6"></script>
         <script src="./assets/js/countdown.js"></script>
-        <script src="./assets/js/price-board.js"></script>
         <script src="./assets/js/product-icons.js"></script>
 
+        <!-- ===== Quick Gold Buy Widget — dual Toman ↔ Gram input sync =====
+             Self-contained IIFE; defines its own Persian-digit helpers so it
+             does not depend on (or collide with) any helpers that may be
+             defined by other scripts on this page. Mirrors the sync logic used
+             by the wallet/index.html "Prominent Quick Gold Buy" widget. -->
+        <script>
+        (function () {
+          var RATE = 4545000; // 18K Gold benchmark rate (Toman/Gram) — keep in sync with wallet/index.html
 
-    <!-- MOBILE BOTTOM NAVIGATION & SEARCH OVERLAY -->
-    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-surface shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-[60] rounded-t-2xl px-6 py-2 pb-[env(safe-area-inset-bottom,0.5rem)]">
-        <ul class="flex justify-between items-center text-xs text-content-muted">
-            <li>
-                <a href="#" class="flex flex-col items-center gap-1 text-primary-500 transition-colors p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <span>خانه</span>
-                </a>
-            </li>
-            <li>
-                <button type="button" id="mobileSearchBtn" class="flex flex-col items-center gap-1 hover:text-primary-500 transition-colors p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <span>جستجو</span>
-                </button>
-            </li>
-                        <li>
-                <a href="#" class="flex flex-col items-center gap-1 hover:text-primary-500 transition-colors p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                    <span>دسته‌بندی</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="flex flex-col items-center gap-1 hover:text-primary-500 transition-colors p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>پروفایل</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <div id="mobileSearchOverlay" class="fixed inset-0 bg-surface z-[70] hidden flex-col transition-opacity duration-300 opacity-0">
-        <div class="flex items-center gap-4 p-4 border-b border-border shadow-sm bg-white">
-            <button id="closeSearchBtn" type="button" class="text-content-heading hover:text-error transition-colors p-2 -ms-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-            </button>
-            <form action="#" method="get" class="flex-1 relative">
-                <input type="text" name="q" placeholder="جستجوی جواهرات..." class="w-full bg-background border border-border focus:border-primary-500 rounded-full py-2.5 ps-10 pe-4 outline-none text-body">
-                <button type="submit" class="absolute inset-y-0 start-0 flex items-center ps-3 text-content-muted">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                </button>
-            </form>
-        </div>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchBtn = document.getElementById('mobileSearchBtn');
-            const searchOverlay = document.getElementById('mobileSearchOverlay');
-            const closeSearchBtn = document.getElementById('closeSearchBtn');
-            const searchInput = searchOverlay?.querySelector('input');
-            if (searchBtn && searchOverlay && closeSearchBtn) {
-                searchBtn.addEventListener('click', () => {
-                    searchOverlay.classList.remove('hidden');
-                    searchOverlay.classList.add('flex');
-                    setTimeout(() => {
-                        searchOverlay.classList.remove('opacity-0');
-                        searchInput?.focus();
-                    }, 10);
-                    document.body.style.overflow = 'hidden';
-                });
-                closeSearchBtn.addEventListener('click', () => {
-                    searchOverlay.classList.add('opacity-0');
-                    setTimeout(() => {
-                        searchOverlay.classList.add('hidden');
-                        searchOverlay.classList.remove('flex');
-                        document.body.style.overflow = '';
-                    }, 300);
-                });
+          function toPersianDigits(num) {
+            var p = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+            return String(num).replace(/[0-9]/g, function (d) { return p[d]; });
+          }
+          function formatPersian(num) {
+            if (!num && num !== 0) return '';
+            return toPersianDigits(Number(num).toLocaleString('en-US'));
+          }
+          function cleanDigits(str) {
+            if (!str) return '';
+            var p = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
+            return String(str).replace(/[۰-۹]/g, function (d) { return p[d]; }).replace(/[^0-9.]/g, '');
+          }
+
+          var rialInput = document.getElementById('mainBuyRial');
+          var gramInput = document.getElementById('mainBuyGram');
+          var presets   = document.querySelectorAll('.main-quickbuy-preset');
+          if (!rialInput || !gramInput) return;
+
+          function syncRialToGram(e) {
+            var raw = cleanDigits(rialInput.value);
+            if (!raw) {
+              gramInput.value = '';
+              if (e && e.type === 'input') rialInput.value = '';
+              return;
             }
-        });
-    </script>
+            var rialVal = parseInt(raw, 10);
+            if (isNaN(rialVal)) return;
+            var grams = (rialVal / RATE).toFixed(3);
+            gramInput.value = toPersianDigits(grams);
+            if (e && e.type === 'input') {
+              rialInput.value = formatPersian(rialVal);
+            }
+          }
+
+          function syncGramToRial(e) {
+            var raw = cleanDigits(gramInput.value);
+            if (!raw) {
+              rialInput.value = '';
+              if (e && e.type === 'input') gramInput.value = '';
+              return;
+            }
+            var gramVal = parseFloat(raw);
+            if (isNaN(gramVal)) return;
+            var rialVal = Math.round(gramVal * RATE);
+            rialInput.value = formatPersian(rialVal);
+            if (e && e.type === 'input') {
+              gramInput.value = toPersianDigits(raw);
+            }
+          }
+
+          rialInput.addEventListener('input', syncRialToGram);
+          gramInput.addEventListener('input', syncGramToRial);
+
+          presets.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              // Toggle aria-pressed on the clicked chip, clear on siblings
+              // (treat them like radio buttons — only one preset is "active"
+              // at a time, matching the sync logic).
+              presets.forEach(function (other) {
+                other.setAttribute('aria-pressed', 'false');
+              });
+              btn.setAttribute('aria-pressed', 'true');
+
+              var rialAttr = btn.getAttribute('data-rial');
+              var gramAttr = btn.getAttribute('data-gram');
+              if (rialAttr) {
+                rialInput.value = rialAttr;
+                syncRialToGram({ type: 'input' });
+              } else if (gramAttr) {
+                gramInput.value = gramAttr;
+                syncGramToRial({ type: 'input' });
+              }
+            });
+          });
+
+          // When the user types manually, no preset is "active" anymore —
+          // clear all aria-pressed states so the UI reflects reality.
+          function clearPresetSelection() {
+            presets.forEach(function (btn) {
+              btn.setAttribute('aria-pressed', 'false');
+            });
+          }
+          rialInput.addEventListener('input', clearPresetSelection);
+          gramInput.addEventListener('input', clearPresetSelection);
+        })();
+        </script>
+
+
+    
+    
+
+
+<!-- GLOBAL SITE BOTTOM NAV: START -->
+<!-- ========================================== -->
+    <!-- MOBILE BOTTOM NAV — Storefront (Digikala-style) -->
+    <!-- Injected by sync_global_shell.py into catalog/content
+         pages. Active tab is highlighted by global-shell.js from
+         the current URL — never hard-code active state here. -->
+    <!-- ========================================== -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-surface border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50 bottom-nav pb-[env(safe-area-inset-bottom,0.5rem)]" aria-label="ناوبری موبایل">
+        <div class="grid grid-cols-4 h-14">
+
+            <!-- Home -->
+            <a href="./index.html" class="flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                <span class="text-[10px] font-bold">خانه</span>
+            </a>
+
+            <!-- Categories — opens the global mobile drawer (same as the burger) -->
+            <button type="button" class="js-open-mobile-menu flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors" aria-label="دسته‌بندی">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                <span class="text-[10px] font-bold">دسته‌بندی</span>
+            </button>
+
+            <!-- Cart -->
+            <a href="./cart.html" class="flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors">
+                <span class="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <!-- BACKEND: INJECT CART COUNT -->
+                    <span class="absolute -top-1 -end-1.5 bg-primary-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] rounded-full flex items-center justify-center px-1">۲</span>
+                </span>
+                <span class="text-[10px] font-bold">سبد خرید</span>
+            </a>
+
+            <!-- Account -->
+            <a href="./wallet/login.html" class="flex flex-col items-center justify-center gap-0.5 text-content-muted hover:text-primary-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <span class="text-[10px] font-bold">حساب</span>
+            </a>
+
+        </div>
+    </nav>
+    <!-- ================= MOBILE BOTTOM NAV END ================= -->
+<!-- GLOBAL SITE BOTTOM NAV: END -->
 </body>
 
 </html>
+

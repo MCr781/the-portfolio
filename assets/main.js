@@ -7429,7 +7429,7 @@ function farRow(wx, rows) {
 
     if (finePointer.matches && !reduced.matches) {
       artCarts.forEach(function (o) {
-        if (o.art === art) {
+        if (o.art === art && !o.cart.classList.contains('is-dragging')) {
           var r = o.art.getBoundingClientRect();
           var rx = ((my - r.top) / r.height - 0.5) * -10;
           var ry = ((mx - r.left) / r.width - 0.5) * 10;
@@ -7440,7 +7440,7 @@ function farRow(wx, rows) {
           var baseRot = flipped ? 180 : 0;
           var effRy = flipped ? -ry : ry;
           o.cart.style.transform = 'perspective(800px) rotateY(' + (baseRot + effRy) + 'deg) rotateX(' + rx + 'deg)';
-        } else if (o.cart.classList.contains('tilting')) {
+        } else if (o.cart.classList.contains('tilting') && !o.cart.classList.contains('is-dragging')) {
           o.cart.classList.remove('tilting');
           o.cart.style.transform = '';
         }
@@ -7531,7 +7531,176 @@ function farRow(wx, rows) {
     sfx('cartFlip');
   }
 
+  /* ── Interactive Cartridge Drag & Sweep (Physics) ── */
+  function initCartridgeDragAndSweep() {
+    var cartridges = $$('.cartridge');
+    cartridges.forEach(function (cart) {
+      var isDown = false;
+      var isDragging = false;
+      var startX = 0;
+      var startY = 0;
+      var startTime = 0;
+      var baseAngle = 0;
+      var currentAngle = 0;
+      var cartWidth = 360;
+
+      cart.addEventListener('pointerdown', function (e) {
+        if (e.target.closest('button, a, input, [role="tab"], .screen-chrome, .cart-view-tabs')) {
+          return;
+        }
+        isDown = true;
+        isDragging = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        startTime = performance.now();
+        baseAngle = cart.classList.contains('is-flipped') ? 180 : 0;
+        currentAngle = baseAngle;
+        cartWidth = cart.offsetWidth || 360;
+        try { cart.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+
+      cart.addEventListener('pointermove', function (e) {
+        if (!isDown) { return; }
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+
+        if (!isDragging) {
+          if (Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy)) {
+            isDragging = true;
+            cart.classList.add('is-dragging');
+            cart.classList.remove('tilting');
+          }
+        }
+
+        if (isDragging) {
+          var rotDelta = (dx / cartWidth) * 180;
+          currentAngle = baseAngle + rotDelta;
+          cart.style.transform = 'perspective(1400px) rotateY(' + currentAngle + 'deg)';
+          if (e.cancelable) { e.preventDefault(); }
+        }
+      });
+
+      function endDrag(e) {
+        if (!isDown) { return; }
+        isDown = false;
+        try { cart.releasePointerCapture(e.pointerId); } catch (_) {}
+
+        if (isDragging) {
+          isDragging = false;
+          cart.classList.remove('is-dragging');
+          var dx = e.clientX - startX;
+          var dt = Math.max(1, performance.now() - startTime);
+          var speed = Math.abs(dx) / dt;
+          var wasFlipped = cart.classList.contains('is-flipped');
+          var shouldFlip = (Math.abs(dx) > 50) || (speed > 0.35 && Math.abs(dx) > 20);
+
+          if (shouldFlip) {
+            toggleCartFlip(cart);
+          } else {
+            cart.style.transform = wasFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+            setTimeout(function () {
+              if (!cart.classList.contains('is-dragging')) {
+                cart.style.transform = '';
+              }
+            }, 640);
+          }
+          e.stopPropagation();
+        }
+      }
+
+      cart.addEventListener('pointerup', endDrag);
+      cart.addEventListener('pointercancel', endDrag);
+    });
+  }
+  initCartridgeDragAndSweep();
+
+  /* ── Device Switcher Tabs & Lightbox Handlers ── */
+  var lightbox = $('#cartLightbox');
+  var lightboxImg = $('#lightboxImg');
+  var lightboxTitle = $('#lightboxTitle');
+  var lightboxClose = $('#lightboxClose');
+
+  function openLightbox(src, title) {
+    if (!lightbox || !lightboxImg) { return; }
+    lightboxImg.src = src;
+    lightboxImg.alt = title || 'پیش‌نمایش پروژه';
+    if (lightboxTitle) { lightboxTitle.textContent = title || 'پیش‌نمایش پروژه'; }
+    lightbox.hidden = false;
+    requestAnimationFrame(function () {
+      lightbox.classList.add('is-open');
+      lightbox.setAttribute('aria-hidden', 'false');
+    });
+    sfx('cartFlip');
+  }
+
+  function closeLightbox() {
+    if (!lightbox) { return; }
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    setTimeout(function () {
+      if (!lightbox.classList.contains('is-open')) {
+        lightbox.hidden = true;
+        if (lightboxImg) { lightboxImg.src = ''; }
+      }
+    }, 220);
+  }
+
+  if (lightboxClose) {
+    lightboxClose.addEventListener('click', closeLightbox);
+  }
+  if (lightbox) {
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox || e.target.classList.contains('lightbox-backdrop')) {
+        closeLightbox();
+      }
+    });
+  }
+  doc.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lightbox && !lightbox.hidden) {
+      closeLightbox();
+    }
+  });
+
   doc.addEventListener('click', function (e) {
+    var tabBtn = e.target.closest('.view-tab-btn');
+    if (tabBtn) {
+      var stage = tabBtn.closest('.cart-back-well');
+      if (stage) {
+        var view = tabBtn.getAttribute('data-view');
+        var allTabs = $$('.view-tab-btn', stage);
+        allTabs.forEach(function (t) {
+          var active = t === tabBtn;
+          t.classList.toggle('is-active', active);
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        var desktopPanel = $('.view-desktop', stage);
+        var mobilePanel = $('.view-mobile', stage);
+        if (desktopPanel && mobilePanel) {
+          if (view === 'desktop') {
+            desktopPanel.hidden = false;
+            mobilePanel.hidden = true;
+          } else {
+            desktopPanel.hidden = true;
+            mobilePanel.hidden = false;
+          }
+        }
+        sfx('pipOn');
+      }
+      e.preventDefault();
+      return;
+    }
+
+    var zoomEl = e.target.closest('[data-zoom-src]');
+    if (zoomEl) {
+      var src = zoomEl.getAttribute('data-zoom-src');
+      var title = zoomEl.getAttribute('data-zoom-title');
+      if (src) {
+        openLightbox(src, title);
+        e.preventDefault();
+        return;
+      }
+    }
+
     var flipBtn = e.target.closest('.cart-flip-btn');
     if (flipBtn) {
       var targetWrap = flipBtn.closest('.cart-flipper-wrap');

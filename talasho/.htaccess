@@ -1,0 +1,8 @@
+# WebP image support
+# Some Apache/LiteSpeed hosts (common on shared hosting) do not ship the
+# `image/webp` MIME type, so .webp files are served as application/octet-stream
+# and browsers (especially with X-Content-Type-Options: nosniff) refuse to render
+# them, even though they display fine locally.
+<IfModule mod_mime.c>
+    AddType image/webp .webp
+</IfModule>
