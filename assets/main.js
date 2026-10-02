@@ -832,9 +832,11 @@
     [523, 659, 784, 1046].forEach(function (f, i) {
       setTimeout(function () { blip(f, 110); }, 130 * i);
     });
-    toast.hidden = false;
-    toast.classList.add('show');
-    setTimeout(function () { toast.hidden = true; toast.classList.remove('show'); }, 4800);
+    if (toast) {
+      toast.hidden = false;
+      toast.classList.add('show');
+      setTimeout(function () { toast.hidden = true; toast.classList.remove('show'); }, 4800);
+    }
     setTimeout(function () {
       hud.classList.remove('party');
       pips.forEach(function (p) { p.classList.remove('win'); });
@@ -7429,7 +7431,8 @@ function farRow(wx, rows) {
 
     if (finePointer.matches && !reduced.matches) {
       artCarts.forEach(function (o) {
-        if (o.art === art && !o.cart.classList.contains('is-dragging')) {
+        var flipping = o.cart.classList.contains('is-flipping');
+        if (o.art === art && !flipping && !o.cart.classList.contains('is-dragging')) {
           var r = o.art.getBoundingClientRect();
           var rx = ((my - r.top) / r.height - 0.5) * -10;
           var ry = ((mx - r.left) / r.width - 0.5) * 10;
@@ -7438,8 +7441,9 @@ function farRow(wx, rows) {
           o.cart.classList.add('tilting');
           var flipped = o.cart.classList.contains('is-flipped');
           var baseRot = flipped ? 180 : 0;
+          var effRx = flipped ? -rx : rx;
           var effRy = flipped ? -ry : ry;
-          o.cart.style.transform = 'perspective(800px) rotateY(' + (baseRot + effRy) + 'deg) rotateX(' + rx + 'deg)';
+          o.cart.style.transform = 'translateY(-4px) rotateY(' + (baseRot + effRy) + 'deg) rotateX(' + effRx + 'deg)';
         } else if (o.cart.classList.contains('tilting') && !o.cart.classList.contains('is-dragging')) {
           o.cart.classList.remove('tilting');
           o.cart.style.transform = '';
@@ -7474,6 +7478,7 @@ function farRow(wx, rows) {
     mPaused = false;
     cartList.forEach(function (c) { c.classList.remove('is-hover'); c.classList.remove('snap'); });
     artCarts.forEach(function (o) {
+      if (o.cart.classList.contains('is-dragging')) { return; }
       o.cart.classList.remove('tilting');
       o.cart.style.transform = '';
     });
@@ -7513,14 +7518,55 @@ function farRow(wx, rows) {
   }, { passive: true });
 
   /* ── 3D cartridge flipper wiring ────────────────────── */
-  function toggleCartFlip(cartEl) {
+  var FLIP_MS = 640;
+
+  function markFlipping(cartEl) {
     if (!cartEl) { return; }
+    cartEl.classList.add('is-flipping');
+    clearTimeout(cartEl._flipTimer);
+    cartEl._flipTimer = setTimeout(function () {
+      cartEl.classList.remove('is-flipping');
+      cartEl._flipTimer = 0;
+    }, reduced.matches ? 0 : FLIP_MS);
+  }
+
+  function setFaceHidden(face, hidden) {
+    if (!face) { return; }
+    face.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+    face.toggleAttribute('inert', hidden);
+  }
+
+  function initCartridgeFlipAria() {
+    $$('.cart-flipper-wrap').forEach(function (wrap) {
+      var cartEl = $('.cartridge', wrap);
+      if (!cartEl) { return; }
+      var front = $('.cart-front', cartEl);
+      var back = $('.cart-back', cartEl);
+      var ribbonTab = $('.cart-side-pull-tab', wrap);
+      var ambientHint = $('.ambient-gesture-hint', wrap);
+      if (back && !back.id) { back.id = 'cart-back-' + (cartEl.getAttribute('data-cart') || wrap.getAttribute('data-cart') || 'x'); }
+      var isFlipped = cartEl.classList.contains('is-flipped');
+      if (back && back.id) {
+        if (ribbonTab) { ribbonTab.setAttribute('aria-controls', back.id); }
+        if (ambientHint) { ambientHint.setAttribute('aria-controls', back.id); }
+      }
+      if (ribbonTab) { ribbonTab.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
+      if (ambientHint) { ambientHint.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
+      wrap.classList.toggle('is-flipped', isFlipped);
+      setFaceHidden(front, isFlipped);
+      setFaceHidden(back, !isFlipped);
+    });
+  }
+
+  function toggleCartFlip(cartEl) {
+    if (!cartEl || cartEl.classList.contains('is-dragging')) { return; }
     var wrap = cartEl.closest('.cart-flipper-wrap');
+    var active = doc.activeElement;
     var isFlipped = cartEl.classList.toggle('is-flipped');
     if (wrap) {
       wrap.classList.toggle('is-flipped', isFlipped);
-      var flipBtn = $('.cart-flip-btn', wrap);
-      if (flipBtn) { flipBtn.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
+      var ribbonTab = $('.cart-side-pull-tab', wrap);
+      if (ribbonTab) { ribbonTab.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
       var ambientHint = $('.ambient-gesture-hint', wrap);
       if (ambientHint) {
         ambientHint.setAttribute('aria-expanded', isFlipped ? 'true' : 'false');
@@ -7532,19 +7578,41 @@ function farRow(wx, rows) {
     }
     var front = $('.cart-front', cartEl);
     var back = $('.cart-back', cartEl);
-    if (front) { front.setAttribute('aria-hidden', isFlipped ? 'true' : 'false'); }
-    if (back) { back.setAttribute('aria-hidden', isFlipped ? 'false' : 'true'); }
+    setFaceHidden(front, isFlipped);
+    setFaceHidden(back, !isFlipped);
+    if (active && active.isConnected && active.closest && active.closest('.cart-face')) {
+      var landed = isFlipped ? $('.btn-cart-flipback', cartEl) : $('.cart-side-pull-tab', cartEl);
+      if (landed) {
+        try { landed.focus({ preventScroll: true }); } catch (_) { landed.focus(); }
+      }
+    }
     cartEl.classList.remove('tilting');
     cartEl.style.transform = '';
+    markFlipping(cartEl);
     sfx('cartFlip');
   }
 
+  function cartControlAt(cartEl, x, y, selector) {
+    if (!cartEl) { return null; }
+    var face = cartEl.classList.contains('is-flipped') ? $('.cart-back', cartEl) : $('.cart-front', cartEl);
+    if (!face) { return null; }
+    var list = $$(selector, face);
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i].getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) { return list[i]; }
+    }
+    return null;
+  }
+
   /* ── Interactive Cartridge Drag & Sweep (Physics) ── */
+  var cartClickGuard = { cart: null, at: 0 };
+
   function initCartridgeDragAndSweep() {
     var cartridges = $$('.cartridge');
     cartridges.forEach(function (cart) {
       var isDown = false;
       var isDragging = false;
+      var activePointer = null;
       var startX = 0;
       var startY = 0;
       var startTime = 0;
@@ -7552,12 +7620,22 @@ function farRow(wx, rows) {
       var currentAngle = 0;
       var cartWidth = 360;
 
+      function settle() {
+        markFlipping(cart);
+        cart.style.transform = '';
+      }
+
       cart.addEventListener('pointerdown', function (e) {
+        if (e.isPrimary === false || (typeof e.button === 'number' && e.button > 0)) { return; }
         if (e.target.closest('a, input, [role="tab"], .screen-chrome, .cart-view-tabs, .btn-cart-flipback, .btn-cart-enter')) {
+          return;
+        }
+        if (cartControlAt(cart, e.clientX, e.clientY, '.view-tab-btn, .btn-cart-flipback, .btn-cart-enter')) {
           return;
         }
         isDown = true;
         isDragging = false;
+        activePointer = e.pointerId;
         startX = e.clientX;
         startY = e.clientY;
         startTime = performance.now();
@@ -7568,7 +7646,7 @@ function farRow(wx, rows) {
       });
 
       cart.addEventListener('pointermove', function (e) {
-        if (!isDown) { return; }
+        if (!isDown || e.pointerId !== activePointer) { return; }
         var dx = e.clientX - startX;
         var dy = e.clientY - startY;
 
@@ -7583,44 +7661,50 @@ function farRow(wx, rows) {
         if (isDragging) {
           var rotDelta = (dx / cartWidth) * 180;
           currentAngle = baseAngle + rotDelta;
-          cart.style.transform = 'perspective(1400px) rotateY(' + currentAngle + 'deg)';
+          cart.style.transform = 'rotateY(' + currentAngle + 'deg)';
           if (e.cancelable) { e.preventDefault(); }
         }
       });
 
       function endDrag(e) {
         if (!isDown) { return; }
+        var wasDragging = isDragging;
+        var pointer = activePointer;
         isDown = false;
-        try { cart.releasePointerCapture(e.pointerId); } catch (_) {}
+        isDragging = false;
+        activePointer = null;
+        try { cart.releasePointerCapture(pointer); } catch (_) {}
+        if (!wasDragging) { return; }
 
-        if (isDragging) {
-          isDragging = false;
-          cart.classList.remove('is-dragging');
-          var dx = e.clientX - startX;
-          var dt = Math.max(1, performance.now() - startTime);
-          var speed = Math.abs(dx) / dt;
-          var wasFlipped = cart.classList.contains('is-flipped');
-          var shouldFlip = (Math.abs(dx) > 50) || (speed > 0.35 && Math.abs(dx) > 20);
+        cart.classList.remove('is-dragging');
+        cartClickGuard.cart = cart;
+        cartClickGuard.at = performance.now();
 
-          if (shouldFlip) {
-            toggleCartFlip(cart);
-          } else {
-            cart.style.transform = wasFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
-            setTimeout(function () {
-              if (!cart.classList.contains('is-dragging')) {
-                cart.style.transform = '';
-              }
-            }, 640);
-          }
-          e.stopPropagation();
+        if (!e || e.type !== 'pointerup') {
+          settle();
+          return;
+        }
+
+        var dx = e.clientX - startX;
+        var dt = Math.max(1, performance.now() - startTime);
+        var speed = Math.abs(dx) / dt;
+        var shouldFlip = (Math.abs(dx) > 50) || (speed > 0.35 && Math.abs(dx) > 20);
+
+        if (shouldFlip) {
+          toggleCartFlip(cart);
+        } else {
+          settle();
         }
       }
 
+      cart.addEventListener('dragstart', function (e) { e.preventDefault(); });
       cart.addEventListener('pointerup', endDrag);
       cart.addEventListener('pointercancel', endDrag);
+      cart.addEventListener('lostpointercapture', endDrag);
     });
   }
   initCartridgeDragAndSweep();
+  initCartridgeFlipAria();
 
   /* ── Device Switcher Tabs & Lightbox Handlers ── */
   var lightbox = $('#cartLightbox');
@@ -7670,6 +7754,21 @@ function farRow(wx, rows) {
   });
 
   doc.addEventListener('click', function (e) {
+    if (cartClickGuard.cart) {
+      var guardHit = e.target && e.target.closest ? e.target.closest('.cartridge') : null;
+      var guardFresh = performance.now() - cartClickGuard.at < 500;
+      if (guardHit === cartClickGuard.cart) {
+        cartClickGuard.cart = null;
+        if (guardFresh) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      } else if (!guardFresh) {
+        cartClickGuard.cart = null;
+      }
+    }
+
     var tabBtn = e.target.closest('.view-tab-btn');
     if (tabBtn) {
       var stage = tabBtn.closest('.cart-back-well');
@@ -7709,7 +7808,7 @@ function farRow(wx, rows) {
       }
     }
 
-    var ambientHint = e.target.closest('.ambient-gesture-hint, .cart-flip-btn');
+    var ambientHint = e.target.closest('.ambient-gesture-hint');
     if (ambientHint) {
       var targetWrap = ambientHint.closest('.cart-flipper-wrap');
       var cart = targetWrap ? $('.cartridge', targetWrap) : null;
@@ -7719,7 +7818,7 @@ function farRow(wx, rows) {
         return;
       }
     }
-    var flipTab = e.target.closest('.cart-side-pull-tab, .btn-cart-flipback, .cart-flip-tab');
+    var flipTab = e.target.closest('.cart-side-pull-tab, .btn-cart-flipback');
     if (flipTab) {
       var cartFromTab = flipTab.closest('.cartridge');
       if (cartFromTab) {
@@ -7728,16 +7827,37 @@ function farRow(wx, rows) {
         return;
       }
     }
+    var cartBody = e.target.closest('.cartridge');
+    if (cartBody && !e.target.closest('a, button, [data-zoom-src]')) {
+      var routeEl = cartControlAt(cartBody, e.clientX, e.clientY, '.view-tab-btn, [data-zoom-src], .btn-cart-flipback, .btn-cart-enter, .cart-side-pull-tab, a');
+      if (routeEl) {
+        try { routeEl.focus({ preventScroll: true }); } catch (_) { try { routeEl.focus(); } catch (__) {} }
+        routeEl.click();
+        e.preventDefault();
+        return;
+      }
+      toggleCartFlip(cartBody);
+      e.preventDefault();
+      return;
+    }
   });
 
   doc.addEventListener('keydown', function (e) {
-    if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('ambient-gesture-hint')) {
-      var wrap = e.target.closest('.cart-flipper-wrap');
-      var cart = wrap ? $('.cartridge', wrap) : null;
-      if (cart) {
-        toggleCartFlip(cart);
-        e.preventDefault();
-      }
+    var key = e.key;
+    if (key !== 'Enter' && key !== ' ' && key !== 'ArrowLeft' && key !== 'ArrowRight') { return; }
+    var t = e.target;
+    if (!t || !t.closest) { return; }
+    var wrap = t.closest('.cart-flipper-wrap');
+    if (!wrap) { return; }
+    if (key === 'Enter' || key === ' ') {
+      if (!t.classList || !t.classList.contains('ambient-gesture-hint')) { return; }
+    } else if (t.closest('[role="tablist"]')) {
+      return;
+    }
+    var cartForKey = $('.cartridge', wrap);
+    if (cartForKey) {
+      toggleCartFlip(cartForKey);
+      e.preventDefault();
     }
   });
 
