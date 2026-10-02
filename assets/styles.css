@@ -969,6 +969,7 @@ html[data-show='cast'] .cast-caption {
 .cart-front {
   transform: rotateY(0deg);
   z-index: 2;
+  overflow: visible;
 }
 .cart-back {
   transform: rotateY(180deg);
@@ -1265,58 +1266,158 @@ html[data-show='cast'] .cast-caption {
   .cartridge { transition: none !important; }
 }
 
-/* ── Corner 3D Flip Tab ── */
-.cart-flip-tab {
+/* ── Classic Woven Pull-Ribbon Tab ── */
+.cart-ribbon-tab {
   position: absolute;
-  top: 7px;
-  left: 8px;
-  z-index: 10;
-  background: linear-gradient(135deg, rgba(20, 22, 33, 0.95) 0%, rgba(10, 11, 18, 0.95) 100%);
-  border: 1.5px solid var(--c-accent);
-  color: #ffffff;
-  border-radius: 4px;
-  padding: 3px 8px;
-  display: inline-flex;
+  top: 52px;
+  left: -34px;
+  width: 40px;
+  height: 94px;
+  background:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    linear-gradient(90deg, #87141b 0%, #ba1e26 40%, #700f14 100%);
+  border: 1.5px dashed rgba(255, 255, 255, 0.45);
+  border-right: none;
+  border-radius: 6px 0 0 8px;
+  box-shadow:
+    -6px 6px 16px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  font-size: 0.60rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+  justify-content: space-between;
+  padding: 8px 0 9px;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  overflow: hidden;
-  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  z-index: 30;
+  transform-origin: right center;
+  transform: translateX(0);
+  transition: transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2), box-shadow 260ms ease, filter 200ms ease;
+  user-select: none;
 }
-.cart-flip-tab:hover {
-  background: var(--c-accent);
-  color: #0b0c10;
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 0 12px var(--c-accent);
-}
-.cart-flip-tab .flip-tab-icon {
-  font-size: 0.82rem;
-  line-height: 1;
-}
-.cart-flip-tab .flip-tab-shimmer {
+
+/* Proximity hit-zone so approaching mouse slides the ribbon outward */
+.cart-ribbon-tab::before {
+  content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.45) 50%, transparent 100%);
-  animation: tabShimmer 2.5s infinite;
+  top: -30px;
+  bottom: -30px;
+  left: -40px;
+  right: -25px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Subtle peek when hovering near the cartridge */
+.cart-flipper-wrap:hover .cart-ribbon-tab {
+  transform: translateX(-6px);
+}
+
+/* Direct proximity / hover: slides out smoothly with organic spring */
+.cart-ribbon-tab:hover {
+  transform: translateX(-16px) rotate(-1.5deg) scale(1.06) !important;
+  box-shadow:
+    -10px 10px 22px rgba(0, 0, 0, 0.95),
+    0 0 20px rgba(255, 45, 60, 0.5) !important;
+  filter: brightness(1.15) !important;
+}
+
+.cart-ribbon-tab:active {
+  transform: translateX(-19px) rotate(-2deg) scale(1.02) !important;
+}
+
+/* Antique brass grommet stamped at tab top */
+.cart-ribbon-tab .brass-grommet {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #382403 0 25%, #d4af37 35%, #8c701a 70%, #ffd700 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.7);
+  border: 1px solid #ffe285;
   pointer-events: none;
 }
-@keyframes tabShimmer {
-  0% { transform: translateX(-100%); }
-  35%, 100% { transform: translateX(100%); }
+
+/* Vertical micro-typography on woven cloth */
+.cart-ribbon-tab .ribbon-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.60rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: #ffe285;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.95);
+  font-family: var(--f-mono);
+  pointer-events: none;
 }
-.cart-flip-tab.back-return {
-  background: linear-gradient(135deg, rgba(30, 26, 12, 0.95) 0%, rgba(16, 14, 8, 0.95) 100%);
-  border-color: #ffd700;
-  color: #ffd700;
+
+.cart-ribbon-tab .ribbon-icon {
+  font-size: 0.88rem;
+  color: #ffffff;
+  line-height: 1;
+  pointer-events: none;
+  animation: ribbonIconPulse 3s ease-in-out infinite;
 }
-.cart-flip-tab.back-return:hover {
-  background: #ffd700;
-  color: #000000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 0 12px #ffd700;
+
+@keyframes ribbonIconPulse {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+/* World-specific woven cloth ribbon palettes */
+.w01 .cart-ribbon-tab {
+  background:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    linear-gradient(90deg, #87141b 0%, #ba1e26 40%, #700f14 100%);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+.w01 .cart-ribbon-tab:hover {
+  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(255, 45, 60, 0.5) !important;
+}
+
+.w02 .cart-ribbon-tab {
+  background:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    linear-gradient(90deg, #441063 0%, #6e199e 45%, #340c4c 100%);
+  border-color: rgba(243, 209, 121, 0.5);
+}
+.w02 .cart-ribbon-tab .brass-grommet {
+  background: radial-gradient(circle, #2d1300 0 25%, #f3d179 35%, #9d7c2a 70%, #ffd700 100%);
+  border-color: #f3d179;
+}
+.w02 .cart-ribbon-tab .ribbon-text { color: #f3d179; }
+.w02 .cart-ribbon-tab:hover {
+  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(184, 80, 255, 0.5) !important;
+}
+
+.w03 .cart-ribbon-tab {
+  background:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    linear-gradient(90deg, #09373b 0%, #105960 45%, #072629 100%);
+  border-color: rgba(94, 234, 212, 0.5);
+}
+.w03 .cart-ribbon-tab .brass-grommet {
+  background: radial-gradient(circle, #052327 0 25%, #5eead4 35%, #186861 70%, #a7f3d0 100%);
+  border-color: #5eead4;
+}
+.w03 .cart-ribbon-tab .ribbon-text { color: #7bf5e5; }
+.w03 .cart-ribbon-tab:hover {
+  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(45, 212, 191, 0.5) !important;
+}
+
+.w04 .cart-ribbon-tab {
+  background:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    linear-gradient(90deg, #740c42 0%, #a4125e 45%, #560831 100%);
+  border-color: rgba(255, 158, 198, 0.5);
+}
+.w04 .cart-ribbon-tab .brass-grommet {
+  background: radial-gradient(circle, #380720 0 25%, #ff9ec6 35%, #921852 70%, #ffd1e3 100%);
+  border-color: #ff9ec6;
+}
+.w04 .cart-ribbon-tab .ribbon-text { color: #ffd1e3; }
+.w04 .cart-ribbon-tab:hover {
+  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(244, 63, 134, 0.5) !important;
 }
 
 /* ── Back Shell Header ── */
@@ -1325,7 +1426,7 @@ html[data-show='cast'] .cast-caption {
   align-items: center;
   justify-content: space-between;
   direction: ltr;
-  padding: 7px 12px 6px 78px;
+  padding: 7px 12px 6px 14px;
   background: #09090f;
   border-bottom: 2px solid var(--c-accent);
   color: #f0f0f5;
@@ -1625,15 +1726,50 @@ html[data-show='cast'] .cast-caption {
   font-weight: 800 !important;
 }
 
-/* ── Direct Action Gate on Back Shell ── */
+/* ── Direct Action Gate & Companion Flipback on Back Shell ── */
 .cart-back-actions {
-  margin: 2px 12px 6px;
+  margin: 3px 12px 6px;
   display: flex;
+  gap: 8px;
   z-index: 4;
 }
+.btn-cart-flipback {
+  flex: 0 0 38%;
+  background: linear-gradient(135deg, rgba(20, 22, 33, 0.95) 0%, rgba(10, 11, 18, 0.95) 100%);
+  color: var(--c-accent);
+  border: 1.5px solid var(--c-accent);
+  font-family: var(--f-sans);
+  font-weight: 800;
+  font-size: 0.72rem;
+  border-radius: 5px;
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.5);
+  transition: filter 160ms ease, transform 120ms ease, box-shadow 120ms ease, background 160ms ease, color 160ms ease;
+  user-select: none;
+}
+.btn-cart-flipback:hover {
+  background: var(--c-accent);
+  color: #0b0c10;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.8), 0 6px 14px rgba(0, 0, 0, 0.7), 0 0 10px var(--c-accent);
+}
+.btn-cart-flipback:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+}
+.btn-cart-flipback .flipback-icon {
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
 .btn-cart-enter {
   position: relative;
-  width: 100%;
+  flex: 1;
   background: var(--c-accent);
   color: #0b0c10;
   font-family: var(--f-sans);
@@ -1641,7 +1777,7 @@ html[data-show='cast'] .cast-caption {
   font-size: 0.76rem;
   text-decoration: none;
   border-radius: 5px;
-  padding: 7px 14px;
+  padding: 7px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1665,84 +1801,64 @@ html[data-show='cast'] .cast-caption {
   font-size: 0.88rem;
 }
 
-/* ── Bold Arcade Flip CTA Button under Cartridge ── */
-.arcade-flip-cta {
-  position: relative;
-  width: 100%;
-  background: linear-gradient(180deg, #1b1c2b 0%, #0e0f17 100%);
-  border: 2px solid var(--c-accent);
-  color: #ffffff;
-  border-radius: 8px;
-  padding: 9px 14px 8px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  box-shadow:
-    0 5px 0 #000000,
-    0 8px 16px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 0 14px rgba(0, 0, 0, 0.4);
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 160ms ease, background 160ms ease;
-  user-select: none;
-}
-.arcade-flip-cta:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 7px 0 #000000,
-    0 10px 20px rgba(0, 0, 0, 0.8),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 0 20px var(--c-accent);
-  background: linear-gradient(180deg, #24263a 0%, #131420 100%);
-}
-.arcade-flip-cta:active {
-  transform: translateY(3px);
-  box-shadow:
-    0 2px 0 #000000,
-    0 4px 8px rgba(0, 0, 0, 0.8),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-.arcade-btn-face {
+/* ── Ambient Flip & Drag Hint under Cartridge ── */
+.ambient-gesture-hint {
+  margin-top: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(14, 16, 26, 0.65);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  color: #8c92ac;
+  font-size: 0.70rem;
   font-family: var(--f-sans);
-  font-size: 0.82rem;
-  font-weight: 900;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 140ms ease;
+  user-select: none;
 }
-.flip-icon-3d {
-  display: inline-block;
-  font-size: 1.15rem;
-  line-height: 1;
+.ambient-gesture-hint:hover,
+.ambient-gesture-hint:focus-visible {
+  background: rgba(22, 26, 42, 0.92);
+  border: 1px solid var(--c-accent);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6), 0 0 8px var(--c-accent);
+  transform: translateY(-1px);
+  outline: none;
+}
+.ambient-gesture-hint:active {
+  transform: translateY(1px);
+}
+.ambient-gesture-hint .hint-arrows {
+  font-size: 0.88rem;
   color: var(--c-accent);
-  animation: iconSpinPulse 3s ease-in-out infinite;
+  letter-spacing: -0.05em;
+  transition: transform 200ms ease;
 }
-@keyframes iconSpinPulse {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(45deg) scale(1.15); }
-  50% { transform: rotate(180deg) scale(1); }
-  75% { transform: rotate(225deg) scale(1.15); }
+.ambient-gesture-hint:hover .hint-arrows {
+  transform: scaleX(1.2);
 }
-.flip-drag-hint {
-  font-size: 0.60rem;
-  color: #8c8ea8;
+.ambient-gesture-hint .hint-text {
+  font-weight: 600;
+}
+.ambient-gesture-hint .hint-badge {
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--c-accent);
   letter-spacing: 0.04em;
-  font-weight: 700;
 }
-.cart-flipper-wrap .flip-text-back { display: none; }
-.cart-flipper-wrap .flip-text-front { display: inline; }
-.cart-flipper-wrap.is-flipped .flip-text-front { display: none; }
-.cart-flipper-wrap.is-flipped .flip-text-back { display: inline; }
-.cart-flipper-wrap.is-flipped .arcade-flip-cta {
+.cart-flipper-wrap.is-flipped .ambient-gesture-hint {
+  border-color: rgba(255, 215, 0, 0.3);
+}
+.cart-flipper-wrap.is-flipped .ambient-gesture-hint:hover {
   border-color: #ffd700;
-  box-shadow:
-    0 5px 0 #000000,
-    0 8px 16px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 0 14px rgba(255, 215, 0, 0.35);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6), 0 0 8px #ffd700;
 }
 
 /* ── Lightbox Modal ── */

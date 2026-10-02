@@ -7521,6 +7521,14 @@ function farRow(wx, rows) {
       wrap.classList.toggle('is-flipped', isFlipped);
       var flipBtn = $('.cart-flip-btn', wrap);
       if (flipBtn) { flipBtn.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
+      var ambientHint = $('.ambient-gesture-hint', wrap);
+      if (ambientHint) {
+        ambientHint.setAttribute('aria-expanded', isFlipped ? 'true' : 'false');
+        var hintText = $('.hint-text', ambientHint);
+        if (hintText) {
+          hintText.textContent = isFlipped ? 'برای بازگشت به پوستر کلیک کنید یا با ماوس حرکت دهید' : 'برای چرخش زبانه را بکشید یا با ماوس حرکت دهید';
+        }
+      }
     }
     var front = $('.cart-front', cartEl);
     var back = $('.cart-back', cartEl);
@@ -7545,7 +7553,7 @@ function farRow(wx, rows) {
       var cartWidth = 360;
 
       cart.addEventListener('pointerdown', function (e) {
-        if (e.target.closest('button, a, input, [role="tab"], .screen-chrome, .cart-view-tabs')) {
+        if (e.target.closest('a, input, [role="tab"], .screen-chrome, .cart-view-tabs, .btn-cart-flipback, .btn-cart-enter')) {
           return;
         }
         isDown = true;
@@ -7701,9 +7709,9 @@ function farRow(wx, rows) {
       }
     }
 
-    var flipBtn = e.target.closest('.cart-flip-btn');
-    if (flipBtn) {
-      var targetWrap = flipBtn.closest('.cart-flipper-wrap');
+    var ambientHint = e.target.closest('.ambient-gesture-hint, .cart-flip-btn');
+    if (ambientHint) {
+      var targetWrap = ambientHint.closest('.cart-flipper-wrap');
       var cart = targetWrap ? $('.cartridge', targetWrap) : null;
       if (cart) {
         toggleCartFlip(cart);
@@ -7711,13 +7719,24 @@ function farRow(wx, rows) {
         return;
       }
     }
-    var flipTab = e.target.closest('.cart-flip-tab');
+    var flipTab = e.target.closest('.cart-side-pull-tab, .btn-cart-flipback, .cart-flip-tab');
     if (flipTab) {
       var cartFromTab = flipTab.closest('.cartridge');
       if (cartFromTab) {
         toggleCartFlip(cartFromTab);
         e.preventDefault();
         return;
+      }
+    }
+  });
+
+  doc.addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('ambient-gesture-hint')) {
+      var wrap = e.target.closest('.cart-flipper-wrap');
+      var cart = wrap ? $('.cartridge', wrap) : null;
+      if (cart) {
+        toggleCartFlip(cart);
+        e.preventDefault();
       }
     }
   });
