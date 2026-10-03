@@ -7710,6 +7710,8 @@ function farRow(wx, rows) {
   var lightboxCounter = $('#lightboxCounter');
   var lightboxPrev = $('#lightboxPrev');
   var lightboxNext = $('#lightboxNext');
+  var lightboxThumbs = $('#lightboxThumbs');
+  var lbLastFocus = null;
   var GALLERIES = {
     ordibehesht: [
       { src: 'assets/preview_ordibehesht_desktop.webp', title: 'طلای اردیبهشت · نسخه دسکتاپ' },
@@ -7755,6 +7757,55 @@ function farRow(wx, rows) {
     if (lightboxCounter) { lightboxCounter.hidden = true; }
     if (lightboxPrev) { lightboxPrev.hidden = true; }
     if (lightboxNext) { lightboxNext.hidden = true; }
+    if (lightboxThumbs) { lightboxThumbs.hidden = true; }
+  }
+
+  function buildThumbs(key) {
+    if (!lightboxThumbs) { return; }
+    lightboxThumbs.innerHTML = '';
+    var items = GALLERIES[key];
+    if (!items || !items.length) {
+      lightboxThumbs.hidden = true;
+      return;
+    }
+    var n = items.length;
+    items.forEach(function (item, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'lightbox-thumb';
+      b.setAttribute('aria-label', (item.title || 'تصویر') + ' ' + faNum(i + 1) + ' از ' + faNum(n));
+      var im = document.createElement('img');
+      im.src = item.src;
+      im.alt = '';
+      b.appendChild(im);
+      b.addEventListener('click', function () {
+        if (setGalleryImage(key, i)) {
+          sfx('pipOn');
+          queueRefresh();
+        }
+      });
+      lightboxThumbs.appendChild(b);
+    });
+    lightboxThumbs.hidden = false;
+  }
+
+  function swapLightboxImg(src, alt) {
+    if (!lightboxImg) { return; }
+    lightboxImg.classList.add('is-fade');
+    clearTimeout(lightboxImg._fadeT);
+    lightboxImg._fadeT = setTimeout(function () {
+      lightboxImg.classList.remove('is-fade');
+    }, 600);
+    lightboxImg.onload = function () {
+      clearTimeout(lightboxImg._fadeT);
+      requestAnimationFrame(function () { lightboxImg.classList.remove('is-fade'); });
+    };
+    lightboxImg.onerror = function () {
+      clearTimeout(lightboxImg._fadeT);
+      lightboxImg.classList.remove('is-fade');
+    };
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || '';
   }
 
   function setGalleryImage(key, idx) {
@@ -7764,8 +7815,7 @@ function farRow(wx, rows) {
     idx = ((idx % n) + n) % n;
     var item = items[idx];
     galleryState = { key: key, idx: idx };
-    lightboxImg.src = item.src;
-    lightboxImg.alt = item.title || 'پیش‌نمایش پروژه';
+    swapLightboxImg(item.src, item.title || 'پیش‌نمایش پروژه');
     if (lightboxTitle) { lightboxTitle.textContent = item.title || 'پیش‌نمایش پروژه'; }
     if (lightboxCounter) {
       lightboxCounter.textContent = faNum(idx + 1) + ' از ' + faNum(n);
@@ -7773,6 +7823,15 @@ function farRow(wx, rows) {
     }
     if (lightboxPrev) { lightboxPrev.hidden = n < 2; }
     if (lightboxNext) { lightboxNext.hidden = n < 2; }
+    if (lightboxThumbs && !lightboxThumbs.hidden) {
+      var kids = lightboxThumbs.children;
+      for (var ti = 0; ti < kids.length; ti++) {
+        var on = ti === idx;
+        kids[ti].classList.toggle('is-active', on);
+        if (on) { kids[ti].setAttribute('aria-current', 'true'); }
+        else { kids[ti].removeAttribute('aria-current'); }
+      }
+    }
     var ahead = new Image();
     ahead.src = items[(idx + 1) % n].src;
     var behind = new Image();
@@ -7782,6 +7841,7 @@ function farRow(wx, rows) {
 
   function openLightbox(src, title, galleryKey) {
     if (!lightbox || !lightboxImg) { return; }
+    lbLastFocus = document.activeElement;
     var opened = false;
     if (galleryKey && GALLERIES[galleryKey]) {
       var items = GALLERIES[galleryKey];
@@ -7789,19 +7849,25 @@ function farRow(wx, rows) {
       for (var gi = 0; gi < items.length; gi++) {
         if (items[gi].src === src) { start = gi; break; }
       }
+      buildThumbs(galleryKey);
       opened = setGalleryImage(galleryKey, start);
     }
     if (!opened) {
       hideGalleryControls();
-      lightboxImg.src = src;
-      lightboxImg.alt = title || 'پیش‌نمایش پروژه';
+      swapLightboxImg(src, title || 'پیش‌نمایش پروژه');
       if (lightboxTitle) { lightboxTitle.textContent = title || 'پیش‌نمایش پروژه'; }
     }
     lightbox.hidden = false;
+    var sbw = window.innerWidth - document.documentElement.clientWidth;
+    if (sbw > 0) { document.body.style.paddingRight = sbw + 'px'; }
+    html.classList.add('lb-lock');
     requestAnimationFrame(function () {
       lightbox.classList.add('is-open');
       lightbox.setAttribute('aria-hidden', 'false');
     });
+    if (lightboxClose) {
+      try { lightboxClose.focus({ preventScroll: true }); } catch (_) { try { lightboxClose.focus(); } catch (__) {} }
+    }
     sfx('cartFlip');
     queueRefresh();
   }
@@ -7817,8 +7883,18 @@ function farRow(wx, rows) {
   function closeLightbox() {
     if (!lightbox) { return; }
     hideGalleryControls();
+    if (lightboxThumbs) {
+      lightboxThumbs.innerHTML = '';
+      lightboxThumbs.hidden = true;
+    }
+    html.classList.remove('lb-lock');
+    document.body.style.paddingRight = '';
     lightbox.classList.remove('is-open');
     lightbox.setAttribute('aria-hidden', 'true');
+    if (lbLastFocus && lbLastFocus.focus) {
+      try { lbLastFocus.focus({ preventScroll: true }); } catch (_) { try { lbLastFocus.focus(); } catch (__) {} }
+    }
+    lbLastFocus = null;
     queueRefresh();
     setTimeout(function () {
       if (!lightbox.classList.contains('is-open')) {
@@ -7855,8 +7931,63 @@ function farRow(wx, rows) {
     } else if (e.key === 'ArrowRight') {
       navGallery(-1);
       e.preventDefault();
+    } else if (e.key === 'Home' || e.key === 'End') {
+      if (galleryState && setGalleryImage(galleryState.key, e.key === 'Home' ? 0 : GALLERIES[galleryState.key].length - 1)) {
+        sfx('pipOn');
+        queueRefresh();
+        e.preventDefault();
+      }
+    } else if (e.key === 'Tab') {
+      var foci = Array.prototype.filter.call(lightbox.querySelectorAll('button'), function (b) {
+        return !b.hidden && b.offsetParent !== null;
+      });
+      if (foci.length) {
+        var first = foci[0];
+        var last = foci[foci.length - 1];
+        var act = document.activeElement;
+        if (e.shiftKey && (act === first || !lightbox.contains(act))) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && (act === last || !lightbox.contains(act))) {
+          first.focus();
+          e.preventDefault();
+        }
+      }
     }
   });
+
+  doc.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') { return; }
+    var z = e.target && e.target.closest ? e.target.closest('[data-zoom-src]') : null;
+    if (!z) { return; }
+    if (lightbox && !lightbox.hidden) { return; }
+    e.preventDefault();
+    z.click();
+  });
+
+  var swipeX0 = null;
+  var swipeY0 = null;
+  if (lightbox) {
+    var lbBody = $('.lightbox-body', lightbox);
+    if (lbBody) {
+      lbBody.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 1) {
+          swipeX0 = e.touches[0].clientX;
+          swipeY0 = e.touches[0].clientY;
+        }
+      }, { passive: true });
+      lbBody.addEventListener('touchend', function (e) {
+        if (swipeX0 === null) { return; }
+        var t = e.changedTouches[0];
+        var dx = t.clientX - swipeX0;
+        var dy = t.clientY - swipeY0;
+        swipeX0 = null;
+        swipeY0 = null;
+        if (!galleryState || Math.abs(dx) < 48 || Math.abs(dy) >= Math.abs(dx)) { return; }
+        navGallery(dx > 0 ? 1 : -1);
+      }, { passive: true });
+    }
+  }
 
   doc.addEventListener('click', function (e) {
     if (cartClickGuard.cart) {
