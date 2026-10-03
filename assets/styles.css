@@ -202,19 +202,6 @@ html.has-cursor .cursor { display: block; }
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
-.cursor-tag {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1003;
-  pointer-events: none;
-  display: none;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  image-rendering: pixelated;
-}
-.cursor-tag.show { display: block; }
-
 /* ── the tube · boot & hero share one screen ───────── */
 /* No cabinet, no bezel, no drawn frame of any kind: the browser viewport
    IS the arcade machine's CRT. Your real monitor's plastic frame plays the
@@ -260,6 +247,7 @@ html.has-cursor .cursor { display: block; }
   position: fixed;
   inset: 0;
   z-index: 1000;
+  cursor: pointer;
   background: #07070c;
   display: flex;
   flex-direction: column;
@@ -470,6 +458,7 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
 .joy {
   position: relative;
   flex: none;
+  cursor: pointer;
   transform: scale(1.06);
   transform-origin: center bottom;
 }
@@ -502,7 +491,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
   transform: scale(0.85);
   transform-origin: center bottom;
 }
-.pbtn { position: relative; display: block; flex: none; }
+.pbtn { position: relative; display: block; flex: none; cursor: pointer; }
 /* the deck's SOUND rocker — a real switch, not a chip: same hardware
    rules as the other controls, a 44px hand target, keyboard focus
    ring tuned to the cabinet's gold */
@@ -768,6 +757,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
   display: inline-flex;
   align-items: center;
   gap: .8rem;
+  cursor: pointer;
   padding: 1rem 1.7rem;
   background: none;
   color: var(--btn-ink);
@@ -1923,6 +1913,7 @@ html[data-show='cast'] .cast-caption {
 .lightbox-backdrop {
   position: absolute;
   inset: 0;
+  cursor: pointer;
   background: rgba(6, 7, 12, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -2098,6 +2089,7 @@ html[data-show='cast'] .cast-caption {
   margin-inline-end: .4rem;
 }
 .foot-hint {
+  cursor: pointer;
   color: #4a4a55;
   font-size: .55rem;
   letter-spacing: .3em;
@@ -2198,7 +2190,7 @@ html[data-show='cast'] .cast-caption {
 /* ── modal & toast ──────────────────────────────────── */
 .modal { position: fixed; inset: 0; z-index: 800; display: flex; align-items: center; justify-content: center; }
 .modal[hidden] { display: none; }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(12, 12, 17, .92); }
+.modal-backdrop { position: absolute; inset: 0; cursor: pointer; background: rgba(12, 12, 17, .92); }
 .modal-card {
   position: relative;
   background: var(--ink);
@@ -2401,5 +2393,11 @@ html { scrollbar-color: #2a2a38 #0d0d15; }
 .security-icon {
   font-size: 1.1rem;
   flex-shrink: 0;
+}
+
+:root.has-cursor *,
+:root.has-cursor *::before,
+:root.has-cursor *::after {
+  cursor: none !important;
 }
 
