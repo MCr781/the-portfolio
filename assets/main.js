@@ -4936,7 +4936,7 @@ function farRow(wx, rows) {
     /* CRT vignette — pre-rendered dither, over the world but UNDER
        the glass text: the score row must never be eaten by it */
     g.drawImage(vigCv, 0, 0);
-    if (mode === 'hero') { drawAttractChrome(g, cols, rows, w); }
+    if (mode === 'hero') { drawAttractChrome(g, cols, rows, w, t); }
     /* the idle show draws last: its wash + card sit over everything
        on the tube (the DOM copy has receded via html.attract-show) */
     if (mode === 'hero' && attractShow) { drawAttractCard(g, cols, rows, t); }
@@ -4951,7 +4951,7 @@ function farRow(wx, rows) {
   /* the score row of the bezel glass — drawn last, over the vignette,
      so corner dither never eats the 1P / 2P columns; small tubes get
      it at 2x because 1px strokes on a 2px grid read as noise */
-  function drawAttractChrome(g, cols, rows, w) {
+  function drawAttractChrome(g, cols, rows, w, t) {
     /* micro type on the glass: present, crisp, and out of the
        marquee's way — half the footprint of the old 5×7 row */
     var sc = PXG <= 2 ? 2 : 1;
@@ -7707,12 +7707,96 @@ function farRow(wx, rows) {
   var lightboxImg = $('#lightboxImg');
   var lightboxTitle = $('#lightboxTitle');
   var lightboxClose = $('#lightboxClose');
+  var lightboxCounter = $('#lightboxCounter');
+  var lightboxPrev = $('#lightboxPrev');
+  var lightboxNext = $('#lightboxNext');
+  var GALLERIES = {
+    ordibehesht: [
+      { src: 'assets/preview_ordibehesht_desktop.webp', title: 'طلای اردیبهشت · نسخه دسکتاپ' },
+      { src: 'assets/preview_ordibehesht_mobile.webp', title: 'طلای اردیبهشت · نسخه موبایل' },
+      { src: 'assets/preview_ordibehesht_mobile2.webp', title: 'طلای اردیبهشت · نسخه موبایل ۲' },
+      { src: 'assets/gallery_ordibehesht_1.webp', title: 'طلای اردیبهشت · صفحه اصلی' },
+      { src: 'assets/gallery_ordibehesht_2.webp', title: 'طلای اردیبهشت · فروشگاه' },
+      { src: 'assets/gallery_ordibehesht_3.webp', title: 'طلای اردیبهشت · مجله' }
+    ],
+    talasho: [
+      { src: 'assets/preview_talasho_desktop.webp', title: 'طلاشو VIP · نسخه دسکتاپ' },
+      { src: 'assets/preview_talasho_mobile.webp', title: 'طلاشو VIP · نسخه موبایل' },
+      { src: 'assets/preview_talasho_mobile2.webp', title: 'طلاشو VIP · نسخه موبایل ۲' },
+      { src: 'assets/gallery_talasho_1.webp', title: 'طلاشو VIP · صفحه اصلی' },
+      { src: 'assets/gallery_talasho_2.webp', title: 'طلاشو VIP · گاوصندوق‌ها' },
+      { src: 'assets/gallery_talasho_3.webp', title: 'طلاشو VIP · مجله' }
+    ],
+    razan: [
+      { src: 'assets/preview_razan_desktop.webp', title: 'مهندسی مشاور رازان · نسخه دسکتاپ' },
+      { src: 'assets/preview_razan_mobile.webp', title: 'مهندسی مشاور رازان · نسخه موبایل' },
+      { src: 'assets/preview_razan_mobile2.webp', title: 'مهندسی مشاور رازان · نسخه موبایل ۲' },
+      { src: 'assets/gallery_razan_1.webp', title: 'مهندسی مشاور رازان · صفحه اصلی' },
+      { src: 'assets/gallery_razan_2.webp', title: 'مهندسی مشاور رازان · درباره ما' },
+      { src: 'assets/gallery_razan_3.webp', title: 'مهندسی مشاور رازان · تماس با ما' }
+    ],
+    yassi: [
+      { src: 'assets/preview_yassi_desktop.webp', title: 'یاسی شو · نسخه دسکتاپ' },
+      { src: 'assets/preview_yassi_mobile.webp', title: 'یاسی شو · نسخه موبایل' },
+      { src: 'assets/preview_yassi_mobile2.webp', title: 'یاسی شو · نسخه موبایل ۲' },
+      { src: 'assets/gallery_yassi_1.webp', title: 'یاسی شو · صفحه اصلی' },
+      { src: 'assets/gallery_yassi_2.webp', title: 'یاسی شو · آرشیو پروژه‌ها' },
+      { src: 'assets/gallery_yassi_3.webp', title: 'یاسی شو · آرشیو درگذشتگان' }
+    ]
+  };
+  var galleryState = null;
 
-  function openLightbox(src, title) {
+  function faNum(n) {
+    return String(n).replace(/[0-9]/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'.charAt(+d); });
+  }
+
+  function hideGalleryControls() {
+    galleryState = null;
+    if (lightboxCounter) { lightboxCounter.hidden = true; }
+    if (lightboxPrev) { lightboxPrev.hidden = true; }
+    if (lightboxNext) { lightboxNext.hidden = true; }
+  }
+
+  function setGalleryImage(key, idx) {
+    var items = GALLERIES[key];
+    if (!items || !items.length || !lightboxImg) { hideGalleryControls(); return false; }
+    var n = items.length;
+    idx = ((idx % n) + n) % n;
+    var item = items[idx];
+    galleryState = { key: key, idx: idx };
+    lightboxImg.src = item.src;
+    lightboxImg.alt = item.title || 'پیش‌نمایش پروژه';
+    if (lightboxTitle) { lightboxTitle.textContent = item.title || 'پیش‌نمایش پروژه'; }
+    if (lightboxCounter) {
+      lightboxCounter.textContent = faNum(idx + 1) + ' از ' + faNum(n);
+      lightboxCounter.hidden = false;
+    }
+    if (lightboxPrev) { lightboxPrev.hidden = n < 2; }
+    if (lightboxNext) { lightboxNext.hidden = n < 2; }
+    var ahead = new Image();
+    ahead.src = items[(idx + 1) % n].src;
+    var behind = new Image();
+    behind.src = items[(idx - 1 + n) % n].src;
+    return true;
+  }
+
+  function openLightbox(src, title, galleryKey) {
     if (!lightbox || !lightboxImg) { return; }
-    lightboxImg.src = src;
-    lightboxImg.alt = title || 'پیش‌نمایش پروژه';
-    if (lightboxTitle) { lightboxTitle.textContent = title || 'پیش‌نمایش پروژه'; }
+    var opened = false;
+    if (galleryKey && GALLERIES[galleryKey]) {
+      var items = GALLERIES[galleryKey];
+      var start = 0;
+      for (var gi = 0; gi < items.length; gi++) {
+        if (items[gi].src === src) { start = gi; break; }
+      }
+      opened = setGalleryImage(galleryKey, start);
+    }
+    if (!opened) {
+      hideGalleryControls();
+      lightboxImg.src = src;
+      lightboxImg.alt = title || 'پیش‌نمایش پروژه';
+      if (lightboxTitle) { lightboxTitle.textContent = title || 'پیش‌نمایش پروژه'; }
+    }
     lightbox.hidden = false;
     requestAnimationFrame(function () {
       lightbox.classList.add('is-open');
@@ -7722,8 +7806,17 @@ function farRow(wx, rows) {
     queueRefresh();
   }
 
+  function navGallery(delta) {
+    if (!galleryState || !lightbox || lightbox.hidden) { return; }
+    if (setGalleryImage(galleryState.key, galleryState.idx + delta)) {
+      sfx('pipOn');
+      queueRefresh();
+    }
+  }
+
   function closeLightbox() {
     if (!lightbox) { return; }
+    hideGalleryControls();
     lightbox.classList.remove('is-open');
     lightbox.setAttribute('aria-hidden', 'true');
     queueRefresh();
@@ -7739,6 +7832,12 @@ function farRow(wx, rows) {
   if (lightboxClose) {
     lightboxClose.addEventListener('click', closeLightbox);
   }
+  if (lightboxPrev) {
+    lightboxPrev.addEventListener('click', function () { navGallery(-1); });
+  }
+  if (lightboxNext) {
+    lightboxNext.addEventListener('click', function () { navGallery(1); });
+  }
   if (lightbox) {
     lightbox.addEventListener('click', function (e) {
       if (e.target === lightbox || e.target.classList.contains('lightbox-backdrop')) {
@@ -7747,8 +7846,15 @@ function farRow(wx, rows) {
     });
   }
   doc.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && lightbox && !lightbox.hidden) {
+    if (!lightbox || lightbox.hidden) { return; }
+    if (e.key === 'Escape') {
       closeLightbox();
+    } else if (e.key === 'ArrowLeft') {
+      navGallery(1);
+      e.preventDefault();
+    } else if (e.key === 'ArrowRight') {
+      navGallery(-1);
+      e.preventDefault();
     }
   });
 
@@ -7801,7 +7907,7 @@ function farRow(wx, rows) {
       var src = zoomEl.getAttribute('data-zoom-src');
       var title = zoomEl.getAttribute('data-zoom-title');
       if (src) {
-        openLightbox(src, title);
+        openLightbox(src, title, zoomEl.getAttribute('data-gallery'));
         e.preventDefault();
         return;
       }
@@ -7842,6 +7948,7 @@ function farRow(wx, rows) {
   });
 
   doc.addEventListener('keydown', function (e) {
+    if (lightbox && !lightbox.hidden) { return; }
     var key = e.key;
     if (key !== 'Enter' && key !== ' ' && key !== 'ArrowLeft' && key !== 'ArrowRight') { return; }
     var t = e.target;
@@ -7849,7 +7956,7 @@ function farRow(wx, rows) {
     var wrap = t.closest('.cart-flipper-wrap');
     if (!wrap) { return; }
     if (key === 'Enter' || key === ' ') {
-      if (!t.classList || !t.classList.contains('ambient-gesture-hint')) { return; }
+      if (!t.classList || (!t.classList.contains('ambient-gesture-hint') && !t.classList.contains('cart-side-pull-tab'))) { return; }
     } else if (t.closest('[role="tablist"]')) {
       return;
     }
