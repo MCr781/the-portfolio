@@ -899,7 +899,7 @@ html[data-show='cast'] .cast-caption {
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.4),
     inset -1px -1px 0 rgba(0, 0, 0, 0.5),
-    10px 10px 0 var(--c-shadow);
+    10px 10px 0 color-mix(in srgb, var(--c-shadow) 80%, transparent);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -913,7 +913,7 @@ html[data-show='cast'] .cast-caption {
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.6),
     inset -1px -1px 0 rgba(0, 0, 0, 0.5),
-    14px 14px 0 var(--c-accent);
+    14px 14px 0 color-mix(in srgb, var(--c-accent) 80%, transparent);
   transform: translateY(-4px);
 }
 .cartridge.is-flipped {
@@ -929,10 +929,10 @@ html[data-show='cast'] .cast-caption {
 }
 .cartridge.snap { animation: cartsting 330ms steps(1); }
 @keyframes cartsting {
-  0%  { box-shadow: 10px 10px 0 var(--c-shadow); }
-  33% { box-shadow: 14px 14px 0 var(--c-accent); }
-  66% { box-shadow: 12px 12px 0 var(--c-shadow); }
-  100% { box-shadow: 14px 14px 0 var(--c-accent); }
+  0%  { box-shadow: 10px 10px 0 color-mix(in srgb, var(--c-shadow) 80%, transparent); }
+  33% { box-shadow: 14px 14px 0 color-mix(in srgb, var(--c-accent) 80%, transparent); }
+  66% { box-shadow: 12px 12px 0 color-mix(in srgb, var(--c-shadow) 80%, transparent); }
+  100% { box-shadow: 14px 14px 0 color-mix(in srgb, var(--c-accent) 80%, transparent); }
 }
 .cartridge.tilting { transition: none !important; }
 .cartridge:not(.tilting):not(.is-dragging) {
@@ -974,6 +974,7 @@ html[data-show='cast'] .cast-caption {
 .cart-back {
   transform: rotateY(180deg);
   z-index: 1;
+  overflow: visible;
 }
 
 /* ── retro cartridge details: top grip, guide grooves, label well ── */
@@ -1037,7 +1038,7 @@ html[data-show='cast'] .cast-caption {
 }
 .cart-label-sheen {
   position: absolute;
-  inset: 0;
+  inset: 0 0 0 -18px;
   pointer-events: none;
   z-index: 5;
   background: linear-gradient(115deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.1) 20%, transparent 38%, transparent 68%, rgba(255, 255, 255, 0.08) 100%);
@@ -1173,7 +1174,7 @@ html[data-show='cast'] .cast-caption {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin: 5px auto 3px;
+  margin: auto auto 3px;
   color: var(--cart-shell-dk);
   font-size: 0.54rem;
   font-weight: 800;
@@ -1211,7 +1212,7 @@ html[data-show='cast'] .cast-caption {
 /* ── bottom PCB connector slot (queried by terrarium.js) ── */
 .cart-slot {
   position: relative;
-  margin-top: auto;
+  margin-top: 0;
   height: 18px;
   background: #082410;
   border-top: 2px solid var(--cart-shell-dk);
@@ -1271,7 +1272,7 @@ html[data-show='cast'] .cast-caption {
   position: absolute;
   top: 52px;
   left: -34px;
-  width: 40px;
+  width: 48px;
   height: 94px;
   background:
     repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
@@ -1309,12 +1310,12 @@ html[data-show='cast'] .cast-caption {
 
 /* Subtle peek when hovering near the cartridge */
 .cart-flipper-wrap:hover .cart-ribbon-tab {
-  transform: translateX(-6px);
+  transform: translateX(-4px);
 }
 
 /* Direct proximity / hover: slides out smoothly with organic spring */
 .cart-ribbon-tab:hover {
-  transform: translateX(-16px) rotate(-1.5deg) scale(1.06) !important;
+  transform: translateX(-10px) rotate(-1.5deg) scale(1.06) !important;
   box-shadow:
     -10px 10px 22px rgba(0, 0, 0, 0.95),
     0 0 20px rgba(255, 45, 60, 0.5) !important;
@@ -1322,7 +1323,29 @@ html[data-show='cast'] .cast-caption {
 }
 
 .cart-ribbon-tab:active {
-  transform: translateX(-19px) rotate(-2deg) scale(1.02) !important;
+  transform: translateX(-12px) rotate(-2deg) scale(1.02) !important;
+}
+
+.cart-back .cart-ribbon-tab {
+  left: auto;
+  right: -34px;
+  border-radius: 0 6px 8px 0;
+  border-left: none;
+  border-right: 1.5px dashed rgba(255, 255, 255, 0.45);
+  transform-origin: left center;
+}
+.cart-flipper-wrap:hover .cart-back .cart-ribbon-tab {
+  transform: translateX(4px);
+}
+.cart-back .cart-ribbon-tab:hover {
+  transform: translateX(10px) rotate(1.5deg) scale(1.06) !important;
+}
+.cart-back .cart-ribbon-tab:active {
+  transform: translateX(12px) rotate(2deg) scale(1.02) !important;
+}
+.cart-back .cart-ribbon-tab::before {
+  left: -25px;
+  right: -40px;
 }
 
 /* Antique brass grommet stamped at tab top */
@@ -1422,6 +1445,7 @@ html[data-show='cast'] .cast-caption {
 
 /* ── Back Shell Header ── */
 .cart-back-header {
+  border-radius: 10px 10px 0 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1519,6 +1543,7 @@ html[data-show='cast'] .cast-caption {
   position: relative;
   width: 100%;
   height: 198px;
+  flex-shrink: 0;
   background: #040507;
   border-radius: 6px;
   overflow: hidden;
@@ -1585,13 +1610,29 @@ html[data-show='cast'] .cast-caption {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.screen-zoom-hint {
-  margin-left: auto;
-  font-size: 0.50rem;
-  color: var(--c-accent);
-  font-weight: 800;
-  direction: rtl;
-  opacity: 0.85;
+.screen-img-wrap::after,
+.mobile-img-wrap::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 5px;
+  background-color: rgba(6, 7, 10, 0.62);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='6.8' cy='6.8' r='4.4'/%3E%3Cpath d='M10.4 10.4 14 14'/%3E%3Cpath d='M6.8 4.6v4.4M4.6 6.8h4.4'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+  pointer-events: none;
+  opacity: 0.55;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.desktop-screen-frame:hover .screen-img-wrap::after,
+.mobile-phone-frame:hover .mobile-img-wrap::after {
+  opacity: 1;
+  transform: scale(1.08);
 }
 .screen-img-wrap {
   position: relative;
@@ -1651,9 +1692,35 @@ html[data-show='cast'] .cast-caption {
   object-position: top;
   display: block;
   transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: phonePan 9s ease-in-out 1.4s infinite alternate;
 }
 .mobile-phone-frame:hover .mobile-img-wrap img {
   transform: scale(1.05);
+  animation-play-state: paused;
+}
+@keyframes phonePan {
+  from { object-position: center top; }
+  to { object-position: center bottom; }
+}
+@keyframes phoneThumb {
+  from { top: 6px; }
+  to { top: calc(100% - 20px); }
+}
+.mobile-img-wrap::before {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 6px;
+  width: 3px;
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  z-index: 4;
+  pointer-events: none;
+  animation: phoneThumb 9s ease-in-out 1.4s infinite alternate;
+}
+.mobile-phone-frame:hover .mobile-img-wrap::before {
+  animation-play-state: paused;
 }
 .phone-chin {
   width: 38px;
@@ -1726,45 +1793,12 @@ html[data-show='cast'] .cast-caption {
   font-weight: 800 !important;
 }
 
-/* ── Direct Action Gate & Companion Flipback on Back Shell ── */
+/* ── Direct Action Gate on Back Shell ── */
 .cart-back-actions {
   margin: 3px 12px 6px;
   display: flex;
   gap: 8px;
   z-index: 4;
-}
-.btn-cart-flipback {
-  flex: 0 0 38%;
-  background: linear-gradient(135deg, rgba(20, 22, 33, 0.95) 0%, rgba(10, 11, 18, 0.95) 100%);
-  color: var(--c-accent);
-  border: 1.5px solid var(--c-accent);
-  font-family: var(--f-sans);
-  font-weight: 800;
-  font-size: 0.72rem;
-  border-radius: 5px;
-  padding: 7px 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.5);
-  transition: filter 160ms ease, transform 120ms ease, box-shadow 120ms ease, background 160ms ease, color 160ms ease;
-  user-select: none;
-}
-.btn-cart-flipback:hover {
-  background: var(--c-accent);
-  color: #0b0c10;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.8), 0 6px 14px rgba(0, 0, 0, 0.7), 0 0 10px var(--c-accent);
-}
-.btn-cart-flipback:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
-}
-.btn-cart-flipback .flipback-icon {
-  font-size: 0.88rem;
-  line-height: 1;
 }
 
 .btn-cart-enter {
@@ -2213,7 +2247,7 @@ html[data-show='cast'] .cast-caption {
   .world:nth-of-type(even) .world-text { order: 0; }
   .world:nth-of-type(even) .world-art { order: 0; }
   .cart-flipper-wrap { width: min(19rem, 86vw); }
-  .cartridge { width: 100%; }
+  .cartridge { width: 100%; aspect-ratio: 1 / 1.5; }
   .hud-world { display: none; }
   .hero { padding: 3.4rem .8rem 4.2rem; }
   .hero-name { font-size: clamp(1.9rem, 8vw, 2.6rem); }
@@ -2234,6 +2268,18 @@ html[data-show='cast'] .cast-caption {
   .panel-btns { padding-bottom: 10px; }
   .snddeck { padding: 2px 3px 8px; }
   .coin-row { gap: .7rem 1rem; }
+  .cart-screen-stage { height: 128px; }
+  .cart-back .cart-slot { display: none; }
+  .cart-back-well { gap: 6px; }
+  .cart-view-tabs { padding: 3px; }
+  .view-tab-btn { padding: 3px 8px; }
+  .cart-back-specs { padding: 5px 8px; }
+  .specs-list { gap: 3px; font-size: 0.68rem; line-height: 1.35; }
+  .specs-list .spec-k { font-size: 0.66rem; }
+  .specs-list .spec-v { font-size: 0.68rem; }
+  .mobile-phone-frame { height: calc(100% - 4px); width: auto; aspect-ratio: 155 / 188; }
+  .phone-notch { height: 4px; margin-bottom: 1px; }
+  .phone-chin { height: 2px; margin: 1px auto 2px; }
 }
 @media (max-width: 560px) {
   /* the CREDIT counter owns the foot row on phones; the decal is
@@ -2260,6 +2306,8 @@ html[data-show='cast'] .cast-caption {
   .btn-gate.snap,
   .hud.party .hud-world,
   .marquee,
+  .mobile-img-wrap img,
+  .mobile-img-wrap::before,
   .scanlines::after { animation: none; }
   html.booting .hero-inner,
   html.booting .hero-cue,
@@ -2271,7 +2319,9 @@ html[data-show='cast'] .cast-caption {
   .btn-gate,
   .cartridge,
   .cart-img,
-  .cart-label-sheen { transition: none; }
+  .cart-label-sheen,
+  .screen-img-wrap::after,
+  .mobile-img-wrap::after { transition: none; }
   * { scroll-behavior: auto; }
 }
 

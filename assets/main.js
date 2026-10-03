@@ -7542,15 +7542,22 @@ function farRow(wx, rows) {
       if (!cartEl) { return; }
       var front = $('.cart-front', cartEl);
       var back = $('.cart-back', cartEl);
-      var ribbonTab = $('.cart-side-pull-tab', wrap);
+      var ribbonTabs = $$('.cart-side-pull-tab', wrap);
+      var ribbonTab = ribbonTabs[0];
       var ambientHint = $('.ambient-gesture-hint', wrap);
-      if (back && !back.id) { back.id = 'cart-back-' + (cartEl.getAttribute('data-cart') || wrap.getAttribute('data-cart') || 'x'); }
+      var dataKey = cartEl.getAttribute('data-cart') || wrap.getAttribute('data-cart') || 'x';
+      if (back && !back.id) { back.id = 'cart-back-' + dataKey; }
+      if (front && !front.id) { front.id = 'cart-front-' + dataKey; }
       var isFlipped = cartEl.classList.contains('is-flipped');
       if (back && back.id) {
         if (ribbonTab) { ribbonTab.setAttribute('aria-controls', back.id); }
         if (ambientHint) { ambientHint.setAttribute('aria-controls', back.id); }
       }
-      if (ribbonTab) { ribbonTab.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
+      for (var ti = 0; ti < ribbonTabs.length; ti++) {
+        var rTab = ribbonTabs[ti];
+        if (rTab.classList.contains('cart-ribbon-back') && front && front.id) { rTab.setAttribute('aria-controls', front.id); }
+        rTab.setAttribute('aria-expanded', isFlipped ? 'true' : 'false');
+      }
       if (ambientHint) { ambientHint.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
       wrap.classList.toggle('is-flipped', isFlipped);
       setFaceHidden(front, isFlipped);
@@ -7565,8 +7572,8 @@ function farRow(wx, rows) {
     var isFlipped = cartEl.classList.toggle('is-flipped');
     if (wrap) {
       wrap.classList.toggle('is-flipped', isFlipped);
-      var ribbonTab = $('.cart-side-pull-tab', wrap);
-      if (ribbonTab) { ribbonTab.setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
+      var ribbonTabs = $$('.cart-side-pull-tab', wrap);
+      for (var ti = 0; ti < ribbonTabs.length; ti++) { ribbonTabs[ti].setAttribute('aria-expanded', isFlipped ? 'true' : 'false'); }
       var ambientHint = $('.ambient-gesture-hint', wrap);
       if (ambientHint) {
         ambientHint.setAttribute('aria-expanded', isFlipped ? 'true' : 'false');
@@ -7581,7 +7588,7 @@ function farRow(wx, rows) {
     setFaceHidden(front, isFlipped);
     setFaceHidden(back, !isFlipped);
     if (active && active.isConnected && active.closest && active.closest('.cart-face')) {
-      var landed = isFlipped ? $('.btn-cart-flipback', cartEl) : $('.cart-side-pull-tab', cartEl);
+      var landed = isFlipped ? $('.cart-back .cart-side-pull-tab', cartEl) : $('.cart-front .cart-side-pull-tab', cartEl);
       if (landed) {
         try { landed.focus({ preventScroll: true }); } catch (_) { landed.focus(); }
       }
@@ -7627,10 +7634,10 @@ function farRow(wx, rows) {
 
       cart.addEventListener('pointerdown', function (e) {
         if (e.isPrimary === false || (typeof e.button === 'number' && e.button > 0)) { return; }
-        if (e.target.closest('a, input, [role="tab"], .screen-chrome, .cart-view-tabs, .btn-cart-flipback, .btn-cart-enter')) {
+        if (e.target.closest('a, input, [role="tab"], .screen-chrome, .cart-view-tabs, .btn-cart-enter')) {
           return;
         }
-        if (cartControlAt(cart, e.clientX, e.clientY, '.view-tab-btn, .btn-cart-flipback, .btn-cart-enter')) {
+        if (cartControlAt(cart, e.clientX, e.clientY, '.view-tab-btn, .btn-cart-enter')) {
           return;
         }
         isDown = true;
@@ -7818,7 +7825,7 @@ function farRow(wx, rows) {
         return;
       }
     }
-    var flipTab = e.target.closest('.cart-side-pull-tab, .btn-cart-flipback');
+    var flipTab = e.target.closest('.cart-side-pull-tab');
     if (flipTab) {
       var cartFromTab = flipTab.closest('.cartridge');
       if (cartFromTab) {
@@ -7829,7 +7836,7 @@ function farRow(wx, rows) {
     }
     var cartBody = e.target.closest('.cartridge');
     if (cartBody && !e.target.closest('a, button, [data-zoom-src]')) {
-      var routeEl = cartControlAt(cartBody, e.clientX, e.clientY, '.view-tab-btn, [data-zoom-src], .btn-cart-flipback, .btn-cart-enter, .cart-side-pull-tab, a');
+      var routeEl = cartControlAt(cartBody, e.clientX, e.clientY, '.view-tab-btn, [data-zoom-src], .btn-cart-enter, .cart-side-pull-tab, a');
       if (routeEl) {
         try { routeEl.focus({ preventScroll: true }); } catch (_) { try { routeEl.focus(); } catch (__) {} }
         routeEl.click();
