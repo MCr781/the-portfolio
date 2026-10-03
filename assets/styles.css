@@ -1653,6 +1653,14 @@ html[data-show='cast'] .cast-caption {
 }
 
 /* Mobile Phone Frame (Crisp Bezel & Notch) */
+.mobile-phones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+}
 .mobile-phone-frame {
   width: 155px;
   height: 188px;
