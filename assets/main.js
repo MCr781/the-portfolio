@@ -7984,7 +7984,7 @@ function farRow(wx, rows) {
         swipeX0 = null;
         swipeY0 = null;
         if (!galleryState || Math.abs(dx) < 48 || Math.abs(dy) >= Math.abs(dx)) { return; }
-        navGallery(dx > 0 ? 1 : -1);
+        navGallery(dx < 0 ? 1 : -1);
       }, { passive: true });
     }
   }
