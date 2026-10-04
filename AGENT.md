@@ -10,6 +10,7 @@ dependencies to install. Everything that makes the site what it is lives in this
 |---|---|
 | `index.html` | The whole page. RTL (`dir="rtl" lang="fa"`). One page, no router. |
 | `assets/main.js` | The ENTIRE game engine + site behavior in vanilla JS (classic deferred `<script>`, no modules/imports/bundler). HTML5 canvas arcade game lives here. |
+| `assets/memory.js` | The memory cabinet — what the Konami code does. Loaded after `main.js`; paints with the fonts/palette/sprites `main.js` hands it through `window.__fw_gfx`. If this file is missing the code falls back to the old two-credit dialog, so it must stay last. |
 | `assets/styles.css` | All styling. Monochrome arcade palette via CSS vars: `--ink #0c0c11`, `--shell-line/text #f2f2f7`, `--shell-muted #8a8a99`. No CSS framework. |
 | `assets/fonts/` | `Estedad-VF.woff2` (Persian) + `SpaceMono-*.woff2` (latin / `.mono` UI text). |
 | `assets/*.jpg|webp` | Artwork (cartridges, hero, backgrounds). `.webp` variants are the modern swap-ins. |
@@ -33,8 +34,56 @@ in afterwards — never nest the zip inside itself.
 3. **Debug surface**: with `#fwdebug` in the URL, `main.js` exposes
    `window.__fw.world()` (full world-state snapshot) and `window.__fw.reset()`.
    Use these for instrumentation instead of hacking the game loop blind.
+   `window.__fw.post()` returns the boot BIOS block as it currently reads — that
+   is how you check the cabinet learned a returning visitor's name.
 4. **Game state** lives in `localStorage` under `fw-` prefixed keys (e.g. `fw-credits`).
-   Clean up any test keys you create.
+   Clean up any test keys you create. The memory cabinet adds `fw-memo-name`,
+   `fw-memo-wall` and `fw-memo-runs`; they are the visitor's, not yours — never
+   seed them with test values.
+
+## The Konami code
+
+`↑↑↓↓←→←→BA` (or seven taps on the footer hint) calls `window.__fw_memo.enter()`.
+It freezes the sim (`__fw_memoHold`), takes the whole viewport as its own tube, and
+walks: degauss → power-on bloom → a 1989 BIOS POST counting its memory aloud → four
+Persian lines → a name plate → the gift. Every phase takes a keypress, so nothing
+traps an impatient visitor. `__fw_memoGift(name)` is the only thing that writes back
+into the game: credits, paid play, and `POST[5]`, which is why the boot screen
+greets a returning visitor by name.
+
+Two rules if you touch it:
+- keys are swallowed in the **capture** phase on `window`, so the cabinet
+  underneath never sees them — do not move that listener to the bubble phase
+- every CRT layer in `.memo` needs `z-index: 1`. The canvas is opaque; a scanline
+  sheet on the element background paints *under* it and disappears
+
+### Drawing into it — three traps, all of them silent
+
+1. **The 5×7 font is uppercase-only.** `drawText` advances six pixels for a glyph
+   it cannot find and draws nothing, so a lowercase sentence or a Persian digit
+   comes out as a hole in the layout. Every string passed to `txt()`/`ctr()` must be
+   uppercase ASCII; Persian — including Persian numerals — goes through
+   `faCv()`/`pxText()`. `txt()` lints each string once against the font and warns,
+   so this fails loudly now.
+2. **Draw into `scg` (the scratch), never `g`.** `present()` blits the scratch over
+   the visible canvas every frame; anything drawn straight to the glass is erased
+   a frame later.
+3. **Don't smear a still picture.** The phosphor trail is for moving frames only
+   (wake and power-down). Held on a hard 5×7 glyph it is not persistence, it is a
+   double exposure, and every letter grows a second fainter self.
+
+### Looking at it
+
+There is no browser here, so drive headless Edge over raw CDP and **freeze the rAF
+chain** rather than sleeping: the phase clock advances on clamped frame deltas and
+does not track wall time (headless rAF runs unthrottled, ~40× fast), so no amount
+of polling will land on a given frame. `__fw_memo` exposes `phase()`, `elapsed()`,
+`postT()`, `chars()` and `grid()` to arm exactly that. Note `postT` leads `elapsed`
+by `T_WAKE` — POST's own `elapsed()` never passes ~3900ms.
+
+Two more things headless gets wrong: it reports `prefers-reduced-motion: reduce`
+(which disables the boot card entirely), and screenshots of a 3px pixel grid moiré
+badly when downscaled. Trust `getImageData` over the framebuffer, not the PNG.
 
 ## How to run / test
 

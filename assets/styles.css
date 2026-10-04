@@ -2555,6 +2555,101 @@ html { scrollbar-color: #2a2a38 #0d0d15; }
   .foot-hint { animation: none; }
 }
 
+/* ── the memory cabinet · what the Konami code reboots ──── */
+/* No cabinet, no bezel, no drawn frame: same law as the hero tube.
+   The picture is pixels on one full-screen canvas at the game grid.
+   This layer is only the glass in front of it — and because the
+   canvas is opaque, every sheet here has to sit ABOVE the canvas
+   (z-index 1), not behind it on the element background. The bloom,
+   the degauss ripple and the phosphor smear are all drawn by
+   assets/memory.js, because those are picture, not chrome. */
+.memo {
+  position: fixed;
+  inset: 0;
+  z-index: 1006;
+  background: #05050a;
+  outline: none;
+}
+.memo[hidden] { display: none; }
+.memo-cv {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+/* the scanline sheet and the aperture grille. these are the SITE'S
+   OWN numbers, copied from .scanlines above, and they have to stay
+   that light: the game pixel is 3-4 css px, so a 3px-period grille
+   slices every single game pixel into an R/G/B triplet and the text
+   stops being letters. two percent of alpha — you feel the mask more
+   than you see it, exactly like leaning into a real tube. */
+.memo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .06) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(0deg, transparent 0 2px, rgba(255, 255, 255, .05) 2px 3px, transparent 3px 4px),
+    repeating-linear-gradient(90deg,
+      rgba(255, 64, 64, .028) 0 1px,
+      rgba(64, 255, 128, .020) 1px 2px,
+      rgba(96, 128, 255, .028) 2px 3px);
+}
+/* the bright band that rides down a real tube every eight seconds */
+.memo::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: -180px;
+  z-index: 1;
+  height: 150px;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .03) 34%, rgba(0, 0, 0, .055) 70%, transparent);
+  animation: memoroll 9s linear infinite;
+}
+@keyframes memoroll {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(100vh + 360px)); }
+}
+/* the tube owns the whole machine while it is lit: the page behind it
+   stops scrolling and nothing on the glass is selectable. the site's
+   own pixel cursor keeps working — the picture has a caret, but a
+   pointer that vanishes under your hand is worse than one that does
+   not, and it would be fighting :root.has-cursor's !important anyway */
+html.memo-on,
+html.memo-on body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+html.memo-on .cart-lightbox-modal { display: none; }
+html.memo-on .memo,
+html.memo-on .memo * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .memo::after { animation: none; opacity: .4; }
+}
+
+/* ── round 13 · the foot of the page remembers you ─────── */
+/* written by memory.js the moment you lock a name into the wall.
+   one line, one time, and it is there for good. */
+.foot-hi {
+  margin-top: .7rem;
+  color: var(--c-accent, #d4af37);
+  font-size: .68rem;
+  letter-spacing: .22em;
+  opacity: .72;
+}
+.foot-hi[hidden] { display: none; }
+
 /* ── security architecture notice ───────────────────── */
 .security-banner {
   max-width: 58rem;

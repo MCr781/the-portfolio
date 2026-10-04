@@ -539,6 +539,28 @@
       tone({ f: 720, f1: 90, d: 0.85, v: 0.03, type: 'triangle', at: 0.05 });
       noiseHit({ f: 420, f1: 4200, d: 0.8, v: 0.04 });
     },
+    /* ── the memory cabinet · the Konami tube's own voices ── */
+    memoKey: function () {
+      /* a key on an old keyboard: two tones an octave apart, so short
+         it reads as a clack rather than a note */
+      tone({ f: 1180, d: 0.024, v: 0.05 });
+      tone({ f: 2360, d: 0.014, v: 0.014, at: 0.004 });
+      noiseHit({ f: 2800, d: 0.018, v: 0.024, hp: true });
+    },
+    memoTick: function () {
+      /* the BIOS talking to itself while it counts its memory */
+      tone({ f: 880, d: 0.03, v: 0.03 });
+    },
+    memoOk: function () {
+      tone({ f: 1318.5, d: 0.07, v: 0.04 });
+      tone({ f: 1975.5, d: 0.05, v: 0.014, type: 'triangle', at: 0.03 });
+    },
+    memoDegauss: function () {
+      /* the coil letting go: a low shove, a mains sag, and the buzz */
+      noiseHit({ f: 340, f1: 55, d: 0.6, v: 0.13 });
+      tone({ f: 62, f1: 41, d: 0.55, v: 0.07, type: 'sine', exp: true });
+      tone({ f: 124, f1: 82, d: 0.44, v: 0.018, type: 'triangle', at: 0.02 });
+    },
     gameover: function () {
       /* the walk-down every continue taught us to dread */
       var seq = [[329.63, 0], [261.63, 0.2], [220, 0.4], [174.61, 0.62]];
@@ -5292,6 +5314,11 @@ function farRow(wx, rows) {
         }
       },
       who: function () { return curPlayer; },
+      /* the boot BIOS block as it currently reads. memory.js rewrites
+         line 6 when a visitor locks a name into the wall, and the boot
+         card is the only place that line is ever seen — so this is how
+         you check the cabinet really did learn the name */
+      post: function () { return POST.map(function (r) { return r[0] + (r[1] ? '  ' + r[1] : ''); }); },
       entry: function () { return hiEntry ? { idx: hiEntry.idx, locked: hiEntry.locked, letters: hiEntry.letters.join('') } : null; },
       entryKey: function (c) { entryKey(c); },
       commit: function () { commitHiEntry(); },
@@ -8382,9 +8409,9 @@ function farRow(wx, rows) {
       attractIdleMs += dt;
       if (attractIdleMs > 12000) { openAttractShow(attractNextKind); }
     }
-    if (world && heroVisible && fx) { renderWorld(fx, 'hero', t); }
+    if (world && heroVisible && fx && !memoHold) { renderWorld(fx, 'hero', t); }
     if (t - pipLast > 200) { pipLast = t; if (world) { paintPBtns(); } }
-    if (world && bootActive && bfx) { renderWorld(bfx, 'boot', t); }
+    if (world && bootActive && bfx && !memoHold) { renderWorld(bfx, 'boot', t); }
   }
   requestAnimationFrame(loop);
 
@@ -8394,6 +8421,90 @@ function farRow(wx, rows) {
   var lastFocus = null;
   var KSEQ = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
   var kpos = 0;
+
+  /* the code does not open a dialog. it reboots the tube — see
+     assets/memory.js. everything below is the hand-off: memory.js
+     paints with the very same fonts, palette and sprite sheets the
+     cabinet already owns (borrowed, never forked), and it keeps the
+     sim frozen behind its back while it does. if it is missing, the
+     old two-credit thank-you note still stands in. */
+  window.__fw_gfx = {
+    drawText: drawText,
+    textW: textW,
+    drawMText: drawMText,
+    mTextW: mTextW,
+    pxText: pxTextCanvas,
+    bayer: bayerAt,
+    pc: PC,
+    font: FONT,
+    mfont: MFONT,
+    spr: drawSpr,
+    sprites: { trophy: SPR_TROPHY, chev: SPR_CHEV, star: SPR_STAR },
+    legends: { trophy: TROPHY_LEG, chev: CHEV_LEG, star: STAR_LEG }
+  };
+  window.__fw_synth = {
+    tone: tone,
+    noiseHit: noiseHit,
+    on: function () { return !!soundOn; },
+    ctx: function () { return actx; },
+    master: function () { return master; }
+  };
+  /* the memory tube is opaque: stop stepping and stop repainting the
+     hero behind it, or we burn a whole game's worth of frames on a
+     picture nobody can see */
+  var memoHold = false;
+  window.__fw_memoHold = function (on) {
+    memoHold = !!on;
+    if (on) {
+      paused = true;
+    } else {
+      paused = false;
+      attractIdleMs = 0;
+      lastT = 0;
+    }
+  };
+  /* what the cabinet gives back for a name: three coins, ten minutes
+     of paid play, and — the part that matters — the BIOS line at the
+     top of every future boot stops being the owner's name and starts
+     being yours. POST[5] is the one line on this site that greets
+     you before the picture is even finished. Leaving without a name
+     still pays the coins: the machine is not petty about it. */
+  window.__fw_memoGift = function (who, visits) {
+    who = String(who || '').replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 12);
+    visits = parseInt(visits, 10) || 0;
+    credits = Math.min(99, credits + 3);
+    saveCredits();
+    paintCredit();
+    playT = Math.min(999000, Math.max(playT, 600000));
+    if (who) {
+      /* the boot block is drawn 6px a character with no clipping, so a
+         long line walks straight off a narrow tube. the visit count is
+         the first thing to go: the name is the point, the count is a
+         bonus. 26 characters is what a 320px screen at the coarse grid
+         can hold */
+      var line = 'PLAYER ' + who;
+      if (visits > 1) {
+        var withVisits = line + '  ·  ' + visits + ' VISITS';
+        if (withVisits.length <= 26) { line = withVisits; }
+      }
+      POST[5] = [line.slice(0, 26), ''];
+    }
+    if (world) {
+      world.kills = Math.max(world.kills || 0, 4);
+      if (!world.shipDead) {
+        world.banner = {
+          l1: who ? 'PLAYER ' + who : 'MEMORY MODE',
+          l2: '+3 CREDITS · FREE PLAY 10:00',
+          until: performance.now() + 3400
+        };
+      }
+    }
+    return !!who;
+  };
+  function konami() {
+    if (window.__fw_memo && window.__fw_memo.enter()) { return; }
+    openModal();
+  }
 
   function openModal() {
     lastFocus = doc.activeElement;
@@ -8431,7 +8542,7 @@ function farRow(wx, rows) {
     var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (k === KSEQ[kpos]) {
       kpos += 1;
-      if (kpos === KSEQ.length) { kpos = 0; openModal(); }
+      if (kpos === KSEQ.length) { kpos = 0; konami(); }
     } else {
       kpos = (k === KSEQ[0]) ? 1 : 0;
     }
@@ -8444,7 +8555,7 @@ function farRow(wx, rows) {
       taps += 1;
       clearTimeout(tapReset);
       tapReset = setTimeout(function () { taps = 0; }, 2500);
-      if (taps >= 7) { taps = 0; openModal(); }
+      if (taps >= 7) { taps = 0; konami(); }
     });
   }
 
