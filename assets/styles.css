@@ -28,6 +28,8 @@
 
 :root {
   --ink: #0c0c11;
+  --f-sans: 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
+  --f-mono: 'Space Mono', 'Courier New', monospace;
   --shell-surface: #16161f;
   --shell-line: #f2f2f7;
   --shell-text: #f2f2f7;
@@ -1964,7 +1966,9 @@ html[data-show='cast'] .cast-caption {
   letter-spacing: -0.01em;
 }
 .lightbox-counter {
-  font-family: var(--f-mono, 'Space Mono', monospace);
+  /* Space Mono has no Persian digits — the counter is "۱ از ۶", so it must
+     use the site face or the glyphs fall back to the browser default mono */
+  font-family: 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--c-accent, #ffd700);
