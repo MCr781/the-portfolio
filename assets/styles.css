@@ -91,8 +91,6 @@ body[data-world="04"] ::selection { background: #ed145b; }
 .mono {
   font-family: 'Space Mono', 'Courier New', monospace;
 }
-.nowrap { white-space: nowrap; }
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -119,13 +117,31 @@ body[data-world="04"] ::selection { background: #ed145b; }
 }
 .skip:focus { top: 1rem; }
 
+/* ── the CRT glass · one set of numbers, two tubes ──────
+   .scanlines (the page) and .memo::before (the memory cabinet) are the
+   same sheet of glass over two different pictures. Their gradients used
+   to be copy-pasted verbatim, which is the kind of duplication that
+   drifts: the copy was once 3x heavier, and a 3px-period grille against
+   a 3px game pixel slices every glyph into an R/G/B triplet. One set of
+   custom properties at the root, both sheets read them. Keep them
+   light — two percent of alpha, you feel the mask more than you see
+   it, exactly like leaning into a real tube. */
+:root {
+  --sl-dark: rgba(0, 0, 0, .06);
+  --sl-light: rgba(255, 255, 255, .05);
+  --sl-mask-r: rgba(255, 64, 64, .028);
+  --sl-mask-g: rgba(64, 255, 128, .020);
+  --sl-mask-b: rgba(96, 128, 255, .028);
+}
 .scanlines {
   position: fixed;
   inset: 0;
   z-index: 1002;
   pointer-events: none;
-  --sl-dark: rgba(0, 0, 0, .06);
-  --sl-light: rgba(255, 255, 255, .05);
+  /* no local --sl-dark/--sl-light here: the per-world rules further
+     down re-declare them straight on .scanlines, which outranks
+     :root on specificity. a `var(--x): var(--x)` fallback would be a
+     self-reference and compute to nothing. */
   background:
     repeating-linear-gradient(0deg, var(--sl-dark) 0 1px, transparent 1px 4px),
     repeating-linear-gradient(0deg, transparent 0 2px, var(--sl-light) 2px 3px, transparent 3px 4px);
@@ -136,16 +152,15 @@ body[data-world="04"] ::selection { background: #ed145b; }
   transition: box-shadow 520ms steps(4, end);
 }
 /* the aperture grille: a shadow-mask CRT also splits every row into
-   red/green/blue triads. Two percent of alpha — you feel it more
-   than you see it, exactly like leaning into a real tube. */
+   red/green/blue triads */
 .scanlines::before {
   content: "";
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(90deg,
-    rgba(255, 64, 64, .028) 0 1px,
-    rgba(64, 255, 128, .020) 1px 2px,
-    rgba(96, 128, 255, .028) 2px 3px);
+    var(--sl-mask-r) 0 1px,
+    var(--sl-mask-g) 1px 2px,
+    var(--sl-mask-b) 2px 3px);
 }
 body[data-world="02"] .scanlines,
 body[data-world="04"] .scanlines {
@@ -295,10 +310,15 @@ html.has-cursor .cursor { display: block; }
 /* ── hero · the title screen on the same tube ───────── */
 .hero {
   position: relative;
-  /* the tube fills the viewport, but never clips its own content: on
-     short tubes the cabinet grows a little and the page scrolls a
-     hair instead of swallowing the coin door */
+  /* the tube fills the viewport, but never clips its own content. the
+     cabinet is a fixed stack of parts, so on a short tube the parts
+     compress (the short-viewport bands below) and only if they still
+     cannot fit does the hero grow and let the page scroll — the coin
+     door and START must never be the things that get swallowed.
+     svh is deliberate: a stable height beats one that reflows every
+     time the mobile toolbar slides away, and this hero owns a canvas. */
   height: auto;
+  min-height: 100vh;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -307,8 +327,13 @@ html.has-cursor .cursor { display: block; }
   background: #05050a;
   /* the top band stays clear: the attract-mode score row (1P / HIGH
      SCORE / 2P) is painted on the tube glass above the title block;
-     the bottom band belongs to the fixed world-HUD strip */
-  padding: clamp(3.2rem, 6.5vh, 4.4rem) clamp(1rem, 3vw, 2rem) clamp(3.4rem, 5.6vh, 4.2rem);
+     the bottom band belongs to the fixed world-HUD strip.
+     these two are the first thing a short tube gives up. */
+  --hero-pad-top: clamp(3.2rem, 6.5vh, 4.4rem);
+  --hero-pad-bottom: clamp(3.4rem, 5.6vh, 4.2rem);
+  --hero-deck-gap: clamp(63px, calc(4.2vh + 35px), 77px);
+  --hero-deck-scale: 1.22;
+  padding: var(--hero-pad-top) clamp(1rem, 3vw, 2rem) var(--hero-pad-bottom);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -430,12 +455,12 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
   align-items: flex-end;
   justify-content: center;
   gap: clamp(1.4rem, 4.5vw, 3.2rem);
-  margin-top: clamp(63px, calc(4.2vh + 35px), 77px);
+  margin-top: var(--hero-deck-gap);
   width: 100%;
   /* a control panel is hardware, not prose: stick on the player's left,
      action buttons on the right — even though the page reads RTL */
   direction: ltr;
-  transform: scale(1.22);
+  transform: scale(var(--hero-deck-scale));
   transform-origin: center bottom;
 }
 /* round 13 · the deck lights dim while the tube talks: a real cabinet
@@ -474,12 +499,13 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
   border: none;
   font-family: inherit;
   cursor: pointer;
-  min-height: 38px;
+  min-height: 44px;
 }
 .pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); }
 .joy-fa { margin: .4rem 0 0; text-align: center; }
 .pbtn-fa { display: block; margin: .4rem 0 0; text-align: center; }
-.panel-btns { align-items: flex-start; }
+/* (the old `.panel-btns { align-items: flex-start }` lived here and was
+   overridden five lines later by flex-end — it never took effect) */
 /* the paid clock owns the slot: while seconds remain, the door,
    its label and its caption step off the bezel entirely */
 html.coin-hidden .coin-row { visibility: hidden; }
@@ -522,7 +548,11 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .coin-row {
   position: absolute;
   left: clamp(16px, 2.8vw, 32px);
-  bottom: calc(clamp(3.2rem, 5.6vh, 4.2rem) + 15px);
+  /* off the hero's own bottom padding, not a private clamp. It used to
+     carry its own 3.2rem floor, so every time a short-viewport band
+     compressed the hero the coin door stayed where it was and landed
+     on top of the control deck. */
+  bottom: calc(var(--hero-pad-bottom, clamp(3.4rem, 5.6vh, 4.2rem)) + 15px);
   z-index: 4;
   display: flex;
   align-items: center;
@@ -562,12 +592,16 @@ html.coin-hidden .coin-row { visibility: hidden; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px 4px;
+  /* a 23px-tall button in the hero foot. affordance, so it gets a
+     thumb-sized target; the type stays small because this one really
+     is chrome on the cabinet */
+  min-height: 44px;
+  padding: 3px 12px 4px;
   background: rgba(14, 11, 26, 0.85);
   border: 1px solid var(--shell-line, #382c54);
   border-radius: 2px;
   font-family: inherit;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--c-accent, #ffd76a);
   cursor: pointer;
@@ -672,12 +706,22 @@ html.coin-hidden .coin-row { visibility: hidden; }
   margin-inline: auto;
   padding: clamp(3.5rem, 7vh, 6rem) 1.5rem;
   min-height: 84vh;
+  min-height: 84svh;
   display: grid;
-  grid-template-columns: 1.15fr .85fr;
+  /* minmax(0,…) on both tracks. A grid item defaults to min-width:auto,
+     so one wide child — a nowrap URL, a long Persian run — refuses to
+     shrink and widens the track past the viewport. */
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
   gap: clamp(2rem, 5vw, 4.5rem);
   align-content: center;
   align-items: center;
+  /* hard guarantee, independent of any breakpoint arithmetic: nothing
+     inside a world may widen the document. Above 1100px the pull-tab
+     still hangs its 34px inside this box, where there is room for it. */
+  overflow-x: clip;
 }
+.world-text,
+.world-art { min-width: 0; }
 .world:nth-of-type(even) .world-text { order: 2; }
 .world:nth-of-type(even) .world-art { order: 1; }
 
@@ -1346,6 +1390,49 @@ html[data-show='cast'] .cast-caption {
   right: -40px;
 }
 
+/* Narrow tubes: the pull-tab tucks flush to the cartridge edge.
+   This is the single source of horizontal page scroll on the site. The
+   tab hangs 34px off the cartridge and its proximity hit-zone reaches
+   another 40px past that — ~74px of overhang into a viewport that only
+   has ~22px of slack beside a centered 86vw cartridge. Pseudo-elements
+   count toward scrollable overflow, and .cart-front/.cart-back are
+   deliberately overflow:visible so the tab can hang at all, so nothing
+   was containing it: at 320px the document scrolled 49px sideways.
+   body{overflow-x:clip} was hiding the symptom, not the cause. */
+@media (max-width: 1100px) {
+  .cart-ribbon-tab,
+  .cart-back .cart-ribbon-tab {
+    left: 0;
+    right: auto;
+    border-radius: 0;
+    border-left: 1.5px dashed rgba(255, 255, 255, 0.45);
+    border-right: 1.5px dashed rgba(255, 255, 255, 0.45);
+    transform-origin: center;
+    /* 34px here was a narrower target than the 48px it replaced — a
+       flush tab is still a button */
+    width: 44px;
+  }
+  /* keep the slide-out, but pointed inward: outward would re-create
+     the overflow we just removed */
+  .cart-flipper-wrap:hover .cart-ribbon-tab,
+  .cart-ribbon-tab:hover,
+  .cart-ribbon-tab:active {
+    transform: translateX(4px) !important;
+  }
+  .cart-flipper-wrap:hover .cart-back .cart-ribbon-tab,
+  .cart-back .cart-ribbon-tab:hover,
+  .cart-back .cart-ribbon-tab:active {
+    transform: translateX(-4px) !important;
+  }
+  .cart-ribbon-tab::before,
+  .cart-back .cart-ribbon-tab::before {
+    left: -6px;
+    right: -6px;
+    top: -14px;
+    bottom: -14px;
+  }
+}
+
 /* Antique brass grommet stamped at tab top */
 .cart-ribbon-tab .brass-grommet {
   width: 14px;
@@ -1512,9 +1599,12 @@ html[data-show='cast'] .cast-caption {
   border: 1px solid transparent;
   color: #a4a6c0;
   font-family: var(--f-sans);
-  font-size: 0.70rem;
+  /* 0.70rem and 4px padding made a 26px-tall switch. this is a
+     control, not cartridge artwork, so it gets a real target */
+  font-size: 0.78rem;
   font-weight: 800;
-  padding: 4px 10px;
+  min-height: 44px;
+  padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
@@ -1793,6 +1883,11 @@ html[data-show='cast'] .cast-caption {
   color: #f2f2fa;
   font-weight: 600;
   font-size: 0.74rem;
+  /* a spec value is the one part of the cartridge meant to be read,
+     so it has to be allowed to wrap rather than push the well wider
+     than the cartridge that holds it */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .badge-status-live {
   color: #39ff14 !important;
@@ -1814,10 +1909,11 @@ html[data-show='cast'] .cast-caption {
   color: #0b0c10;
   font-family: var(--f-sans);
   font-weight: 900;
-  font-size: 0.76rem;
+  font-size: 0.82rem;
   text-decoration: none;
   border-radius: 5px;
   padding: 7px 12px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1848,6 +1944,9 @@ html[data-show='cast'] .cast-caption {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  /* role="button" — it rotates the cartridge on click. it was 41px tall,
+     three short of a thumb. wide is fine, short is not */
+  min-height: 44px;
   padding: 6px 14px;
   border-radius: 20px;
   background: rgba(14, 16, 26, 0.65);
@@ -1931,13 +2030,21 @@ html[data-show='cast'] .cast-caption {
   max-width: 960px;
   width: 100%;
   max-height: 90vh;
+  max-height: 90svh;
   background: #0f1019;
   border: 2px solid var(--c-accent);
   border-radius: 10px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 24px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* overflow-y, not hidden. The page behind is scroll-locked while the
+     lightbox is open, so anything this box crops is genuinely gone —
+     at 844x390 the header + a 280px body floor + the thumb strip
+     overflowed a 351px box by 77px and took the thumbnails with it.
+     scrolling is the only honest fallback left. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   z-index: 2;
   transform: scale(0.95);
   transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -2016,11 +2123,15 @@ html[data-show='cast'] .cast-caption {
   background:
     radial-gradient(ellipse at center, rgba(255, 255, 255, 0.03) 0%, transparent 70%),
     #07070d;
-  min-height: 280px;
+  /* the 280px floor was fixed, so on a short tube it outgrew the box
+     and the thumbnails fell off the bottom. it is a floor for tall
+     screens only — cap it against the viewport instead. */
+  min-height: min(280px, 38svh);
 }
 .lightbox-img {
   max-width: 100%;
   max-height: min(72vh, calc(90vh - 185px));
+  max-height: min(72svh, calc(90svh - 185px));
   object-fit: contain;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -2086,7 +2197,11 @@ html[data-show='cast'] .cast-caption {
 }
 .lightbox-thumbs {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* auto-fit, not a fixed six. a hard count is a guess about how much
+     room there is, and it is wrong on every screen that is not the one
+     the guess was made on — 37px-wide thumbs at 390px was not a row of
+     thumbnails, it was a row of crumbs. */
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
   gap: 8px;
   width: 100%;
   max-width: 700px;
@@ -2174,7 +2289,11 @@ html.lb-lock body {
 }
 .cart-lightbox-modal[hidden],
 .lightbox-nav[hidden],
-.lightbox-thumbs[hidden] {
+.lightbox-thumbs[hidden],
+/* the counter also carries [hidden] and was missing from this list —
+   it only worked by the UA's own [hidden] rule, which any display
+   declaration anywhere would have silently defeated */
+.lightbox-counter[hidden] {
   display: none;
 }
 
@@ -2319,6 +2438,15 @@ html.lb-lock body {
 }
 .pip.visited { background: var(--c-accent); }
 .pip.current { animation: blink 1s steps(2) infinite; }
+/* @keyframes blink was referenced by .pip.current and .hud.party
+   .hud-world and defined NOWHERE in this file — or in any of the three
+   scripts. both animations were silently dead: the "current world"
+   pip never blinked and the party HUD never flickered. steps(2) with
+   no keyframes is a hard blink, which is what a CRT lamp does. */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: .18; }
+}
 .pip.win { animation: pipwin 260ms steps(2) 4; }
 @keyframes pipwin {
   0%, 100% { transform: scale(1); }
@@ -2363,6 +2491,11 @@ html.lb-lock body {
   padding: .5rem .3rem;
   cursor: pointer;
   min-height: 44px;
+  /* below 480px the label folds away and "SND" is all that is left —
+     34px wide, ten short of a thumb. hold the floor with min-width
+     rather than padding out a fixed HUD that has to stay quiet. */
+  min-width: 44px;
+  justify-content: center;
 }
 .hud-sound .mono {
   font-size: .68rem;
@@ -2419,12 +2552,14 @@ html.lb-lock body {
   .hero-statement { font-size: clamp(1rem, 1.9vw, 1.3rem); }
   .hero-para { font-size: .95rem; }
   .hero-role { margin-bottom: 8px; }
-  .hero-deck { gap: clamp(1.4rem, 4.5vw, 3.2rem); margin-top: .9rem; }
+  /* gap was byte-identical to the base .hero-deck and did nothing;
+     only the rhythm is worth overriding here */
+  .hero-deck { margin-top: .9rem; }
   .hero-foot { margin-top: .5rem; }
 }
 @media (max-width: 860px) {
   .world-inner {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     min-height: 0;
     gap: 2.6rem;
   }
@@ -2433,7 +2568,13 @@ html.lb-lock body {
   .cart-flipper-wrap { width: min(19rem, 86vw); }
   .cartridge { width: 100%; aspect-ratio: 1 / 1.5; }
   .hud-world { display: none; }
-  .hero { padding: 3.4rem .8rem 4.2rem; }
+  /* the phone rhythm, expressed through the same variables the short
+     bands override — otherwise this fixed padding would win over any
+     height adaptation further down */
+  .hero {
+    --hero-pad-top: 3.4rem;
+    --hero-pad-bottom: 4.2rem;
+  }
   .hero-name { font-size: clamp(1.9rem, 8vw, 2.6rem); }
   .hero-para { font-size: .92rem; }
   .hero-deck {
@@ -2464,6 +2605,80 @@ html.lb-lock body {
   .mobile-phone-frame { height: calc(100% - 4px); width: auto; aspect-ratio: 155 / 188; }
   .phone-notch { height: 4px; margin-bottom: 1px; }
   .phone-chin { height: 2px; margin: 1px auto 2px; }
+}
+
+/* ── short tubes: the cabinet compresses ─────────────── */
+/* These bands are deliberately NOT gated on min-width. The only height
+   query this file used to carry required 861px of width, which is
+   exactly backwards: a landscape phone is wide AND short, so it was
+   the one case that got no height adaptation whatsoever. Bands are
+   ordered after the width blocks on purpose — on a 844x390 tube both
+   match, and the height wins, because height is the scarcer resource. */
+@media (max-height: 760px) {
+  .hero {
+    --hero-pad-top: clamp(1.6rem, 4vh, 2.6rem);
+    --hero-pad-bottom: clamp(1.4rem, 3.6vh, 2.4rem);
+    --hero-deck-gap: clamp(14px, 3.4vh, 34px);
+    --hero-deck-scale: .9;
+  }
+  .hero-inner { margin-top: clamp(1rem, 3vh, 2rem); }
+  /* the deck is scaled to buy height, but transform scales the PAINTED
+     box too — a 44px min-height at scale .9 is a 39px target on the
+     glass. divide it back out so a thumb still meets 44. */
+  /* 46, not 44: dividing by the scale lands the painted box exactly on
+     44, and sub-pixel rounding drops it just under. 2px of slack. */
+  .pstart { min-height: calc(46px / var(--hero-deck-scale)); }
+  .hero-cue,
+  .cast-caption { display: none; }
+  .hero-role { margin-bottom: 4px; }
+}
+@media (max-height: 640px) {
+  .hero {
+    --hero-pad-top: .9rem;
+    --hero-pad-bottom: .9rem;
+    --hero-deck-gap: 8px;
+    --hero-deck-scale: .7;
+    /* last resort, and the honest one: if the parts still cannot fit,
+       the cabinet grows and the page scrolls. The alternative is
+       swallowing the coin door, which is the one thing the coin door
+       must never be.
+       overflow-x:clip with overflow-y:visible is a legal pairing (clip
+       does not force the other axis to auto, unlike hidden) and it
+       keeps the GAME OVER plate — an absolutely positioned canvas
+       sized for a wider tube — from widening the document by 4px. */
+    min-height: auto;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+  /* a wide, short tube wants the desktop control ROW back. The stacked
+     phone deck is two rows tall and pushes START under the fold, which
+     is precisely backwards for a landscape phone. */
+  .hero-deck { flex-wrap: nowrap; gap: clamp(1rem, 3vw, 2rem); }
+  .pstart {
+    order: 0;
+    flex: 0 1 auto;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .hero-para { display: none; }
+  .hero-name { font-size: clamp(1.4rem, 5.4vh, 2.1rem); }
+  .hero-statement { font-size: clamp(.84rem, 2.6vh, 1.02rem); }
+  /* the captions under the controls (WASD, «شروع بازی», SPACE, E) and
+     the "1 PLAYER · 4 WORLDS" decal are the first things to go: the
+     canvas already draws START and 1P/2P in pixels, so the captions
+     are a second, redundant telling of the same thing — and at this
+     height they were landing on top of the coin door and the CTA. */
+  .joy-fa,
+  .pstart-fa,
+  .pbtn-fa,
+  .coin-fa,
+  .crt-decal { display: none; }
+}
+@media (max-height: 640px) and (max-width: 860px) {
+  /* stacked deck is the right call on a portrait phone but not on a
+     landscape one; narrow-but-short (320x568) still gets the row */
+  .pstart { flex: 0 1 auto; }
+  .hero-name { font-size: clamp(1.3rem, 5vh, 1.9rem); }
 }
 @media (max-width: 560px) {
   /* the CREDIT counter owns the foot row on phones; the decal is
@@ -2582,12 +2797,10 @@ html { scrollbar-color: #2a2a38 #0d0d15; }
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
-/* the scanline sheet and the aperture grille. these are the SITE'S
-   OWN numbers, copied from .scanlines above, and they have to stay
-   that light: the game pixel is 3-4 css px, so a 3px-period grille
-   slices every single game pixel into an R/G/B triplet and the text
-   stops being letters. two percent of alpha — you feel the mask more
-   than you see it, exactly like leaning into a real tube. */
+/* the same sheet of glass as .scanlines, reading the same root
+   variables. it has to stay light: the game pixel is 3-4 css px, so a
+   3px-period grille slices every single game pixel into an R/G/B
+   triplet and the text stops being letters. */
 .memo::before {
   content: "";
   position: absolute;
@@ -2595,12 +2808,12 @@ html { scrollbar-color: #2a2a38 #0d0d15; }
   z-index: 1;
   pointer-events: none;
   background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, .06) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(0deg, transparent 0 2px, rgba(255, 255, 255, .05) 2px 3px, transparent 3px 4px),
+    repeating-linear-gradient(0deg, var(--sl-dark) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(0deg, transparent 0 2px, var(--sl-light) 2px 3px, transparent 3px 4px),
     repeating-linear-gradient(90deg,
-      rgba(255, 64, 64, .028) 0 1px,
-      rgba(64, 255, 128, .020) 1px 2px,
-      rgba(96, 128, 255, .028) 2px 3px);
+      var(--sl-mask-r) 0 1px,
+      var(--sl-mask-g) 1px 2px,
+      var(--sl-mask-b) 2px 3px);
 }
 /* the bright band that rides down a real tube every eight seconds */
 .memo::after {

@@ -40,6 +40,12 @@ in afterwards — never nest the zip inside itself.
    Clean up any test keys you create. The memory cabinet adds `fw-memo-name`,
    `fw-memo-wall` and `fw-memo-runs`; they are the visitor's, not yours — never
    seed them with test values.
+5. **Cartridge label type stays small.** The 7-9px micro-type on the cartridge
+   (`.cart-label-sys`, `.cart-label-ver`, `.cart-seal`, `.screen-url`) is the art —
+   it is a fake 1980s NES label and shrinking it is what makes it read as one.
+   Do not "fix" it for legibility. Affordances get 44px targets and readable
+   text (`.view-tab-btn`, `.hero-explore-cta`, `.btn-cart-enter`,
+   `.ambient-gesture-hint`, `.pstart`, `.hud-sound`); illustration does not.
 
 ## The Konami code
 
@@ -84,6 +90,55 @@ by `T_WAKE` — POST's own `elapsed()` never passes ~3900ms.
 Two more things headless gets wrong: it reports `prefers-reduced-motion: reduce`
 (which disables the boot card entirely), and screenshots of a 3px pixel grid moiré
 badly when downscaled. Trust `getImageData` over the framebuffer, not the PNG.
+
+## Responsiveness
+
+The tube is a fixed stack of parts, so the responsive work is mostly about
+**height**, not width. Bands live at the end of `styles.css` and are deliberately
+ordered *after* the width blocks: on a 844×390 tube both match and height wins,
+because height is the scarcer resource.
+
+| Band | What it does |
+|---|---|
+| `max-height: 760px` | tighter hero padding, deck gap and scale (0.9), hides the cue and cast caption |
+| `max-height: 640px` | aggressive: deck scale 0.7, deck back to a single row, paragraph and control captions hidden, decal hidden, hero allowed to grow and scroll rather than clip |
+| `max-width: 1100px` | cartridge pull-tab tucks flush instead of hanging 34px off the edge |
+| `max-width: 860px` | worlds to one column, phone deck, cartridge 19rem |
+
+The hero's vertical rhythm runs through `--hero-pad-top`/`--hero-pad-bottom`/
+`--hero-deck-gap`/`--hero-deck-scale` on `.hero`. `.coin-row` is absolutely
+positioned and reads `--hero-pad-bottom` — it used to carry its own clamp, so
+every band that compressed the hero left the coin door stranded on top of the
+deck.
+
+Four traps worth knowing:
+- **`transform: scale()` shrinks painted tap targets.** A `min-height: 44px` at
+  scale .9 is a 39px button. The bands divide it back out with
+  `calc(46px / var(--hero-deck-scale))` — 46, not 44, because exact division
+  lands on 44 and sub-pixel rounding drops it just under.
+- **The pull-tab's `::before` hit-zone is scrollable overflow.** It reached 40px
+  past a tab that already hung 34px off the cartridge, inside a deliberately
+  `overflow:visible` parent — ~74px into a viewport with ~22px of slack. That
+  was the whole of the site's horizontal scroll, hidden by `body{overflow-x:clip}`.
+- **`.world-inner` needs `minmax(0, …)` tracks.** Grid items default to
+  `min-width: auto`, so one wide child widens the track past the viewport.
+- **`overflow-x: clip` + `overflow-y: visible` is a legal pairing** (`clip` does
+  not force the other axis to `auto`, unlike `hidden`) and is how the ≤640px band
+  stops cropping horizontally while still letting the hero scroll vertically.
+
+### Measuring it
+
+Drive headless Edge over raw CDP at each size and assert, don't eyeball:
+`scrollWidth === clientWidth`, hero height ≤ viewport, every `button`/`a`/
+`[role=button]` ≥ 44×44, and the lightbox's `scrollHeight === clientHeight` with
+the thumbnail strip above the fold. Three measurement traps:
+
+- headless reports a **fine pointer**, so `html.has-cursor` is set and the parked
+  `.cursor` (translated to about −10000px) registers as a huge overflow. Hide it.
+- `.marquee` overflows by design — exclude it.
+- don't hide `#boot` directly to get past the intro: that skips `liftBoot()`, so
+  `html.awake` never lands and the whole hero copy sits at opacity 0. Remove
+  `booting`, add `awake`, and force `opacity:1` on the hero rows instead.
 
 ## How to run / test
 
