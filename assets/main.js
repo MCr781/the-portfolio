@@ -47,6 +47,7 @@
       buildControls();
       pxifyAll();
       buildMarquee();
+      refreshThumbColumns();
       queueRefresh();
     }, 180);
   }, { passive: true });
@@ -7594,7 +7595,10 @@ function farRow(wx, rows) {
         ambientHint.setAttribute('aria-expanded', isFlipped ? 'true' : 'false');
         var hintText = $('.hint-text', ambientHint);
         if (hintText) {
-          hintText.textContent = isFlipped ? 'برای بازگشت به پوستر کلیک کنید یا با ماوس حرکت دهید' : 'برای چرخش زبانه را بکشید یا با ماوس حرکت دهید';
+          /* short copy, matching the markup: the long sentence wrapped to
+             two lines at 375px and took the row from 31px to 57px. The
+             full instruction stays in the hint's aria-label. */
+          hintText.textContent = isFlipped ? 'برای بازگشت، کارتریج را بکشید' : 'برای چرخش، کارتریج را بکشید';
         }
       }
     }
@@ -7724,6 +7728,30 @@ function farRow(wx, rows) {
       cart.addEventListener('pointerup', endDrag);
       cart.addEventListener('pointercancel', endDrag);
       cart.addEventListener('lostpointercapture', endDrag);
+
+      /* Keyboard rotation. The ribbon tab was the only control that could
+         reach this from a keyboard, and it is display:none below 860px —
+         so hiding it there would have taken keyboard rotation with it.
+         The cartridge itself is now tabindex=0/role=region, so Enter and
+         Space flip it and the arrow keys step through the faces. */
+      cart.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          if (e.target !== cart) { return; }
+          e.preventDefault();
+          toggleCartFlip(cart);
+          sfx('pipOn');
+          return;
+        }
+        var dir = 0;
+        if (e.key === 'ArrowLeft') { dir = -1; }
+        else if (e.key === 'ArrowRight') { dir = 1; }
+        if (!dir) { return; }
+        if (e.target.closest('a, button, input, [role="tab"]')) { return; }
+        e.preventDefault();
+        var cur = cart.classList.contains('is-flipped') ? 1 : 0;
+        var next = (cur + dir + 2) % 2;
+        if (next !== cur) { toggleCartFlip(cart); sfx('pipOn'); }
+      });
     });
   }
   initCartridgeDragAndSweep();
@@ -7787,6 +7815,38 @@ function farRow(wx, rows) {
     if (lightboxThumbs) { lightboxThumbs.hidden = true; }
   }
 
+  /* Pick a thumbnail column count that leaves NO ORPHAN ROW.
+
+   `repeat(auto-fit, minmax(64px, 1fr))` computed its own count from the
+   width and had no idea how many items there were: at 375px it chose 4
+   columns, and a 6-item gallery came out as a row of 4 plus a row of 2.
+   The thumbnail strip is a navigation control, and a half-empty last row
+   reads as a mistake.
+
+   So: start from the widest count whose thumb would still be a thumbnail
+   (not a crumb) and walk DOWN to the first count that divides `n`
+   exactly. Every gallery here holds 6 items, so this lands on 6 on a
+   desktop and 3 on a phone — never 4. */
+function setThumbColumns(box, n) {
+    if (!box || !n) { return; }
+    var MIN_THUMB = 64;
+    var GAP = 8;
+    var avail = box.clientWidth - parseFloat(getComputedStyle(box).paddingLeft) - parseFloat(getComputedStyle(box).paddingRight);
+    if (!(avail > 0)) { avail = 320; }
+    var maxFit = Math.max(1, Math.floor((avail + GAP) / (MIN_THUMB + GAP)));
+    var cols = Math.min(n, maxFit);
+    while (cols > 1 && n % cols !== 0) { cols--; }
+    box.style.setProperty('--lb-cols', String(Math.max(1, cols)));
+  }
+
+  /* the column count depends on the measured width, so an orientation
+     change has to recompute it — the strip is built once per open. */
+  function refreshThumbColumns() {
+    if (lightboxThumbs && !lightboxThumbs.hidden && lightboxThumbs.children.length) {
+      setThumbColumns(lightboxThumbs, lightboxThumbs.children.length);
+    }
+  }
+
   function buildThumbs(key) {
     if (!lightboxThumbs) { return; }
     lightboxThumbs.innerHTML = '';
@@ -7796,6 +7856,7 @@ function farRow(wx, rows) {
       return;
     }
     var n = items.length;
+    setThumbColumns(lightboxThumbs, n);
     items.forEach(function (item, i) {
       var b = document.createElement('button');
       b.type = 'button';

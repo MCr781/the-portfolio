@@ -132,6 +132,13 @@ body[data-world="04"] ::selection { background: #ed145b; }
   --sl-mask-r: rgba(255, 64, 64, .028);
   --sl-mask-g: rgba(64, 255, 128, .020);
   --sl-mask-b: rgba(96, 128, 255, .028);
+  /* the height of the fixed world-HUD strip. it is position:fixed at
+     EVERY width, so the hero's bottom band has to clear it at every
+     width — the hero's own --hero-pad-bottom could shrink to 22px in a
+     short-viewport band while the strip is 61px, which parked the foot
+     and the coin door underneath it at 375x650. desktop clears it with
+     room to spare; the phone band below states the taller number. */
+  --hud-h: 42px;
 }
 .scanlines {
   position: fixed;
@@ -333,7 +340,12 @@ html.has-cursor .cursor { display: block; }
   --hero-pad-bottom: clamp(3.4rem, 5.6vh, 4.2rem);
   --hero-deck-gap: clamp(63px, calc(4.2vh + 35px), 77px);
   --hero-deck-scale: 1.22;
-  padding: var(--hero-pad-top) clamp(1rem, 3vw, 2rem) var(--hero-pad-bottom);
+  /* the bottom band never shrinks below the fixed HUD strip: --hero-pad-bottom
+     is a compression dial and the strip is not something the hero can
+     push. max() makes the dial one-way — it can buy back padding, never
+     spend below what the strip occupies. */
+  padding: var(--hero-pad-top) clamp(1rem, 3vw, 2rem)
+    max(var(--hero-pad-bottom), calc(var(--hud-h) + 12px));
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -545,19 +557,34 @@ html.coin-hidden .coin-row { visibility: hidden; }
 }
 
 /* ── coin row · a pixel coin door on the glass ──────── */
+/* A real flex item of the hero column, sitting between the deck and the
+   foot. It spent its whole life absolutely positioned and every anchor
+   it was given was a guess that broke somewhere else:
+     bottom: calc(var(--hero-pad-bottom) + 15px)  → ignored the foot's own
+       height, so a short-viewport band that shrank the padding dropped
+       the coin door 58px onto the control deck.
+     bottom: 100% inside .hero-foot               → cleared the foot but
+       landed straight on .hero-deck, because the deck is what sits above
+       the foot: the row covered the START button's own caption, and
+       INSERT COIN printed through «شروع بازی».
+   In normal flow it owns a band and cannot collide with either.
+
+   Horizontal placement: the hero is an RTL column, where `flex-start` on
+   the cross axis means RIGHT — so `align-self: flex-start` put the coin
+   door on the wrong side of the tube. Stretch to the content box instead.
+   The row's own `direction: ltr` then lays SOUND / coin slot / INSERT COIN
+   out from the physical left, which is exactly where the old absolute
+   `left: clamp(16px, 2.8vw, 32px)` put it: that offset was hand-tuned to
+   the same value as the hero's side padding (16px at 375, 32px at 1440),
+   so the content-box edge IS the old left edge. */
 .coin-row {
-  position: absolute;
-  left: clamp(16px, 2.8vw, 32px);
-  /* off the hero's own bottom padding, not a private clamp. It used to
-     carry its own 3.2rem floor, so every time a short-viewport band
-     compressed the hero the coin door stayed where it was and landed
-     on top of the control deck. */
-  bottom: calc(var(--hero-pad-bottom, clamp(3.4rem, 5.6vh, 4.2rem)) + 15px);
+  position: relative;
+  align-self: stretch;
+  flex: 0 0 auto;
   z-index: 4;
   display: flex;
   align-items: center;
   gap: 8px 12px;
-  margin-top: 0;
   direction: ltr;
 }
 @media (max-width: 680px) {
@@ -1390,48 +1417,15 @@ html[data-show='cast'] .cast-caption {
   right: -40px;
 }
 
-/* Narrow tubes: the pull-tab tucks flush to the cartridge edge.
-   This is the single source of horizontal page scroll on the site. The
-   tab hangs 34px off the cartridge and its proximity hit-zone reaches
-   another 40px past that — ~74px of overhang into a viewport that only
-   has ~22px of slack beside a centered 86vw cartridge. Pseudo-elements
-   count toward scrollable overflow, and .cart-front/.cart-back are
-   deliberately overflow:visible so the tab can hang at all, so nothing
-   was containing it: at 320px the document scrolled 49px sideways.
-   body{overflow-x:clip} was hiding the symptom, not the cause. */
-@media (max-width: 1100px) {
-  .cart-ribbon-tab,
-  .cart-back .cart-ribbon-tab {
-    left: 0;
-    right: auto;
-    border-radius: 0;
-    border-left: 1.5px dashed rgba(255, 255, 255, 0.45);
-    border-right: 1.5px dashed rgba(255, 255, 255, 0.45);
-    transform-origin: center;
-    /* 34px here was a narrower target than the 48px it replaced — a
-       flush tab is still a button */
-    width: 44px;
-  }
-  /* keep the slide-out, but pointed inward: outward would re-create
-     the overflow we just removed */
-  .cart-flipper-wrap:hover .cart-ribbon-tab,
-  .cart-ribbon-tab:hover,
-  .cart-ribbon-tab:active {
-    transform: translateX(4px) !important;
-  }
-  .cart-flipper-wrap:hover .cart-back .cart-ribbon-tab,
-  .cart-back .cart-ribbon-tab:hover,
-  .cart-back .cart-ribbon-tab:active {
-    transform: translateX(-4px) !important;
-  }
-  .cart-ribbon-tab::before,
-  .cart-back .cart-ribbon-tab::before {
-    left: -6px;
-    right: -6px;
-    top: -14px;
-    bottom: -14px;
-  }
-}
+/* No tuck band needed any more. The tuck existed to stop the tab's ~74px
+   overhang from becoming horizontal page scroll, and that risk only
+   exists while the cartridge is a large fraction of the viewport —
+   i.e. while 86vw binds. Since .cart-flipper-wrap is capped at 19rem
+   (304px), every viewport at 861px+ leaves hundreds of pixels of slack
+   beside a centred cartridge and the tab can hang outside properly
+   again, with its rounded edge, its shadow and the silhouette it was
+   drawn for. It reads as a woven pull-tab instead of a stripe painted
+   across the label. Phones hide it entirely (see the 860px block). */
 
 /* Antique brass grommet stamped at tab top */
 .cart-ribbon-tab .brass-grommet {
@@ -1981,6 +1975,11 @@ html[data-show='cast'] .cast-caption {
 }
 .ambient-gesture-hint .hint-text {
   font-weight: 600;
+  /* the visible sentence is deliberately the short one; the full
+     instruction lives in this element's parent aria-label. min-width:0 so
+     it is the one flex item allowed to shrink instead of forcing the
+     badge off the row. */
+  min-width: 0;
 }
 .ambient-gesture-hint .hint-badge {
   font-size: 0.58rem;
@@ -1991,6 +1990,10 @@ html[data-show='cast'] .cast-caption {
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--c-accent);
   letter-spacing: 0.04em;
+  /* "↻ 3D" broke into TWO lines inside a 38px badge at 375px — the arrow
+     glyph is a wide fallback face and 3D has nowhere to go. nowrap it. */
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 .cart-flipper-wrap.is-flipped .ambient-gesture-hint {
   border-color: rgba(255, 215, 0, 0.3);
@@ -2069,7 +2072,15 @@ html[data-show='cast'] .cast-caption {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-  justify-self: start;
+  /* STRETCH, not `start`. A grid item with `justify-self:start` and
+     `width:auto` shrink-to-fits its content — and with white-space:nowrap
+     that content is the whole title, 174px, inside a 121px track. The
+     box itself was oversized, so overflow:hidden had nothing to clip and
+     the text painted straight over the counter (measured 49x25 overlap,
+     the counter sitting exactly on top of "نسخه دسکتاپ"). min-width:0
+     alone does not help: it frees the TRACK, not the box. Stretch makes
+     the box the track's width, which is what arms the ellipsis. */
+  justify-self: stretch;
   letter-spacing: -0.01em;
 }
 .lightbox-counter {
@@ -2197,11 +2208,12 @@ html[data-show='cast'] .cast-caption {
 }
 .lightbox-thumbs {
   display: grid;
-  /* auto-fit, not a fixed six. a hard count is a guess about how much
-     room there is, and it is wrong on every screen that is not the one
-     the guess was made on — 37px-wide thumbs at 390px was not a row of
-     thumbnails, it was a row of crumbs. */
-  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  /* --lb-cols is computed in buildThumbs (main.js) as the LARGEST divisor
+     of the item count that fits the available width. auto-fit looked
+     tidier in the source but produced 4 columns for 6 items at 375px —
+     a full row of 4 and an orphan row of 2. Six divides by 2, 3 and 6,
+     so a phone gets 3x2 with no orphan. */
+  grid-template-columns: repeat(var(--lb-cols, 3), 1fr);
   gap: 8px;
   width: 100%;
   max-width: 700px;
@@ -2219,7 +2231,9 @@ html[data-show='cast'] .cast-caption {
   border-radius: 6px;
   overflow: hidden;
   background: #08080f;
-  aspect-ratio: 16 / 10;
+  /* 4/3 rather than 16/10: the galleries are mostly portrait phone shots,
+     so a taller box gives a contained portrait more pixels of height. */
+  aspect-ratio: 4 / 3;
   opacity: 0.52;
   transition: opacity 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
   cursor: pointer;
@@ -2228,7 +2242,14 @@ html[data-show='cast'] .cast-caption {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* CONTAIN, not cover. Five of the six shots in every gallery are
+     450x974 portrait phone screenshots, and `cover` was squeezing them
+     into a 16/10 landscape box — cropping away nearly the whole screen,
+     which is why every thumbnail read as a landscape desktop capture.
+     `contain` shows the whole screenshot and letterboxes it on the
+     thumb's own dark plate, so the shape of the device is still legible
+     (that is the only thing the thumbnail has to say). */
+  object-fit: contain;
   transition: transform 200ms ease;
 }
 .lightbox-thumb:hover {
@@ -2255,32 +2276,73 @@ html[data-show='cast'] .cast-caption {
   background: #ffffff;
   box-shadow: 0 0 4px #ffffff;
 }
+/* Below 720px the body's side padding is only 14px (the 64px gutter that
+   clears the arrows starts at 720px), so a 44px arrow at left:18px spans
+   18..62 over an image that starts at 14 — the buttons were drawn ON the
+   picture. Rather than spend ~108px of a 315px content box on gutters
+   and shrink the screenshot to 207px, the arrows go and the touchscreen
+   takes over: main.js already binds a single-touch, 48px-threshold,
+   axis-locked swipe on .lightbox-body that calls navGallery(), and the
+   thumbnails remain tappable. Arrow keys are a separate path and are
+   untouched. */
+@media (max-width: 719px) {
+  .lightbox-nav { display: none; }
+  /* pan-y so a horizontal drag is unambiguously our swipe rather than a
+     browser pan attempt */
+  .lightbox-body { touch-action: pan-y; }
+  /* the 38svh floor was a desktop idea for keeping the dialog a stable
+     size as you move between a landscape and a portrait shot. with the
+     arrows gone the image is the only thing in here, and the floor just
+     left ~90px of dead black above and below it on a phone. */
+  .lightbox-body { min-height: 0; }
+}
 @media (max-width: 600px) {
   .lightbox-content {
     max-height: 94vh;
     border-radius: 8px;
     margin: 8px;
   }
-  .lightbox-nav {
-    width: 38px;
-    height: 38px;
-    font-size: 1.1rem;
-  }
-  .lightbox-next { left: 8px; }
-  .lightbox-prev { right: 8px; }
+  /* No arrows on a phone — swipe carries the gallery. They were floating
+     32px ON TOP of the picture: the body's side padding is only 14px
+     below 720px while a 38px button sits at left/right:8px, so the
+     button spanned 38..76 and the image started at 44. main.js already
+     binds a single-touch, 48px-threshold, axis-locked swipe on
+     .lightbox-body that calls navGallery(), and the thumbnails stay
+     tappable, so nothing is unreachable. Keyboard arrows are a separate
+     path and are untouched. */
   .lightbox-thumbs {
     gap: 4px;
     padding: 8px 8px 10px;
   }
+  /* TWO ROWS on a phone. Even with the overlap fixed, the title track is
+     only 121px here and "طلای اردیبهشت · نسخه دسکتاپ" needs 174px, so
+     one line means either an ellipsis that eats the half of the title
+     that tells you which screenshot you are looking at, or a second
+     line. Give the title the full width on its own row and let the
+     counter and close share the row under it. */
   .lightbox-header {
     padding: 8px 12px;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "title  title"
+      "counter close";
+    row-gap: 6px;
   }
   .lightbox-title {
+    grid-area: title;
     font-size: 0.82rem;
+    justify-self: stretch;
+    text-align: start;
   }
   .lightbox-counter {
+    grid-area: counter;
+    justify-self: start;
     font-size: 0.72rem;
     padding: 2px 8px;
+  }
+  .lightbox-close {
+    grid-area: close;
+    justify-self: end;
   }
 }
 html.lb-lock,
@@ -2567,7 +2629,43 @@ html.lb-lock body {
   .world:nth-of-type(even) .world-art { order: 0; }
   .cart-flipper-wrap { width: min(19rem, 86vw); }
   .cartridge { width: 100%; aspect-ratio: 1 / 1.5; }
-  .hud-world { display: none; }
+  /* No pull-tab on a phone. The tuck solved the 74px overhang but it
+     painted a 44px woven stripe ON TOP of the label — 44px of the 304px
+     cartridge width — with border-radius:0 and dashed edges on both
+     sides, so it stopped reading as a ribbon and started reading as a
+     stripe painted across the artwork. It also sat on top of the first
+     view tab (20px x 48px of overlap), which is where "نسخه دسکتاپ" was
+     getting its stray line break. Nothing is lost: the drag handler is
+     bound to .cartridge itself, not the tab (see the pointerdown wiring
+     in main.js), so tapping or dragging anywhere on the cartridge still
+     rotates it, and the hint badge already advertises "↻ 3D". The tab
+     was the only KEYBOARD-reachable rotate control though, which is why
+     .cartridge is now focusable with tabindex/role and handles Enter,
+     Space and the arrow keys. */
+  .cart-ribbon-tab,
+  .cart-back .cart-ribbon-tab { display: none; }
+  /* "نسخه دسکتاپ" broke onto a second line inside its 117px tab while
+     "نسخه موبایل" stayed on one — two words, and the first is longer, so
+     the button came out 46px tall against its neighbour's 44px and the
+     row of tabs read as broken. The emoji was eating ~20px of a ~75px
+     text column. Drop the glyph (decoration; the Persian label already
+     says it) and tighten the measure so both tabs sit on one line at
+     equal height. This belongs to the 860px band, not 480px: once the
+     cartridge is capped at 19rem the tab width is 117px at EVERY width
+     up to a large desktop, so 768px and 844px broke exactly as 375px
+     did. */
+  .view-tab-btn { padding: 6px 6px; font-size: .7rem; gap: 4px; }
+  .view-tab-btn .tab-icon { display: none; }
+  .view-tab-btn .tab-txt { white-space: nowrap; }
+  /* the strip grew a Persian world name on phones and lost the mono index
+     instead: "CORE 00/04" identifies nothing to a visitor who has not
+     opened a world yet, and the four 10px pips were unreadable crumbs.
+     the name is the only part that tells you where you are. */
+  :root { --hud-h: 62px; }
+  .hud-index { display: none; }
+  .hud-world { display: block; font-size: .88rem; }
+  .hud-pips { gap: .4rem; }
+  .pip { width: 14px; height: 14px; }
   /* the phone rhythm, expressed through the same variables the short
      bands override — otherwise this fixed padding would win over any
      height adaptation further down */
@@ -2605,6 +2703,18 @@ html.lb-lock body {
   .mobile-phone-frame { height: calc(100% - 4px); width: auto; aspect-ratio: 155 / 188; }
   .phone-notch { height: 4px; margin-bottom: 1px; }
   .phone-chin { height: 2px; margin: 1px auto 2px; }
+}
+
+/* The paragraph is the first thing to go, and it goes earlier than the
+   rest of the 640px band. At 375px wide it renders 188px tall — nine
+   wrapped lines — which is the single largest block in the hero and the
+   reason a 650px phone could not hold the cabinet without the page
+   scrolling. It also lands straight across the terrarium sprites the
+   attract mode paints on the tube, so keeping it costs legibility of
+   BOTH. The statement line above it already carries the message; the long
+   essay is a desktop luxury. */
+@media (max-height: 700px) {
+  .hero-para { display: none; }
 }
 
 /* ── short tubes: the cabinet compresses ─────────────── */
@@ -2690,7 +2800,22 @@ html.lb-lock body {
   .sound-label { display: none; }
   .contact-ctas .btn-gate { width: 100%; justify-content: center; }
   .world-cta { width: 100%; }
-  .world-cta .btn-gate { flex: 1; justify-content: center; }
+  /* STACK, do not share a line. `flex: 1` is `flex: 1 1 0%`, so the
+     button's hypothetical main size is 0 and the path-chip never forces a
+     wrap — both items landed on one 343px line and the button grew to
+     only 181px. Its nowrap label needs ~180px of text plus ~90px of
+     padding+gap+arrow, so justify-content:center spilled the Persian
+     16px straight through the right edge of the gold plate (label.right
+     367 vs button.right 351). The other three worlds' labels are shorter
+     and fit, which is why only ordibehesht broke. A column gives the
+     button the whole 343px for a ~270px need, and the signpost drops
+     underneath it where it can breathe. */
+  .world-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .7rem;
+  }
+  .world-cta .btn-gate { flex: 0 0 auto; max-width: 100%; }
   .toast { inset-inline-start: 1rem; max-width: 16rem; }
   .coin-fa { font-size: .66rem; }
   .hero-para { font-size: .88rem; }

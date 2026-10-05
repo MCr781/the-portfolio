@@ -100,45 +100,91 @@ because height is the scarcer resource.
 
 | Band | What it does |
 |---|---|
+| `max-height: 700px` | drops `.hero-para` — it is the biggest block in the hero (188px / nine lines at 375px) and it lies across the attract-mode sprites, so keeping it costs the legibility of both |
 | `max-height: 760px` | tighter hero padding, deck gap and scale (0.9), hides the cue and cast caption |
 | `max-height: 640px` | aggressive: deck scale 0.7, deck back to a single row, paragraph and control captions hidden, decal hidden, hero allowed to grow and scroll rather than clip |
-| `max-width: 1100px` | cartridge pull-tab tucks flush instead of hanging 34px off the edge |
-| `max-width: 860px` | worlds to one column, phone deck, cartridge 19rem |
+| `max-width: 860px` | worlds to one column, phone deck, cartridge 19rem, **pull-tab hidden**, HUD trades its mono index for the Persian world name, view tabs go single-line |
+| `max-width: 719px` | lightbox arrows removed (swipe carries it), thumbnail `min-height` released |
 
 The hero's vertical rhythm runs through `--hero-pad-top`/`--hero-pad-bottom`/
-`--hero-deck-gap`/`--hero-deck-scale` on `.hero`. `.coin-row` is absolutely
-positioned and reads `--hero-pad-bottom` — it used to carry its own clamp, so
-every band that compressed the hero left the coin door stranded on top of the
-deck.
+`--hero-deck-gap`/`--hero-deck-scale` on `.hero`. The bottom band is
+`max(--hero-pad-bottom, calc(var(--hud-h) + 12px))` — `--hud-h` is the fixed
+world-HUD strip, which is `position:fixed` at *every* width, so the padding dial
+can buy height back but never spend below what the strip occupies.
 
-Four traps worth knowing:
+Traps worth knowing:
+- **`.coin-row` must stay in normal flow.** It has been absolutely positioned
+  twice and both anchors were a guess that broke somewhere else.
+  `bottom: calc(var(--hero-pad-bottom) + 15px)` knew about the hero's padding
+  but not the foot's height, so any band that shrank the padding dropped the
+  coin door 58px onto the deck. Re-parenting it into `.hero-foot` with
+  `bottom:100%` cleared the foot but landed it straight on `.hero-deck` —
+  `INSERT COIN` printed through the START button's caption. As a flex item it
+  owns a band and cannot collide with either.
+- **The hero is an RTL column, so `align-self: flex-start` means RIGHT.** The
+  coin door jumped to the wrong side of the tube. Use `align-self: stretch` and
+  let the row's own `direction: ltr` place its children — the old absolute
+  `left` offset was hand-tuned to the same value as the hero's side padding, so
+  the content-box edge *is* the old left edge.
 - **`transform: scale()` shrinks painted tap targets.** A `min-height: 44px` at
   scale .9 is a 39px button. The bands divide it back out with
   `calc(46px / var(--hero-deck-scale))` — 46, not 44, because exact division
   lands on 44 and sub-pixel rounding drops it just under.
+- **A grid item with `justify-self: start` and `width:auto` shrink-to-fits.** With
+  `white-space:nowrap` that is the full text width, so `.lightbox-title` sized
+  itself to 174px inside a 121px track and painted over the counter.
+  `min-width:0` frees the *track*, not the box — only `stretch` (or an explicit
+  `width`) arms the `overflow:hidden`/`text-overflow` you already wrote.
+- **`flex: 1` is `flex: 1 1 0%`.** With a `nowrap` label it let the gate button
+  share a flex line with the signpost chip and grow to only 181px of a 343px
+  column, spilling the Persian text 16px through the plate. Stack instead.
 - **The pull-tab's `::before` hit-zone is scrollable overflow.** It reached 40px
   past a tab that already hung 34px off the cartridge, inside a deliberately
-  `overflow:visible` parent — ~74px into a viewport with ~22px of slack. That
-  was the whole of the site's horizontal scroll, hidden by `body{overflow-x:clip}`.
+  `overflow:visible` parent. Hiding the tab on phones is what finally removed
+  it; above 860px the cartridge's 19rem cap leaves hundreds of px of slack, so
+  no tuck band is needed at all.
 - **`.world-inner` needs `minmax(0, …)` tracks.** Grid items default to
   `min-width: auto`, so one wide child widens the track past the viewport.
 - **`overflow-x: clip` + `overflow-y: visible` is a legal pairing** (`clip` does
   not force the other axis to `auto`, unlike `hidden`) and is how the ≤640px band
   stops cropping horizontally while still letting the hero scroll vertically.
+- **The cartridge is the rotate control, not the tab.** The pointer handler is on
+  `.cartridge`, so hiding the pull-tab costs nothing on touch — but it was the
+  only *keyboard* route, which is why `.cartridge` carries `tabindex`/`role` and
+  handles Enter, Space and the arrow keys.
 
 ### Measuring it
 
 Drive headless Edge over raw CDP at each size and assert, don't eyeball:
 `scrollWidth === clientWidth`, hero height ≤ viewport, every `button`/`a`/
 `[role=button]` ≥ 44×44, and the lightbox's `scrollHeight === clientHeight` with
-the thumbnail strip above the fold. Three measurement traps:
+the thumbnail strip above the fold. Pairwise overlap of the hero bands, and the
+coin row against every `.hero-deck > *`, is the assertion that catches what
+"no overflow" cannot.
 
+**Bounding boxes are not the whole story — look at the pixels.** A pass over 26
+sizes reported clean while the coin door sat on the control deck, a Persian
+caption printed through `INSERT COIN`, and every thumbnail was a cropped
+landscape rectangle. None of those break `scrollWidth === clientWidth`. Two
+measurement traps, both of which produced false results first:
+
+- **`Range.getClientRects()` returns one rect per BIDI RUN, not per line.**
+  `↻ 3D` and `🖥️ نسخه دسکتاپ` each report 2 rects while sitting on a single line.
+  Cluster the rect *tops* with a ~3px tolerance to count real lines.
+- **A synthetic `el.click()` does not run the pointer sequence.** The cartridge
+  drag handler listens for `pointerdown`/`pointerup`, so a scripted `.click()`
+  silently does nothing. Dispatch real `Input.dispatchMouseEvent` events.
+
+Other measurement traps:
 - headless reports a **fine pointer**, so `html.has-cursor` is set and the parked
   `.cursor` (translated to about −10000px) registers as a huge overflow. Hide it.
 - `.marquee` overflows by design — exclude it.
 - don't hide `#boot` directly to get past the intro: that skips `liftBoot()`, so
   `html.awake` never lands and the whole hero copy sits at opacity 0. Remove
   `booting`, add `awake`, and force `opacity:1` on the hero rows instead.
+- pxify intentionally hangs an over-wide `nowrap` canvas out of its inline host
+  to keep it centred, so a "canvas escapes its host" assertion needs a ~40px
+  tolerance or it fires on correct behaviour.
 
 ## How to run / test
 
