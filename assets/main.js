@@ -4977,7 +4977,8 @@ function farRow(wx, rows) {
   function drawAttractChrome(g, cols, rows, w, t) {
     /* micro type on the glass: present, crisp, and out of the
        marquee's way — half the footprint of the old 5×7 row */
-    var sc = PXG <= 2 ? 2 : 1;
+    var isMobileTube = cols < 320 || (html && html.clientWidth < 640);
+    var sc = isMobileTube ? 1 : (PXG <= 2 ? 2 : 1);
     var y1 = 2;
     var y2 = y1 + 7 * sc;
     var chrome = PC.shell;   /* white glass text, over the vignette */
@@ -5031,7 +5032,7 @@ function farRow(wx, rows) {
        strip and deep terrain: SPEC, alerts and all now sit in the
        third glass row, under the score. */
     var y3 = y2 + 8 * sc;
-    var showCombatHud = playT > 0 || cols >= 250;
+    var showCombatHud = playT > 0 || !isMobileTube;
     if (w && showCombatHud) {
       var laserOn = w.t < (w.laserUntil || 0);
       /* SPEC — four charge pips: gold while charging, cyan while the
@@ -5090,13 +5091,13 @@ function farRow(wx, rows) {
         rightEdge -= mW('FLAGSHIP') + 4 * sc;
       }
       /* dedicated Boss Health Bar (Shield + Core Armor) — only when tube is wide enough or in active battle */
-      if (w.mother && w.mother.state !== 'dying' && (playT > 0 || cols >= 250)) {
+      if (w.mother && w.mother.state !== 'dying' && (playT > 0 || !isMobileTube)) {
         var MoH = w.mother;
-        var barW = Math.min(160, cols - 40);
-        var barH = 5;
+        var barW = isMobileTube ? Math.min(120, cols - 24) : Math.min(160, cols - 40);
+        var barH = isMobileTube ? 4 : 5;
         var barX = Math.round(cols / 2 - barW / 2);
         var titleY = Math.round(y3 + 1);
-        var barY = Math.round(y3 + 9);
+        var barY = Math.round(y3 + (isMobileTube ? 7 : 9));
         if (barY < rows * 0.28) {
           g.save();
           var bTitle = MoH.hp <= 10 ? '◆ DREADNOUGHT CRITICAL ◆' : (MoH.shield > 0 ? '◆ DREADNOUGHT SHIELDED ◆' : '◆ DREADNOUGHT CORE EXPOSED ◆');
@@ -8076,7 +8077,7 @@ function setThumbColumns(box, n) {
         swipeX0 = null;
         swipeY0 = null;
         if (!galleryState || Math.abs(dx) < 48 || Math.abs(dy) >= Math.abs(dx)) { return; }
-        navGallery(dx < 0 ? 1 : -1);
+        navGallery(dx < 0 ? -1 : 1);
       }, { passive: true });
     }
   }
