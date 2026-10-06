@@ -899,7 +899,7 @@
         }
         blip(220, 120);
       });
-    }, { threshold: 0.55 });
+    }, { rootMargin: '-20% 0px -25% 0px', threshold: 0.08 });
     io.observe(w);
   });
 
@@ -908,7 +908,7 @@
       entries.forEach(function (en) {
         if (en.isIntersecting) { setChrome('', 'هسته'); }
       });
-    }, { threshold: 0.5 });
+    }, { rootMargin: '-20% 0px -25% 0px', threshold: 0.08 });
     io.observe(s);
   });
   setChrome('', 'هسته');
@@ -5031,7 +5031,8 @@ function farRow(wx, rows) {
        strip and deep terrain: SPEC, alerts and all now sit in the
        third glass row, under the score. */
     var y3 = y2 + 8 * sc;
-    if (w) {
+    var showCombatHud = playT > 0 || cols >= 250;
+    if (w && showCombatHud) {
       var laserOn = w.t < (w.laserUntil || 0);
       /* SPEC — four charge pips: gold while charging, cyan while the
          gift burns, READY blinking at full */
@@ -5088,10 +5089,10 @@ function farRow(wx, rows) {
         }
         rightEdge -= mW('FLAGSHIP') + 4 * sc;
       }
-      /* dedicated Boss Health Bar (Shield + Core Armor) */
-      if (w.mother && w.mother.state !== 'dying') {
+      /* dedicated Boss Health Bar (Shield + Core Armor) — only when tube is wide enough or in active battle */
+      if (w.mother && w.mother.state !== 'dying' && (playT > 0 || cols >= 250)) {
         var MoH = w.mother;
-        var barW = 160;
+        var barW = Math.min(160, cols - 40);
         var barH = 5;
         var barX = Math.round(cols / 2 - barW / 2);
         var titleY = Math.round(y3 + 1);
@@ -7133,8 +7134,7 @@ function farRow(wx, rows) {
       text = 'TIME ' + (sec2 < 10 ? '0' + sec2 : '' + sec2);
       color = PC.gold;
     } else {
-      var nn = credits < 10 ? '0' + credits : '' + credits;
-      text = credits > 0 ? 'CREDIT ' + nn : 'INSERT COIN';
+      text = 'INSERT COIN';
       color = credits > 0 ? PC.gold : PC.slateHi;
     }
     var W = textW(text) + 1;
@@ -7916,8 +7916,12 @@ function setThumbColumns(box, n) {
       for (var ti = 0; ti < kids.length; ti++) {
         var on = ti === idx;
         kids[ti].classList.toggle('is-active', on);
-        if (on) { kids[ti].setAttribute('aria-current', 'true'); }
-        else { kids[ti].removeAttribute('aria-current'); }
+        if (on) {
+          kids[ti].setAttribute('aria-current', 'true');
+          if (typeof kids[ti].scrollIntoView === 'function') {
+            try { kids[ti].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (e) {}
+          }
+        } else { kids[ti].removeAttribute('aria-current'); }
       }
     }
     var ahead = new Image();

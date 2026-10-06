@@ -364,11 +364,13 @@ html.has-cursor .cursor { display: block; }
 html.booting .hero-inner,
 html.booting .hero-cue,
 html.booting .hero-deck,
+html.booting .hero-bottom,
 html.booting .coin-row,
 html.booting .hero-foot { opacity: 0; }
 html.awake .hero-inner { animation: fadeinstep 420ms steps(3) 140ms forwards; }
 html.awake .hero-cue { animation: fadeinstep 380ms steps(3) 340ms forwards; }
 html.awake .hero-deck { animation: fadeinstep 420ms steps(4) 260ms forwards; }
+html.awake .hero-bottom { animation: fadeinstep 420ms steps(4) 400ms forwards; }
 html.awake .coin-row { animation: fadeinstep 420ms steps(4) 400ms forwards; }
 html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
 /* a banner stamp owns the glass alone: attract copy steps off it
@@ -577,9 +579,20 @@ html.coin-hidden .coin-row { visibility: hidden; }
    `left: clamp(16px, 2.8vw, 32px)` put it: that offset was hand-tuned to
    the same value as the hero's side padding (16px at 375, 32px at 1440),
    so the content-box edge IS the old left edge. */
+/* ── hero bottom bezel · coin door left, explore center, credit right ── */
+.hero-bottom {
+  position: relative;
+  z-index: 4;
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: clamp(6px, 1.2vh, 16px);
+  direction: ltr;
+}
 .coin-row {
   position: relative;
-  align-self: stretch;
   flex: 0 0 auto;
   z-index: 4;
   display: flex;
@@ -603,15 +616,15 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .coin-fa { font-size: .74rem; color: var(--shell-muted); }
 /* ── hero foot · decal centered, CREDIT on the right glass ── */
 .hero-foot {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 2;
-  flex: 0 0 auto;
-  margin-top: clamp(1px, 0.3vh, 2px);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 16px;
-  width: 100%;
+  direction: rtl;
 }
 .crt-decal { position: relative; }
 .hero-explore-cta {
@@ -658,7 +671,12 @@ html.coin-hidden .coin-row { visibility: hidden; }
 @media (max-width: 600px) {
   .crt-decal { display: none; }
 }
-.credit { position: absolute; right: 0; bottom: 0; }
+.credit {
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
+  direction: ltr;
+}
 .crt-decal canvas,
 .credit canvas,
 .coin-label canvas { display: block; margin-inline: auto; }
@@ -962,7 +980,8 @@ html[data-show='cast'] .cast-caption {
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.4),
     inset -1px -1px 0 rgba(0, 0, 0, 0.5),
-    10px 10px 0 color-mix(in srgb, var(--c-shadow) 80%, transparent);
+    0 4px 10px rgba(0, 0, 0, 0.35),
+    0 14px 28px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -976,14 +995,16 @@ html[data-show='cast'] .cast-caption {
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.6),
     inset -1px -1px 0 rgba(0, 0, 0, 0.5),
-    14px 14px 0 color-mix(in srgb, var(--c-accent) 80%, transparent);
-  transform: translateY(-4px);
+    0 6px 14px rgba(0, 0, 0, 0.35),
+    0 22px 42px rgba(0, 0, 0, 0.55),
+    0 0 20px color-mix(in srgb, var(--c-accent) 30%, transparent);
+  transform: translateY(-6px);
 }
 .cartridge.is-flipped {
   transform: rotateY(180deg);
 }
 .cartridge.is-flipped.is-hover {
-  transform: rotateY(180deg) translateY(-4px);
+  transform: rotateY(180deg) translateY(-6px);
 }
 .cartridge.is-dragging {
   cursor: grabbing !important;
@@ -992,10 +1013,10 @@ html[data-show='cast'] .cast-caption {
 }
 .cartridge.snap { animation: cartsting 330ms steps(1); }
 @keyframes cartsting {
-  0%  { box-shadow: 10px 10px 0 color-mix(in srgb, var(--c-shadow) 80%, transparent); }
-  33% { box-shadow: 14px 14px 0 color-mix(in srgb, var(--c-accent) 80%, transparent); }
-  66% { box-shadow: 12px 12px 0 color-mix(in srgb, var(--c-shadow) 80%, transparent); }
-  100% { box-shadow: 14px 14px 0 color-mix(in srgb, var(--c-accent) 80%, transparent); }
+  0%  { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.4), inset -1px -1px 0 rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.35), 0 14px 28px rgba(0, 0, 0, 0.45); }
+  33% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.6), inset -1px -1px 0 rgba(0, 0, 0, 0.5), 0 8px 18px rgba(0, 0, 0, 0.4), 0 24px 44px rgba(0, 0, 0, 0.55), 0 0 22px color-mix(in srgb, var(--c-accent) 45%, transparent); }
+  66% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.4), inset -1px -1px 0 rgba(0, 0, 0, 0.5), 0 6px 12px rgba(0, 0, 0, 0.35), 0 18px 34px rgba(0, 0, 0, 0.5); }
+  100% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.6), inset -1px -1px 0 rgba(0, 0, 0, 0.5), 0 6px 14px rgba(0, 0, 0, 0.35), 0 22px 42px rgba(0, 0, 0, 0.55), 0 0 20px color-mix(in srgb, var(--c-accent) 30%, transparent); }
 }
 .cartridge.tilting { transition: none !important; }
 .cartridge:not(.tilting):not(.is-dragging) {
@@ -1350,7 +1371,9 @@ html[data-show='cast'] .cast-caption {
   border-right: none;
   border-radius: 6px 0 0 8px;
   box-shadow:
-    -6px 6px 16px rgba(0, 0, 0, 0.85),
+    -2px 3px 6px rgba(0, 0, 0, 0.32),
+    -6px 8px 18px rgba(0, 0, 0, 0.28),
+    -12px 16px 28px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
   display: flex;
   flex-direction: column;
@@ -1386,8 +1409,10 @@ html[data-show='cast'] .cast-caption {
 .cart-ribbon-tab:hover {
   transform: translateX(-10px) rotate(-1.5deg) scale(1.06) !important;
   box-shadow:
-    -10px 10px 22px rgba(0, 0, 0, 0.95),
-    0 0 20px rgba(255, 45, 60, 0.5) !important;
+    -3px 4px 8px rgba(0, 0, 0, 0.35),
+    -8px 12px 24px rgba(0, 0, 0, 0.32),
+    -16px 22px 36px rgba(0, 0, 0, 0.22),
+    0 0 20px color-mix(in srgb, var(--c-accent, #ffd76a) 45%, transparent) !important;
   filter: brightness(1.15) !important;
 }
 
@@ -1402,12 +1427,23 @@ html[data-show='cast'] .cast-caption {
   border-left: none;
   border-right: 1.5px dashed rgba(255, 255, 255, 0.45);
   transform-origin: left center;
+  box-shadow:
+    2px 3px 6px rgba(0, 0, 0, 0.32),
+    6px 8px 18px rgba(0, 0, 0, 0.28),
+    12px 16px 28px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 .cart-flipper-wrap:hover .cart-back .cart-ribbon-tab {
   transform: translateX(4px);
 }
 .cart-back .cart-ribbon-tab:hover {
   transform: translateX(10px) rotate(1.5deg) scale(1.06) !important;
+  box-shadow:
+    3px 4px 8px rgba(0, 0, 0, 0.35),
+    8px 12px 24px rgba(0, 0, 0, 0.32),
+    16px 22px 36px rgba(0, 0, 0, 0.22),
+    0 0 20px color-mix(in srgb, var(--c-accent, #ffd76a) 45%, transparent) !important;
+  filter: brightness(1.15) !important;
 }
 .cart-back .cart-ribbon-tab:active {
   transform: translateX(12px) rotate(2deg) scale(1.02) !important;
@@ -1474,7 +1510,18 @@ html[data-show='cast'] .cast-caption {
   border-color: rgba(255, 215, 0, 0.5);
 }
 .w01 .cart-ribbon-tab:hover {
-  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(255, 45, 60, 0.5) !important;
+  box-shadow:
+    -3px 4px 8px rgba(0, 0, 0, 0.35),
+    -8px 12px 24px rgba(0, 0, 0, 0.35),
+    -16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(255, 45, 60, 0.45) !important;
+}
+.w01 .cart-back .cart-ribbon-tab:hover {
+  box-shadow:
+    3px 4px 8px rgba(0, 0, 0, 0.35),
+    8px 12px 24px rgba(0, 0, 0, 0.35),
+    16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(255, 45, 60, 0.45) !important;
 }
 
 .w02 .cart-ribbon-tab {
@@ -1482,6 +1529,18 @@ html[data-show='cast'] .cast-caption {
     repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
     linear-gradient(90deg, #441063 0%, #6e199e 45%, #340c4c 100%);
   border-color: rgba(243, 209, 121, 0.5);
+  box-shadow:
+    -2px 3px 6px rgba(0, 0, 0, 0.32),
+    -6px 8px 18px rgba(42, 12, 44, 0.55),
+    -12px 16px 28px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.w02 .cart-back .cart-ribbon-tab {
+  box-shadow:
+    2px 3px 6px rgba(0, 0, 0, 0.32),
+    6px 8px 18px rgba(42, 12, 44, 0.55),
+    12px 16px 28px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 .w02 .cart-ribbon-tab .brass-grommet {
   background: radial-gradient(circle, #2d1300 0 25%, #f3d179 35%, #9d7c2a 70%, #ffd700 100%);
@@ -1489,7 +1548,18 @@ html[data-show='cast'] .cast-caption {
 }
 .w02 .cart-ribbon-tab .ribbon-text { color: #f3d179; }
 .w02 .cart-ribbon-tab:hover {
-  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(184, 80, 255, 0.5) !important;
+  box-shadow:
+    -3px 4px 8px rgba(0, 0, 0, 0.35),
+    -8px 12px 24px rgba(42, 12, 44, 0.65),
+    -16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(184, 80, 255, 0.45) !important;
+}
+.w02 .cart-back .cart-ribbon-tab:hover {
+  box-shadow:
+    3px 4px 8px rgba(0, 0, 0, 0.35),
+    8px 12px 24px rgba(42, 12, 44, 0.65),
+    16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(184, 80, 255, 0.45) !important;
 }
 
 .w03 .cart-ribbon-tab {
@@ -1504,7 +1574,18 @@ html[data-show='cast'] .cast-caption {
 }
 .w03 .cart-ribbon-tab .ribbon-text { color: #7bf5e5; }
 .w03 .cart-ribbon-tab:hover {
-  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(45, 212, 191, 0.5) !important;
+  box-shadow:
+    -3px 4px 8px rgba(0, 0, 0, 0.35),
+    -8px 12px 24px rgba(0, 0, 0, 0.35),
+    -16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(45, 212, 191, 0.45) !important;
+}
+.w03 .cart-back .cart-ribbon-tab:hover {
+  box-shadow:
+    3px 4px 8px rgba(0, 0, 0, 0.35),
+    8px 12px 24px rgba(0, 0, 0, 0.35),
+    16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(45, 212, 191, 0.45) !important;
 }
 
 .w04 .cart-ribbon-tab {
@@ -1512,6 +1593,18 @@ html[data-show='cast'] .cast-caption {
     repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
     linear-gradient(90deg, #740c42 0%, #a4125e 45%, #560831 100%);
   border-color: rgba(255, 158, 198, 0.5);
+  box-shadow:
+    -2px 3px 6px rgba(0, 0, 0, 0.32),
+    -6px 8px 18px rgba(27, 15, 85, 0.55),
+    -12px 16px 28px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.w04 .cart-back .cart-ribbon-tab {
+  box-shadow:
+    2px 3px 6px rgba(0, 0, 0, 0.32),
+    6px 8px 18px rgba(27, 15, 85, 0.55),
+    12px 16px 28px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 .w04 .cart-ribbon-tab .brass-grommet {
   background: radial-gradient(circle, #380720 0 25%, #ff9ec6 35%, #921852 70%, #ffd1e3 100%);
@@ -1519,7 +1612,18 @@ html[data-show='cast'] .cast-caption {
 }
 .w04 .cart-ribbon-tab .ribbon-text { color: #ffd1e3; }
 .w04 .cart-ribbon-tab:hover {
-  box-shadow: -10px 10px 22px rgba(0, 0, 0, 0.95), 0 0 20px rgba(244, 63, 134, 0.5) !important;
+  box-shadow:
+    -3px 4px 8px rgba(0, 0, 0, 0.35),
+    -8px 12px 24px rgba(27, 15, 85, 0.65),
+    -16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(244, 63, 134, 0.45) !important;
+}
+.w04 .cart-back .cart-ribbon-tab:hover {
+  box-shadow:
+    3px 4px 8px rgba(0, 0, 0, 0.35),
+    8px 12px 24px rgba(27, 15, 85, 0.65),
+    16px 22px 36px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(244, 63, 134, 0.45) !important;
 }
 
 /* ── Back Shell Header ── */
@@ -2032,21 +2136,15 @@ html[data-show='cast'] .cast-caption {
   position: relative;
   max-width: 960px;
   width: 100%;
-  max-height: 90vh;
-  max-height: 90svh;
+  height: min(92vh, 92svh);
+  max-height: min(92vh, 92svh);
   background: #0f1019;
   border: 2px solid var(--c-accent);
   border-radius: 10px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 24px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
-  /* overflow-y, not hidden. The page behind is scroll-locked while the
-     lightbox is open, so anything this box crops is genuinely gone —
-     at 844x390 the header + a 280px body floor + the thumb strip
-     overflowed a 351px box by 77px and took the thumbnails with it.
-     scrolling is the only honest fallback left. */
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   z-index: 2;
   transform: scale(0.95);
@@ -2126,7 +2224,9 @@ html[data-show='cast'] .cast-caption {
 }
 .lightbox-body {
   position: relative;
-  padding: 14px;
+  padding: 12px;
+  flex: 1 1 0%;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2134,15 +2234,12 @@ html[data-show='cast'] .cast-caption {
   background:
     radial-gradient(ellipse at center, rgba(255, 255, 255, 0.03) 0%, transparent 70%),
     #07070d;
-  /* the 280px floor was fixed, so on a short tube it outgrew the box
-     and the thumbnails fell off the bottom. it is a floor for tall
-     screens only — cap it against the viewport instead. */
-  min-height: min(280px, 38svh);
 }
 .lightbox-img {
   max-width: 100%;
-  max-height: min(72vh, calc(90vh - 185px));
-  max-height: min(72svh, calc(90svh - 185px));
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -2207,34 +2304,35 @@ html[data-show='cast'] .cast-caption {
   }
 }
 .lightbox-thumbs {
-  display: grid;
-  /* --lb-cols is computed in buildThumbs (main.js) as the LARGEST divisor
-     of the item count that fits the available width. auto-fit looked
-     tidier in the source but produced 4 columns for 6 items at 375px —
-     a full row of 4 and an orphan row of 2. Six divides by 2, 3 and 6,
-     so a phone gets 3x2 with no orphan. */
-  grid-template-columns: repeat(var(--lb-cols, 3), 1fr);
-  gap: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 10px 14px 14px;
+  max-width: 100%;
+  height: 68px;
+  padding: 8px 14px;
   box-sizing: border-box;
   direction: rtl;
   background: #0d0e17;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  flex: 0 0 68px;
 }
 .lightbox-thumb {
   position: relative;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 48px;
   padding: 0;
-  border: 2px solid rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.16);
   border-radius: 6px;
   overflow: hidden;
   background: #08080f;
-  /* 4/3 rather than 16/10: the galleries are mostly portrait phone shots,
-     so a taller box gives a contained portrait more pixels of height. */
   aspect-ratio: 4 / 3;
-  opacity: 0.52;
+  opacity: 0.55;
   transition: opacity 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
   cursor: pointer;
 }
@@ -2242,23 +2340,16 @@ html[data-show='cast'] .cast-caption {
   display: block;
   width: 100%;
   height: 100%;
-  /* CONTAIN, not cover. Five of the six shots in every gallery are
-     450x974 portrait phone screenshots, and `cover` was squeezing them
-     into a 16/10 landscape box — cropping away nearly the whole screen,
-     which is why every thumbnail read as a landscape desktop capture.
-     `contain` shows the whole screenshot and letterboxes it on the
-     thumb's own dark plate, so the shape of the device is still legible
-     (that is the only thing the thumbnail has to say). */
   object-fit: contain;
   transition: transform 200ms ease;
 }
 .lightbox-thumb:hover {
-  opacity: 0.88;
-  border-color: rgba(255, 255, 255, 0.4);
+  opacity: 0.92;
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
 }
 .lightbox-thumb:hover img {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 .lightbox-thumb.is-active {
   opacity: 1;
@@ -2298,21 +2389,22 @@ html[data-show='cast'] .cast-caption {
 }
 @media (max-width: 600px) {
   .lightbox-content {
-    max-height: 94vh;
+    height: min(94vh, 94svh);
+    max-height: min(94vh, 94svh);
     border-radius: 8px;
     margin: 8px;
   }
-  /* No arrows on a phone — swipe carries the gallery. They were floating
-     32px ON TOP of the picture: the body's side padding is only 14px
-     below 720px while a 38px button sits at left/right:8px, so the
-     button spanned 38..76 and the image started at 44. main.js already
-     binds a single-touch, 48px-threshold, axis-locked swipe on
-     .lightbox-body that calls navGallery(), and the thumbnails stay
-     tappable, so nothing is unreachable. Keyboard arrows are a separate
-     path and are untouched. */
   .lightbox-thumbs {
-    gap: 4px;
-    padding: 8px 8px 10px;
+    gap: 6px;
+    height: 58px;
+    padding: 6px 10px;
+    flex: 0 0 58px;
+    justify-content: flex-start;
+  }
+  .lightbox-thumb {
+    flex: 0 0 54px;
+    width: 54px;
+    height: 42px;
   }
   /* TWO ROWS on a phone. Even with the overlap fixed, the title track is
      only 121px here and "طلای اردیبهشت · نسخه دسکتاپ" needs 174px, so
@@ -2670,11 +2762,35 @@ html.lb-lock body {
      bands override — otherwise this fixed padding would win over any
      height adaptation further down */
   .hero {
-    --hero-pad-top: 3.4rem;
+    --hero-pad-top: clamp(2.4rem, 5.5vh, 3.2rem);
     --hero-pad-bottom: 4.2rem;
   }
-  .hero-name { font-size: clamp(1.9rem, 8vw, 2.6rem); }
-  .hero-para { font-size: .92rem; }
+  .hero-name {
+    font-size: clamp(1.9rem, 8vw, 2.6rem);
+    text-shadow: 0 2px 12px rgba(5, 5, 10, 0.95), 0 0 20px rgba(5, 5, 10, 0.9);
+  }
+  .hero-statement {
+    text-shadow: 0 2px 10px rgba(5, 5, 10, 0.95);
+  }
+  .hero-bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: .6rem;
+  }
+  .hero-foot {
+    position: static;
+    transform: none;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .coin-row {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .credit {
+    margin-left: 0;
+  }
   .hero-deck {
     flex-wrap: wrap;
     row-gap: 1rem;
@@ -2705,16 +2821,14 @@ html.lb-lock body {
   .phone-chin { height: 2px; margin: 1px auto 2px; }
 }
 
-/* The paragraph is the first thing to go, and it goes earlier than the
-   rest of the 640px band. At 375px wide it renders 188px tall — nine
-   wrapped lines — which is the single largest block in the hero and the
-   reason a 650px phone could not hold the cabinet without the page
-   scrolling. It also lands straight across the terrarium sprites the
-   attract mode paints on the tube, so keeping it costs legibility of
-   BOTH. The statement line above it already carries the message; the long
-   essay is a desktop luxury. */
-@media (max-height: 700px) {
+/* The paragraph is dropped on mobile screens and short tubes to keep
+   the hero crisp and prevent overlap with attract sprites */
+@media (max-height: 760px), (max-width: 860px) {
   .hero-para { display: none; }
+  .hero-inner {
+    margin-top: clamp(2.4rem, 5.5vh, 3.4rem);
+    padding-inline: 12px;
+  }
 }
 
 /* ── short tubes: the cabinet compresses ─────────────── */
@@ -2731,7 +2845,10 @@ html.lb-lock body {
     --hero-deck-gap: clamp(14px, 3.4vh, 34px);
     --hero-deck-scale: .9;
   }
-  .hero-inner { margin-top: clamp(1rem, 3vh, 2rem); }
+  .hero-inner {
+    margin-top: clamp(2.4rem, 5.5vh, 3.4rem);
+    padding-inline: 12px;
+  }
   /* the deck is scaled to buy height, but transform scales the PAINTED
      box too — a 44px min-height at scale .9 is a 39px target on the
      glass. divide it back out so a thumb still meets 44. */
