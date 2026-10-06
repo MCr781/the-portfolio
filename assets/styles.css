@@ -378,8 +378,8 @@ html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
    opacity in the cascade) */
 html.banner-on .hero-inner,
 html.banner-on .hero-cue,
-html.human-run .hero-inner,
 html.human-run .hero-cue,
+html.boss-active .hero-inner,
 html.gameover-dim .hero-cue { visibility: hidden; pointer-events: none; }
 /* GAME OVER: the marquee recedes to under half of itself — present at
    the edges, ghosted behind the plate, never glyph-on-glyph */
@@ -1171,6 +1171,13 @@ html[data-show='cast'] .cast-caption {
   background: #000000;
   overflow: hidden;
   border-bottom: 2px solid rgba(0, 0, 0, 0.85);
+  contain: paint;
+}
+.cart-label-art picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: translateZ(1px);
 }
 .cart-img {
   width: 100%;
@@ -1179,10 +1186,14 @@ html[data-show='cast'] .cast-caption {
   display: block;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  transform: translateZ(1px);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
   transition: transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .cartridge.is-hover .cart-img {
-  transform: scale(1.05);
+  transform: scale(1.05) translateZ(1px);
 }
 .cart-art-vignette {
   position: absolute;
@@ -2636,8 +2647,8 @@ html.lb-lock body {
 .hud-left { display: flex; justify-content: flex-end; }
 .hud-sound {
   display: flex;
-  gap: .6rem;
-  align-items: baseline;
+  gap: .4rem;
+  align-items: center;
   background: none;
   border: none;
   color: var(--shell-muted);
@@ -2653,6 +2664,21 @@ html.lb-lock body {
   min-width: 44px;
   justify-content: center;
 }
+.hud-speaker-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  color: inherit;
+  transition: transform 140ms ease, color 140ms ease;
+}
+.hud-sound:hover .hud-speaker-icon {
+  transform: scale(1.1);
+}
+.hud-sound[aria-pressed="true"] .spk-wave { display: inline; }
+.hud-sound[aria-pressed="true"] .spk-mute { display: none; }
+.hud-sound[aria-pressed="false"] .spk-wave { display: none; }
+.hud-sound[aria-pressed="false"] .spk-mute { display: inline; color: #64748b; }
+.hud-sound[aria-pressed="false"] { color: #64748b; }
 .hud-sound .mono {
   font-size: .68rem;
   letter-spacing: .12em;
@@ -2932,15 +2958,16 @@ html.lb-lock body {
     transform-origin: left bottom;
   }
   .coin-label { transform: scale(0.74); transform-origin: left center; }
-  .cart-screen-stage { height: 128px; }
+  .cart-screen-stage { height: 118px; }
   .cart-back .cart-slot { display: none; }
-  .cart-back-well { gap: 6px; }
+  .cart-back-well { gap: 5px; overflow-y: auto; scrollbar-width: none; }
   .cart-view-tabs { padding: 3px; }
   .view-tab-btn { padding: 3px 8px; }
   .cart-back-specs { padding: 5px 8px; }
-  .specs-list { gap: 3px; font-size: 0.68rem; line-height: 1.35; }
-  .specs-list .spec-k { font-size: 0.66rem; }
-  .specs-list .spec-v { font-size: 0.68rem; }
+  .specs-list { gap: 3px; font-size: 0.68rem; line-height: 1.3; }
+  .specs-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .specs-list .spec-k { font-size: 0.66rem; flex-shrink: 0; }
+  .specs-list .spec-v { font-size: 0.68rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mobile-phone-frame { height: calc(100% - 4px); width: auto; aspect-ratio: 155 / 188; }
   .phone-notch { height: 4px; margin-bottom: 1px; }
   .phone-chin { height: 2px; margin: 1px auto 2px; }

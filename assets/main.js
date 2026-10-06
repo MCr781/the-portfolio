@@ -5031,7 +5031,7 @@ function farRow(wx, rows) {
        always visible. The old bottom row died behind the fixed HUD
        strip and deep terrain: SPEC, alerts and all now sit in the
        third glass row, under the score. */
-    var y3 = y2 + 8 * sc;
+    var y3 = isMobileTube ? (y2 + 9 * sc) : (y2 + 8 * sc);
     var showCombatHud = playT > 0 || !isMobileTube;
     if (w && showCombatHud) {
       var laserOn = w.t < (w.laserUntil || 0);
@@ -5096,9 +5096,9 @@ function farRow(wx, rows) {
         var barW = isMobileTube ? Math.min(120, cols - 24) : Math.min(160, cols - 40);
         var barH = isMobileTube ? 4 : 5;
         var barX = Math.round(cols / 2 - barW / 2);
-        var titleY = Math.round(y3 + 1);
-        var barY = Math.round(y3 + (isMobileTube ? 7 : 9));
-        if (barY < rows * 0.28) {
+        var titleY = isMobileTube ? Math.round(y3 + 9) : Math.round(y3 + 1);
+        var barY = isMobileTube ? Math.round(titleY + 7) : Math.round(y3 + 9);
+        if (barY < rows * 0.35) {
           g.save();
           var bTitle = MoH.hp <= 10 ? '◆ DREADNOUGHT CRITICAL ◆' : (MoH.shield > 0 ? '◆ DREADNOUGHT SHIELDED ◆' : '◆ DREADNOUGHT CORE EXPOSED ◆');
           var tCol = MoH.hp <= 10 ? PC.redHi : (MoH.shield > 0 ? '#38bdf8' : '#f59e0b');
@@ -8443,6 +8443,7 @@ function setThumbColumns(box, n) {
       html.classList.toggle('banner-on', bannerOn);
     }
     html.classList.toggle('human-run', !!(world && world.humanRun && !world.shipDead));
+    html.classList.toggle('boss-active', !!(world && world.mother && world.mother.state !== 'dying'));
     /* a dimming stamp: the introduction recedes behind the DOM plate —
        present, legible at the edges, never glyph-on-glyph */
     var dimOn = !!(world && world.banner && world.banner.dim && t < world.banner.until);
