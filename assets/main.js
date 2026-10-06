@@ -5032,7 +5032,7 @@ function farRow(wx, rows) {
        strip and deep terrain: SPEC, alerts and all now sit in the
        third glass row, under the score. */
     var y3 = isMobileTube ? (y2 + 9 * sc) : (y2 + 8 * sc);
-    var showCombatHud = playT > 0 || !isMobileTube;
+    var showCombatHud = playT > 0 || !isMobileTube || !!(w && (w.humanRun || w.mother));
     if (w && showCombatHud) {
       var laserOn = w.t < (w.laserUntil || 0);
       /* SPEC — four charge pips: gold while charging, cyan while the
@@ -5090,8 +5090,8 @@ function farRow(wx, rows) {
         }
         rightEdge -= mW('FLAGSHIP') + 4 * sc;
       }
-      /* dedicated Boss Health Bar (Shield + Core Armor) — only when tube is wide enough or in active battle */
-      if (w.mother && w.mother.state !== 'dying' && (playT > 0 || !isMobileTube)) {
+      /* dedicated Boss Health Bar (Shield + Core Armor) — always rendered when boss is in active battle */
+      if (w.mother && w.mother.state !== 'dying') {
         var MoH = w.mother;
         var barW = isMobileTube ? Math.min(120, cols - 24) : Math.min(160, cols - 40);
         var barH = isMobileTube ? 4 : 5;

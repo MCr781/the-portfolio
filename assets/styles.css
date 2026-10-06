@@ -364,13 +364,11 @@ html.has-cursor .cursor { display: block; }
 html.booting .hero-inner,
 html.booting .hero-cue,
 html.booting .hero-deck,
-html.booting .hero-bottom,
 html.booting .coin-row,
 html.booting .hero-foot { opacity: 0; }
 html.awake .hero-inner { animation: fadeinstep 420ms steps(3) 140ms forwards; }
 html.awake .hero-cue { animation: fadeinstep 380ms steps(3) 340ms forwards; }
 html.awake .hero-deck { animation: fadeinstep 420ms steps(4) 260ms forwards; }
-html.awake .hero-bottom { animation: fadeinstep 420ms steps(4) 400ms forwards; }
 html.awake .coin-row { animation: fadeinstep 420ms steps(4) 400ms forwards; }
 html.awake .hero-foot { animation: fadeinstep 320ms steps(3) 480ms forwards; }
 /* a banner stamp owns the glass alone: attract copy steps off it
@@ -580,21 +578,11 @@ html.coin-hidden .coin-row { visibility: hidden; }
    `left: clamp(16px, 2.8vw, 32px)` put it: that offset was hand-tuned to
    the same value as the hero's side padding (16px at 375, 32px at 1440),
    so the content-box edge IS the old left edge. */
-/* ── hero bottom bezel · coin door left, explore center, credit right ── */
-.hero-bottom {
-  position: relative;
-  z-index: 4;
-  flex: 0 0 auto;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: clamp(6px, 1.2vh, 16px);
-  direction: ltr;
-}
+/* ── coin row · a pixel coin door on the glass ──────── */
 .coin-row {
-  position: relative;
-  flex: 0 0 auto;
+  position: absolute;
+  left: clamp(16px, 2.8vw, 32px);
+  bottom: calc(clamp(3.2rem, 5.6vh, 4.2rem) + 15px);
   z-index: 4;
   display: flex;
   align-items: center;
@@ -617,14 +605,15 @@ html.coin-hidden .coin-row { visibility: hidden; }
 .coin-fa { font-size: .74rem; color: var(--shell-muted); }
 /* ── hero foot · decal centered, CREDIT on the right glass ── */
 .hero-foot {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative;
   z-index: 2;
+  flex: 0 0 auto;
+  margin-top: clamp(1px, 0.3vh, 2px);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 16px;
+  width: 100%;
   direction: rtl;
 }
 .crt-decal { position: relative; }
@@ -633,9 +622,6 @@ html.coin-hidden .coin-row { visibility: hidden; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  /* a 23px-tall button in the hero foot. affordance, so it gets a
-     thumb-sized target; the type stays small because this one really
-     is chrome on the cabinet */
   min-height: 44px;
   padding: 3px 12px 4px;
   background: rgba(14, 11, 26, 0.85);
@@ -673,9 +659,9 @@ html.coin-hidden .coin-row { visibility: hidden; }
   .crt-decal { display: none; }
 }
 .credit {
-  position: relative;
-  flex: 0 0 auto;
-  margin-left: auto;
+  position: absolute;
+  right: clamp(16px, 2.8vw, 32px);
+  bottom: 0;
   direction: ltr;
 }
 .crt-decal canvas,
@@ -1952,6 +1938,8 @@ html[data-show='cast'] .cast-caption {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   padding-bottom: 4px;
 }
@@ -1963,11 +1951,16 @@ html[data-show='cast'] .cast-caption {
   background: rgba(255, 255, 255, 0.08);
   padding: 1px 6px;
   border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .specs-tagline {
-  font-size: 0.64rem;
+  font-size: clamp(0.54rem, 1.8vw, 0.62rem);
   font-weight: 700;
   color: #a5a7c2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .specs-list {
   list-style: none;
@@ -1981,24 +1974,29 @@ html[data-show='cast'] .cast-caption {
 }
 .specs-list li {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   gap: 6px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 .specs-list .spec-k {
   color: #9ea0be;
   font-weight: 800;
   flex-shrink: 0;
   font-size: 0.72rem;
+  white-space: nowrap;
 }
 .specs-list .spec-v {
   color: #f2f2fa;
   font-weight: 600;
   font-size: 0.74rem;
-  /* a spec value is the one part of the cartridge meant to be read,
-     so it has to be allowed to wrap rather than push the well wider
-     than the cartridge that holds it */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: normal;
+  overflow-wrap: break-word;
   min-width: 0;
-  overflow-wrap: anywhere;
 }
 .badge-status-live {
   color: #39ff14 !important;
@@ -2747,8 +2745,8 @@ html.lb-lock body {
   }
   .world:nth-of-type(even) .world-text { order: 0; }
   .world:nth-of-type(even) .world-art { order: 0; }
-  .cart-flipper-wrap { width: min(19rem, 86vw); }
-  .cartridge { width: 100%; aspect-ratio: 1 / 1.5; }
+  .cart-flipper-wrap { width: min(19.6rem, 88vw); }
+  .cartridge { width: 100%; aspect-ratio: 1 / 1.54; }
   /* No pull-tab on a phone. The tuck solved the 74px overhang but it
      painted a 44px woven stripe ON TOP of the label — 44px of the 304px
      cartridge width — with border-radius:0 and dashed edges on both
@@ -2903,42 +2901,38 @@ html.lb-lock body {
     padding: 0 14px;
   }
   /* bottom bar: coin slot & sound switch at bottom-left corner */
-  .hero-bottom {
+  .coin-row {
     position: absolute;
     bottom: calc(var(--hud-h, 56px) + 8px);
     left: 10px;
-    right: 10px;
-    width: auto;
-    display: flex;
-    direction: ltr;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0;
-    pointer-events: none;
-    z-index: 20;
-  }
-  .coin-row {
     display: flex;
     align-items: center;
     gap: 3px;
-    pointer-events: auto;
-    width: auto;
     margin: 0;
+    pointer-events: auto;
+    z-index: 20;
+    width: auto;
   }
   .coin-fa { font-size: .75rem; }
   .hero-foot {
+    position: absolute;
+    bottom: calc(var(--hud-h, 56px) + 8px);
+    right: 10px;
+    left: auto;
+    transform: none;
     display: flex;
     align-items: center;
     gap: 6px;
-    pointer-events: auto;
-    position: static;
-    transform: none;
     width: auto;
     margin: 0;
+    pointer-events: auto;
+    z-index: 20;
   }
-  /* remove bottom-centered credit counter on mobile */
-  .hero-foot .credit,
-  .hero-bottom .credit {
+  /* remove credit counter and decal on mobile */
+  .hero-foot .credit {
+    display: none !important;
+  }
+  .crt-decal {
     display: none !important;
   }
   .hero-explore-cta {
@@ -2946,6 +2940,7 @@ html.lb-lock body {
     font-size: .71rem;
     white-space: nowrap;
     flex-shrink: 0;
+    min-height: 38px;
   }
   .snddeck {
     padding: 2px 2px 6px;
@@ -2958,16 +2953,33 @@ html.lb-lock body {
     transform-origin: left bottom;
   }
   .coin-label { transform: scale(0.74); transform-origin: left center; }
-  .cart-screen-stage { height: 118px; }
+  .cart-screen-stage { height: 112px; }
   .cart-back .cart-slot { display: none; }
-  .cart-back-well { gap: 5px; overflow-y: auto; scrollbar-width: none; }
+  .cart-back-well { gap: 6px; padding: 6px 8px; overflow-y: auto; scrollbar-width: none; }
   .cart-view-tabs { padding: 3px; }
-  .view-tab-btn { padding: 3px 8px; }
-  .cart-back-specs { padding: 5px 8px; }
-  .specs-list { gap: 3px; font-size: 0.68rem; line-height: 1.3; }
-  .specs-list li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .specs-list .spec-k { font-size: 0.66rem; flex-shrink: 0; }
-  .specs-list .spec-v { font-size: 0.68rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .view-tab-btn { min-height: 38px; padding: 4px 8px; font-size: 0.74rem; }
+  .cart-back-specs { padding: 6px 8px; gap: 5px; }
+  .specs-tagline { font-size: 0.58rem; }
+  .specs-list { gap: 5px; font-size: 0.68rem; line-height: 1.38; }
+  .specs-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .specs-list .spec-k { font-size: 0.66rem; flex-shrink: 0; white-space: nowrap; }
+  .specs-list .spec-v {
+    font-size: 0.68rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: normal;
+    overflow-wrap: break-word;
+    min-width: 0;
+  }
+  .cart-back-actions { margin: 4px 8px 6px; }
   .mobile-phone-frame { height: calc(100% - 4px); width: auto; aspect-ratio: 155 / 188; }
   .phone-notch { height: 4px; margin-bottom: 1px; }
   .phone-chin { height: 2px; margin: 1px auto 2px; }
