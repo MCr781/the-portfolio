@@ -885,33 +885,89 @@
     }
   }
 
-  var worldSections = $$('.world');
-  worldSections.forEach(function (w) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (!en.isIntersecting) { return; }
-        setChrome(w.dataset.world, w.dataset.name);
-        var idx = nOf(w.dataset.world);
-        if (!visited[idx]) {
-          visited[idx] = true;
-          pips[idx].classList.add('visited');
-          if (visited[0] && visited[1] && visited[2] && visited[3]) { celebrate(); }
-        }
-        blip(220, 120);
-      });
-    }, { rootMargin: '-20% 0px -25% 0px', threshold: 0.08 });
-    io.observe(w);
-  });
+  /* ── the theme follows the scroll, deterministically ────
+     This used to be seven separate IntersectionObservers — four for the
+     worlds, three for the core sections — all sharing
+     rootMargin:'-20% 0px -25% 0px' and threshold:0.08.
 
-  $$('.hero, .manifesto, .contact').forEach(function (s) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { setChrome('', 'هسته'); }
-      });
-    }, { rootMargin: '-20% 0px -25% 0px', threshold: 0.08 });
-    io.observe(s);
-  });
-  setChrome('', 'هسته');
+     The fatal detail was that 0.08 has no 0 beside it. Blink fires a
+     callback on the DOWNWARD crossing 0.0801 -> 0.0799 with
+     isIntersecting still true, so the `if (!en.isIntersecting) return`
+     guard never rejected it: every section re-asserted its own theme on
+     the way out, and with no threshold 0 the theme was never cleared —
+     it was simply stomped by whichever out-crossing happened to run
+     last. With no ordering between the four observers, last-wins.
+
+     Measured on equal 84svh sections, a world showed its OWN theme for
+     about 41vh and then the PREVIOUS world's theme for the rest of it.
+     And because `.hero` sat in the reset group, CORE gold stomped the
+     tube while you were already inside world 02 — the NEXT section's
+     theme. Two more aggravators: the sections are not equal height
+     (content-driven, min-height 84svh), so the window moved per
+     section, and svh is measured against a vh-derived band, so on a
+     phone it drifted live as the toolbar collapsed.
+     `.security-banner` was a <div> in NEITHER observer list, so the
+     theme froze at whatever the last crossing wrote for its whole height.
+
+     One pass, one rule: the theme belongs to whichever section straddles
+     the MIDPOINT of the screen. No thresholds to fall between, no
+     observers to race, and setChrome fires only on an actual change —
+     which also fixes the double `blip` per world pass and the stale
+     `currentWorld` that was being captured as `w.runWorld`, sending a
+     run's high score into the wrong world's localStorage bucket. */
+  var THEME_SECTIONS = $$('.hero, .world, .security-banner, .manifesto, .contact, .footer');
+  var themeOwner = null;
+  var syncThemeQueued = false;
+
+  function themeCandidateAt() {
+    var focus = (window.innerHeight || doc.documentElement.clientHeight || 0) / 2;
+    var best = null, bestNear = null, bestNearD = Infinity;
+    for (var i = 0; i < THEME_SECTIONS.length; i++) {
+      var el = THEME_SECTIONS[i];
+      if (!el) { continue; }
+      var r = el.getBoundingClientRect();
+      if (!r.height) { continue; }
+      /* straddles the midpoint → it owns the theme */
+      if (r.top <= focus && r.bottom > focus) { best = el; }
+      /* otherwise remember the nearest edge, for a midpoint that lands
+         in a gap between two sections or in overscroll */
+      var d = focus < r.top ? r.top - focus : (focus > r.bottom ? focus - r.bottom : 0);
+      if (d < bestNearD) { bestNearD = d; bestNear = el; }
+    }
+    return best || bestNear || THEME_SECTIONS[0];
+  }
+
+  function syncTheme() {
+    var el = themeCandidateAt();
+    if (!el || el === themeOwner) { return; }   /* only act on a real change */
+    themeOwner = el;
+    var wid = el.dataset ? (el.dataset.world || '') : '';
+    setChrome(wid, wid ? el.dataset.name : 'هسته');
+    if (wid) {
+      var idx = nOf(wid);
+      if (!visited[idx]) {
+        visited[idx] = true;
+        pips[idx].classList.add('visited');
+        if (visited[0] && visited[1] && visited[2] && visited[3]) { celebrate(); }
+      }
+    }
+    blip(220, 120);
+  }
+  if (window.addEventListener) {
+    window.addEventListener('scroll', function () {
+      if (syncThemeQueued) { return; }
+      syncThemeQueued = true;
+      requestAnimationFrame(function () { syncThemeQueued = false; syncTheme(); });
+    }, { passive: true });
+    window.addEventListener('resize', function () {
+      /* a reflow can move a boundary under the midpoint without any
+         scroll at all — an orientation flip is the obvious one */
+      if (syncThemeQueued) { return; }
+      syncThemeQueued = true;
+      requestAnimationFrame(function () { syncThemeQueued = false; syncTheme(); });
+    }, { passive: true });
+  }
+  syncTheme();
 
   /* ── the shared tube ────────────────────────────────── */
   var hero = $('#hero');
@@ -2199,20 +2255,71 @@ function farRow(wx, rows) {
     });
   }
 
-  /* the dreadnought mothership boss: a 144x76 armored flagship with
-     two-stage health (16 ion shield + 24 armor core), arena-locking standoff,
-     twin aimed plasma turrets, ventral particle death ray, multi-bomb
-     barrages, and an epic 2.5-second cascading destruction ceremony. */
+  /* The dreadnought is sized to her arena, not to the source art.
+     She was a flat 144x76 in GAME pixels, and a phone's arena is only
+     160 columns wide against a desktop's 427 — so on a phone she spanned
+     90% of the screen and her battle patrol, which runs between 10 and
+     cols - mw - 10, collapsed to FOUR columns of travel. The ship is 27
+     wide. You could not get past her, and you could not get above her
+     either: the ship's ceiling is rows*0.16 and her base is rows*0.16,
+     so her belly sat at rows*0.16 + 76. The gun fires horizontally only,
+     so the fight is unavoidably "stand beside her and shoot" — the room
+     to do that is the whole fight.
+
+     Bounding her by WIDTH alone was not enough. Height is the other
+     axis, and on a short tube the sky is a strip: between the ship's
+     ceiling (rows*0.16) and the highest ridge (0.655 * groundRows - 11)
+     there were only 38 rows on a 390px-tall landscape phone, so a 75-row
+     hull put her belly 43 rows UNDERGROUND — half buried in the
+     mountain, turrets firing into dirt. She is bounded by that strip
+     too, and keeps her 144:76 aspect so the art is never squashed. */
+  function motherSize(w) {
+    var cols = w.cols, rows = w.rows;
+    var gr = typeof w.groundRows === 'number' ? w.groundRows : rows;
+    /* the strip of sky she must live inside */
+    var air = Math.floor((0.655 * gr - 11) - rows * 0.16);
+    var byWidth = Math.round(cols * 0.34);
+    /* she may not eat more than ~62% of the sky or she IS the floor */
+    var bySky = air > 12 ? Math.round(air * 0.62 * 144 / 76) : 40;
+    var mw = Math.max(40, Math.min(144, byWidth, bySky));
+    return { w: mw, h: Math.max(20, Math.round(mw * 76 / 144)), air: air };
+  }
+  /* the offsets that used to be typed as literal pixels, expressed as
+     fractions of her hull so they stay on the ship when she shrinks */
+  function motherTrim(mw, mh) {
+    return {
+      tX: Math.max(10, Math.round(mw * 0.19)),   /* ventral turret inset */
+      tY: Math.max(8, Math.round(mh * 0.21)),    /* turret drop below hull */
+      edge: Math.max(6, Math.round(mw * 0.11)),  /* smoke/spark inset */
+      inner: Math.max(8, Math.round(mw * 0.15)),
+      burst: Math.max(14, Math.round(mw * 0.28)),
+      burstIn: Math.max(8, Math.round(mw * 0.14)),
+      beamW: Math.max(3, Math.round(mw * 0.042)),
+      beamLen: Math.max(12, Math.round(mw * 0.17))
+    };
+  }
+
+  /* the dreadnought mothership boss: an armored flagship with two-stage
+     health (ion shield + armor core), arena-locking standoff, twin aimed
+     plasma turrets, ventral particle death ray, multi-bomb barrages, and
+     an epic cascading destruction ceremony. */
   function spawnMother(w) {
     var dir = Math.random() < 0.5 ? -1 : 1;
     var base = Math.round(w.rows * 0.16 + Math.random() * w.rows * 0.04);
-    var mw = 144, mh = 76;
+    var sz = motherSize(w);
+    var mw = sz.w, mh = sz.h;
+    /* On an arena too narrow to honour the 10-column standoff, drop the
+       margin rather than invert the bounds — the old code let maxSx fall
+       BELOW minSx (160 - 144 - 10 = 6 against a min of 10) which made
+       her teleport between two crossing thresholds. */
+    var margin = Math.min(10, Math.max(2, Math.floor((w.cols - mw) / 4)));
     w.mother = {
       w: mw, h: mh,
       sx: dir < 0 ? w.cols + 15 : -mw - 15,
       base: base, y: base, ph: Math.random() * 6.28,
       vx: 65 * dir,
       dir: dir,
+      margin: margin,
       state: 'enter', /* 'enter' -> 'battle' -> 'dying' */
       hp: 24, maxHp: 24,
       shield: 16, maxShield: 16,
@@ -2289,11 +2396,28 @@ function farRow(wx, rows) {
      they said it in pressure, and stamped a card on the glass. */
   var SECTOR_KILLS = 14;
   var SECTOR_LINES = { 2: 'THEY FIGHT BACK', 3: 'NO MERCY', 4: 'THE SKY BURNS', 5: 'DEEP SPACE', 6: 'FINAL FRONTIER' };
+  /* the same arena-relative population cap for the souls: nine souls in
+     a 160-column sky was a crowd, nine in a 427-column sky is a scene */
+  function humCap(w) {
+    var arena = Math.max(0.30, Math.min(1, (w && w.cols ? w.cols : 427) / 427));
+    return Math.max(4, Math.round(9 * arena));
+  }
   function sectorTune(w) {
     var s = ((w && w.sector) || 1) - 1;
+    /* The reference arena is 427 columns wide (a 1280px tube at PXG 3).
+       A phone's is 160 — 2.7x narrower — so an absolute cap and spawn
+       rate put the SAME swarm into a third of the sky: measured on a
+       390x844 tube the density was 2.2x desktop's, on top of the boss
+       filling 74% of the screen. Scale the population to the room it
+       has to fly in, with floors so a small tube is never empty.
+       The player's own speed is deliberately NOT scaled — a thumb wants
+       a ship that answers instantly. */
+    var arena = w ? Math.max(0.30, Math.min(1, (w.cols || 427) / 427)) : 1;
+    var capBase = 7 + Math.min(3, s);
+    var rateBase = 1.1 + Math.min(1.2, s * 0.3);
     return {
-      cap: 7 + Math.min(3, s),                                /* landers allowed aloft */
-      rate: 1.1 + Math.min(1.2, s * 0.3),                     /* spawn pressure */
+      cap: Math.max(3, Math.round(capBase * arena)),            /* landers allowed aloft */
+      rate: Math.max(0.7, rateBase * arena),                     /* spawn pressure */
       adv: 0.38 + Math.min(0.27, s * 0.07),                   /* tractor-breed ratio */
       drift: 1 + Math.min(0.5, s * 0.12),                     /* lander cruise speed */
       motherBase: Math.max(16000, 24000 - s * 3000),          /* her first visit */
@@ -2766,6 +2890,8 @@ function farRow(wx, rows) {
     } else {
       var Mo = w.mother;
       var mw = Mo.w || 144, mh = Mo.h || 76;
+      /* every literal that used to assume a 144-wide hull, derived once */
+      var MTR = motherTrim(mw, mh);
       if (Mo.hitFlash > 0) { Mo.hitFlash -= dt; }
       if (Mo.shieldFlash > 0) { Mo.shieldFlash -= dt; }
       if (Mo.dropFlash > 0) { Mo.dropFlash -= dt; }
@@ -2775,8 +2901,8 @@ function farRow(wx, rows) {
         Mo.sparkCd = (Mo.sparkCd || 0) - dt;
         if (Mo.sparkCd <= 0) {
           Mo.sparkCd = 90 + Math.random() * 80;
-          var exX = Math.round(Mo.sx + 10 + Math.random() * (mw - 20));
-          var exY = Math.round(Mo.y + 6 + Math.random() * (mh - 12));
+          var exX = Math.round(Mo.sx + MTR.edge + Math.random() * Math.max(2, mw - MTR.edge * 2));
+          var exY = Math.round(Mo.y + mh * 0.1 + Math.random() * mh * 0.7);
           boomAt(exX, exY, 14);
           sfx('motherHit');
           w.shake = 300;
@@ -2788,16 +2914,16 @@ function farRow(wx, rows) {
           w.mother = null;
           w.motherCd = 60000 + Math.random() * 35000;
           boomAt(cx, cy, 55);
-          boomAt(cx - 40, cy, 35);
-          boomAt(cx + 40, cy, 35);
-          boomAt(cx, cy - 20, 30);
-          boomAt(cx, cy + 20, 30);
+          boomAt(cx - MTR.burst, cy, 35);
+          boomAt(cx + MTR.burst, cy, 35);
+          boomAt(cx, cy - MTR.burstIn, 30);
+          boomAt(cx, cy + MTR.burstIn, 30);
           w.rings.push({ x: cx, y: cy, r: 4, life: 850, max: 850 });
           w.rings.push({ x: cx, y: cy, r: 2, life: 650, max: 650 });
           w.flash = 800;
           w.shake = 1000;
           w.cheerUntil = w.t + 4500;
-          popAt(w, cx - 40, cy - 10, '+' + pts + ' BOSS DEFEATED!');
+          popAt(w, cx - MTR.burst, cy - 10, '+' + pts + ' BOSS DEFEATED!');
           rumble(1, 1.0, 850);
           sfx('motherDown');
           sfx('defstar');
@@ -2819,10 +2945,16 @@ function farRow(wx, rows) {
             Mo.vx = 22 * Mo.dir;
           }
         } else {
-          /* arena lock standoff — patrol smoothly across upper sky */
+          /* arena lock standoff — patrol smoothly across upper sky.
+             The standoff is her own margin, not a literal 10: on a
+             160-column arena a fixed 10 plus a 144-wide hull inverted
+             the two bounds (maxSx 6 < minSx 10) and she flickered
+             between them instead of patrolling. */
           Mo.sx += Mo.vx * spdMult * ds;
-          var minSx = 10;
-          var maxSx = w.cols - mw - 10;
+          var mg = typeof Mo.margin === 'number' ? Mo.margin : 10;
+          var minSx = mg;
+          var maxSx = w.cols - mw - mg;
+          if (maxSx <= minSx) { maxSx = minSx; }   /* one slot: she holds station */
           if (Mo.sx <= minSx) {
             Mo.sx = minSx;
             Mo.vx = Math.abs(Mo.vx);
@@ -2844,26 +2976,28 @@ function farRow(wx, rows) {
           Mo.smokeCd = (Mo.smokeCd || 0) - dt;
           if (Mo.smokeCd <= 0) {
             Mo.smokeCd = 120 + Math.random() * 90;
-            var smkX = Math.round(Mo.sx + (Mo.dir < 0 ? mw - 16 : 16) + (Math.random() - 0.5) * 20);
+            var smkX = Math.round(Mo.sx + (Mo.dir < 0 ? mw - MTR.edge : MTR.edge) + (Math.random() - 0.5) * (mw * 0.14));
             var smkY = Math.round(Mo.y + mh * 0.45 + (Math.random() - 0.5) * 12);
             boomAt(smkX, smkY, 2);
           }
           Mo.sparkCd = (Mo.sparkCd || 0) - dt;
           if (Mo.sparkCd <= 0) {
             Mo.sparkCd = 350 + Math.random() * 240;
-            var spkX = Math.round(Mo.sx + 20 + Math.random() * (mw - 40));
-            var spkY = Math.round(Mo.y + 10 + Math.random() * (mh - 20));
+            var spkX = Math.round(Mo.sx + MTR.inner + Math.random() * Math.max(2, mw - MTR.inner * 2));
+            var spkY = Math.round(Mo.y + mh * 0.16 + Math.random() * mh * 0.6);
             boomAt(spkX, spkY, 4);
             blip(140, 60, 160);
           }
         }
 
-        /* Twin Ventral Turrets Attack */
+        /* Twin Ventral Turrets Attack — inset by her own hull fractions,
+           so both muzzles stay on the ship when she is a phone-sized
+           boss and neither ends up hanging in the sky beside her. */
         Mo.turretCd -= dt;
         if (Mo.turretCd <= 0) {
           Mo.turretCd = phase3 ? 1100 + Math.random() * 600 : (phase2 ? 1600 + Math.random() * 700 : 2200 + Math.random() * 800);
-          var tX1 = Mo.sx + 28, tY1 = Mo.y + mh - 16;
-          var tX2 = Mo.sx + mw - 28, tY2 = Mo.y + mh - 16;
+          var tX1 = Mo.sx + MTR.tX, tY1 = Mo.y + mh - MTR.tY;
+          var tX2 = Mo.sx + mw - MTR.tX, tY2 = Mo.y + mh - MTR.tY;
           var pX = w.ship.x + 15, pY = w.ship.y + 6;
           var dX1 = pX - tX1, dY1 = pY - tY1;
           var dist1 = Math.sqrt(dX1 * dX1 + dY1 * dY1) || 1;
@@ -3611,7 +3745,7 @@ function farRow(wx, rows) {
     for (i = 0; i < w.mutants.length; i++) { if (!w.mutants[i].gone) { liveMuts++; } }
     /* while the planet is fallen — or fully lost — the sky holds
        its gate: no new soul walks into an empty world */
-    if (w.humCd <= 0 && w.hums.length < 9 && !w.planetFall && liveHums2 > 0) {
+    if (w.humCd <= 0 && w.hums.length < humCap(w) && !w.planetFall && liveHums2 > 0) {
       w.humCd = 4200;
       w.hums.push({
         wx: w.worldX + w.cols + Math.random() * w.cols,
@@ -4314,16 +4448,21 @@ function farRow(wx, rows) {
           g.restore();
         }
 
-        /* 2. Escort Deployment beam column */
+        /* 2. Escort Deployment beam column — width and reach follow her hull,
+           so a phone-sized boss does not throw a 6px lance as wide as
+           a third of her own length */
         if (MoR.dropFlash > 0) {
-          for (var dfy = moRY + mh; dfy < moRY + mh + 24; dfy++) {
+          var TRR = motherTrim(mw, mh);
+          for (var dfy = moRY + mh; dfy < moRY + mh + TRR.beamLen; dfy++) {
             var dfp = (dfy + Math.floor(t / 70)) % 6;
             g.fillStyle = dfp < 4 ? BEAM_C1 : BEAM_C2;
-            g.fillRect(moRX + Math.floor(mw / 2) - 3, dfy, 6, 1);
+            g.fillRect(moRX + Math.floor(mw / 2) - (TRR.beamW >> 1), dfy, TRR.beamW, 1);
           }
         }
 
-        /* 3. Dreadnought Hull (144x76) */
+        /* 3. Dreadnought Hull — drawn at whatever size the arena asked
+           for (motherSize); the sheet frame takes the destination box,
+           so the art scales with her. */
         var moFrame = Math.floor(t / (phase3 ? 35 : 70)) % 36;
         var drewMother = drawSheetFrame(g, 'mother', moFrame, moRX, moRY, mw, mh, 0);
         if (!drewMother) {
@@ -6862,9 +7001,14 @@ joyTiltX = nx; joyTiltY = ny; joyPress = np;
     g.fillRect(7, 29, 1, 1); g.fillRect(31, 29, 1, 1);
     g.fillRect(13, 32, 1, 1); g.fillRect(25, 32, 1, 1);
     /* the round black dust washer the shaft passes through. It rides the
-       vertical tilt too — the whole gait, not just the lean. */
+       vertical tilt too — the whole gait, not just the lean.
+       Sign matters and is not negotiable: joyTiltY is POSITIVE when the
+       thumb pulls the stick DOWN (keys.s), so every offset below adds
+       ky. Negating them made the stick sink when the ship climbed —
+       the picture and the simulation telling opposite stories, which is
+       worse than no picture at all. */
     var kx = joyTiltX / 3, ky = joyTiltY / 3;
-    var washDy = -Math.round(ky * 1);
+    var washDy = Math.round(ky * 1);
     pxOval(g, 20, 26 - pressDy + washDy, 8, 3, PC.ink);
     pxOval(g, 20, 25 - pressDy + washDy, 8, 3, PC.metalDk);
     pxOval(g, 20, 25 - pressDy + washDy, 6, 2, PC.ink);
@@ -6872,8 +7016,10 @@ joyTiltX = nx; joyTiltY = ny; joyPress = np;
        and two rubber bellows rings that compress on press. Pushing the
        stick forward/back walks the top of the shaft up or down its
        travel; that is the only honest way to draw a second axis in a
-       side elevation without redrawing the whole assembly in plan. */
-    var topY = 12 + pressDy - Math.round(ky * 2);
+       side elevation without redrawing the whole assembly in plan.
+       The ball-top travels 2px, not 3: pxBall draws 6px above `by`, so
+       3px of travel put the ball's crown on y=-1 and clipped it. */
+    var topY = 12 + pressDy + Math.round(ky * 2);
     var baseY = 25;
     var k = kx;
     var x, y;
@@ -6896,7 +7042,7 @@ joyTiltX = nx; joyTiltY = ny; joyPress = np;
     /* the ball-top — classic red, shaded like lit plastic, with the
        cold white specular every real ball-top carries */
     var bx = 20 + Math.round(kx * 6);
-    var by = 8 + pressDy - Math.round(ky * 3);
+    var by = Math.max(6, 8 + pressDy + Math.round(ky * 2));
     pxBall(g, bx, by, 7, { out: PC.redOut, hi: PC.redHi, base: PC.red, dk: PC.redDk }, 6);
     g.fillStyle = '#ffffff';
     g.fillRect(bx - 3, by - 4, 2, 1);
