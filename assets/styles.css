@@ -728,10 +728,18 @@ html.coin-hidden .coin-row { visibility: hidden; }
   background: var(--c-accent);
   opacity: .55;
 }
-.w01 { --c-bg: #faf7f2; --c-accent: #d4af37; --c-text: #241c0f; --c-shadow: #241c0f; --btn-ink: #241c0f; --cart-shell: #b89843; --cart-shell-hi: #e6cb74; --cart-shell-dk: #6b551c; --cart-shell-mid: #94782b; }
-.w02 { --c-bg: #4a154b; --c-accent: #d4af37; --c-text: #f7effa; --c-shadow: #2a0c2c; --btn-ink: #2a0c2c; --cart-shell: #581d59; --cart-shell-hi: #8f3391; --cart-shell-dk: #2c082d; --cart-shell-mid: #441145; }
-.w03 { --c-bg: #f4f6f6; --c-accent: #028c85; --c-text: #1f2e2c; --c-shadow: #10302d; --btn-ink: #f4f6f6; --cart-shell: #2f4446; --cart-shell-hi: #4d6f72; --cart-shell-dk: #172425; --cart-shell-mid: #243536; }
-.w04 { --c-bg: #311b92; --c-accent: #ed145b; --c-text: #f3efff; --c-shadow: #1b0f55; --btn-ink: #ffffff; --cart-shell: #382080; --cart-shell-hi: #5a34ce; --cart-shell-dk: #1c0e48; --cart-shell-mid: #2a1566; }
+/* the cartridge drop shadow is per-world for the same reason the shell is:
+   a black shadow is INVISIBLE against a dark cabinet and only reads as a
+   hole, so the dark worlds (02 plum, 04 indigo) get a bright phosphor-tinted
+   one instead — the same light-spill language the ribbon pull-tab already
+   uses per world. Light worlds (01 parchment, 03 bone) keep the ink shadow,
+   because that is what sells the cartridge as a solid object sitting on the
+   cabinet top. ring = the 1px silhouette separator, hard = the pixel offset,
+   soft = the ambient bloom underneath. */
+.w01 { --c-bg: #faf7f2; --c-accent: #d4af37; --c-text: #241c0f; --c-shadow: #241c0f; --btn-ink: #241c0f; --cart-shell: #b89843; --cart-shell-hi: #e6cb74; --cart-shell-dk: #6b551c; --cart-shell-mid: #94782b; --cart-shadow-ring: rgba(0, 0, 0, 0.75); --cart-shadow-hard: rgba(0, 0, 0, 0.55); --cart-shadow-soft: rgba(0, 0, 0, 0.35); }
+.w02 { --c-bg: #4a154b; --c-accent: #d4af37; --c-text: #f7effa; --c-shadow: #2a0c2c; --btn-ink: #2a0c2c; --cart-shell: #581d59; --cart-shell-hi: #8f3391; --cart-shell-dk: #2c082d; --cart-shell-mid: #441145; --cart-shadow-ring: rgba(244, 214, 255, 0.16); --cart-shadow-hard: rgba(214, 158, 255, 0.3); --cart-shadow-soft: rgba(184, 80, 255, 0.2); }
+.w03 { --c-bg: #f4f6f6; --c-accent: #028c85; --c-text: #1f2e2c; --c-shadow: #10302d; --btn-ink: #f4f6f6; --cart-shell: #2f4446; --cart-shell-hi: #4d6f72; --cart-shell-dk: #172425; --cart-shell-mid: #243536; --cart-shadow-ring: rgba(0, 0, 0, 0.75); --cart-shadow-hard: rgba(0, 0, 0, 0.55); --cart-shadow-soft: rgba(0, 0, 0, 0.35); }
+.w04 { --c-bg: #311b92; --c-accent: #ed145b; --c-text: #f3efff; --c-shadow: #1b0f55; --btn-ink: #ffffff; --cart-shell: #382080; --cart-shell-hi: #5a34ce; --cart-shell-dk: #1c0e48; --cart-shell-mid: #2a1566; --cart-shadow-ring: rgba(255, 214, 232, 0.16); --cart-shadow-hard: rgba(255, 158, 198, 0.3); --cart-shadow-soft: rgba(244, 63, 134, 0.2); }
 
 .world-inner {
   max-width: 72rem;
@@ -966,9 +974,9 @@ html[data-show='cast'] .cast-caption {
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.45),
     inset -1px -1px 0 rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(0, 0, 0, 0.75),
-    8px 8px 0 rgba(0, 0, 0, 0.55),
-    16px 16px 12px rgba(0, 0, 0, 0.35);
+    0 0 0 1px var(--cart-shadow-ring, rgba(0, 0, 0, 0.75)),
+    8px 8px 0 var(--cart-shadow-hard, rgba(0, 0, 0, 0.55)),
+    16px 16px 12px var(--cart-shadow-soft, rgba(0, 0, 0, 0.35));
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -982,9 +990,9 @@ html[data-show='cast'] .cast-caption {
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.65),
     inset -1px -1px 0 rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(0, 0, 0, 0.8),
-    12px 12px 0 rgba(0, 0, 0, 0.5),
-    22px 22px 18px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--cart-shadow-ring, rgba(0, 0, 0, 0.8)),
+    12px 12px 0 var(--cart-shadow-hard, rgba(0, 0, 0, 0.5)),
+    22px 22px 18px var(--cart-shadow-soft, rgba(0, 0, 0, 0.4)),
     0 0 24px color-mix(in srgb, var(--c-accent) 35%, transparent);
   transform: translateY(-6px);
 }
@@ -1001,10 +1009,10 @@ html[data-show='cast'] .cast-caption {
 }
 .cartridge.snap { animation: cartsting 330ms steps(1); }
 @keyframes cartsting {
-  0%  { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.45), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.75), 8px 8px 0 rgba(0, 0, 0, 0.55), 16px 16px 12px rgba(0, 0, 0, 0.35); }
-  33% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.65), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.8), 12px 12px 0 rgba(0, 0, 0, 0.5), 22px 22px 18px rgba(0, 0, 0, 0.4), 0 0 24px color-mix(in srgb, var(--c-accent) 45%, transparent); }
-  66% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.45), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.75), 10px 10px 0 rgba(0, 0, 0, 0.55), 18px 18px 14px rgba(0, 0, 0, 0.35); }
-  100% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.65), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.8), 12px 12px 0 rgba(0, 0, 0, 0.5), 22px 22px 18px rgba(0, 0, 0, 0.4), 0 0 24px color-mix(in srgb, var(--c-accent) 35%, transparent); }
+  0%  { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.45), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px var(--cart-shadow-ring, rgba(0, 0, 0, 0.75)), 8px 8px 0 var(--cart-shadow-hard, rgba(0, 0, 0, 0.55)), 16px 16px 12px var(--cart-shadow-soft, rgba(0, 0, 0, 0.35)); }
+  33% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.65), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px var(--cart-shadow-ring, rgba(0, 0, 0, 0.8)), 12px 12px 0 var(--cart-shadow-hard, rgba(0, 0, 0, 0.5)), 22px 22px 18px var(--cart-shadow-soft, rgba(0, 0, 0, 0.4)), 0 0 24px color-mix(in srgb, var(--c-accent) 45%, transparent); }
+  66% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.45), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px var(--cart-shadow-ring, rgba(0, 0, 0, 0.75)), 10px 10px 0 var(--cart-shadow-hard, rgba(0, 0, 0, 0.55)), 18px 18px 14px var(--cart-shadow-soft, rgba(0, 0, 0, 0.35)); }
+  100% { box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.65), inset -1px -1px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px var(--cart-shadow-ring, rgba(0, 0, 0, 0.8)), 12px 12px 0 var(--cart-shadow-hard, rgba(0, 0, 0, 0.5)), 22px 22px 18px var(--cart-shadow-soft, rgba(0, 0, 0, 0.4)), 0 0 24px color-mix(in srgb, var(--c-accent) 35%, transparent); }
 }
 .cartridge.tilting { transition: none !important; }
 .cartridge:not(.tilting):not(.is-dragging) {
@@ -2953,7 +2961,14 @@ html.lb-lock body {
     transform-origin: left bottom;
   }
   .coin-label { transform: scale(0.74); transform-origin: left center; }
-  .cart-screen-stage { height: 112px; }
+  /* The preview stage was a flat 112px here while the well itself flexes to
+     fill the taller 1/1.54 cartridge, so the leftover column of space pooled
+     UNDER .cart-back-specs and the screenshots were the part that got cut.
+     Screenshots are the content — let them take the slack instead: 112px
+     becomes the floor, and the stage grows into whatever the well has spare.
+     flex-shrink stays 0 so a genuinely over-tall stack scrolls the well
+     (that escape hatch is load-bearing at 320px) instead of crushing them. */
+  .cart-screen-stage { flex: 1 0 112px; height: auto; min-height: 112px; }
   .cart-back .cart-slot { display: none; }
   .cart-back-well { gap: 6px; padding: 6px 8px; overflow-y: auto; scrollbar-width: none; }
   .cart-view-tabs { padding: 3px; }
