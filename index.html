@@ -25,7 +25,7 @@
 <meta name="apple-mobile-web-app-title" content="چهار دنیا">
 <link rel="preload" href="assets/fonts/Estedad-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/styles.css?v=mm2612">
+<link rel="stylesheet" href="assets/styles.css?v=mm2613">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -130,24 +130,27 @@
       <canvas class="cue-cv pxcv"></canvas>
       <canvas class="cue-sub pxcv"></canvas></div>
     <p class="cast-caption" aria-hidden="true">نگهبان‌های چهار دنیا — هر کدام پاسدار یک دروازه</p>
-    <div class="hero-deck">
-      <div class="joy" aria-hidden="true">
-        <canvas class="joy-cv pxcv"></canvas>
-        <p class="joy-fa">
-          <span data-px="joyfa">WASD</span></p></div>
+<div class="hero-deck">
+      <button class="joy" id="joyBtn" type="button" aria-label="اهرم حرکت — برای پرواز، انگشت را روی اهرم نگه دارید و بکشید">
+        <canvas class="joy-cv pxcv" aria-hidden="true"></canvas>
+        <span class="joy-fa" aria-hidden="true">
+          <span data-px="joyfa">WASD</span></span>
+        <span class="joy-fa-touch" aria-hidden="true">بکشید</span></button>
       <button class="pstart" id="startBtn" type="button" aria-label="شروع بازی و رفتن به دنیای اول">
         <canvas class="pstart-cv pxcv" aria-hidden="true"></canvas>
         <span class="pstart-fa">
           <span data-px="pstartfa">شروع بازی</span></span></button>
-      <div class="panel-btns" aria-hidden="true">
-        <span class="pbtn pbtn-white">
-          <canvas class="pbtn-cv pxcv"></canvas>
-          <span class="pbtn-fa">
-            <span data-px="specfa">E</span></span></span>
-        <span class="pbtn pbtn-red">
-          <canvas class="pbtn-cv pxcv"></canvas>
-          <span class="pbtn-fa">
-            <span data-px="firefa">SPACE</span></span></span></div></div>
+      <div class="panel-btns">
+        <button class="pbtn pbtn-white" id="specBtn" type="button" aria-label="دکمه‌ی ویژه — پلیمرب و امتیاز کیک‌بوک">
+          <canvas class="pbtn-cv pxcv" aria-hidden="true"></canvas>
+          <span class="pbtn-fa" aria-hidden="true">
+            <span data-px="specfa">E</span></span>
+          <span class="pbtn-fa-touch" aria-hidden="true">ویژه</span></button>
+        <button class="pbtn pbtn-red" id="fireBtn" type="button" aria-label="دکمه‌ی شلیک — برای آتش پیوسته نگه دارید">
+          <canvas class="pbtn-cv pxcv" aria-hidden="true"></canvas>
+          <span class="pbtn-fa" aria-hidden="true">
+            <span data-px="firefa">SPACE</span></span>
+          <span class="pbtn-fa-touch" aria-hidden="true">شلیک</span></button></div></div>
     <div class="coin-row">
       <button class="snddeck" id="sndDeck" type="button" aria-pressed="true" aria-label="خاموش کردن صدای دستگاه">
         <canvas class="snddeck-cv pxcv" aria-hidden="true"></canvas></button>
@@ -874,7 +877,14 @@
         <path class="spk-mute" d="M11 6l4 4m0-4l-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>
       </svg>
       <span class="mono" dir="ltr" aria-hidden="true">SND</span>
-      <span class="sound-label" id="soundLabel">صدا: روشن</span></button></div></div>
+      <span class="sound-label" id="soundLabel">صدا: روشن</span></button>
+    <button class="hud-pause" id="pauseBtn" type="button" aria-pressed="false" aria-label="مکث یا ادامه‌ی بازی">
+      <svg class="hud-pause-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+        <path class="pause-bars" d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        <path class="pause-play" d="M5 3l8 5-8 5z" fill="currentColor"/>
+      </svg>
+      <span class="mono" dir="ltr" aria-hidden="true">II</span>
+      <span class="pause-label" id="pauseLabel">مکث</span></button></div></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
   <div class="modal-backdrop" data-close="true"></div>
   <div class="modal-card">
@@ -899,7 +909,7 @@
   </div>
 </div>
 <script src="assets/audio-data.js?v=mm2553" defer></script>
-<script src="assets/main.js?v=mm2612" defer></script>
+<script src="assets/main.js?v=mm2613" defer></script>
 <script src="assets/terrarium.js?v=terr3" defer></script>
 <script src="assets/memory.js?v=mem1" defer></script>
 </body>

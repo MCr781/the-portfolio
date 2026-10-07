@@ -1508,7 +1508,7 @@
   }
 
   function terrRow(wx, rows) {
-    var b = baseTerrRow(wx, rows);
+    var b = baseTerrRow(wx, groundRows(rows));
     var w = typeof world !== 'undefined' ? world : null;
     if (!w || !w.craters || !w.craters.length) { return b; }
     var dy = 0, lip = 0;
@@ -1535,14 +1535,14 @@
     return Math.round(b + dy - lip);
   }
 function farRow(wx, rows) {
-	     /* slow silhouette ridge — the mountains beyond the mountains,
-	        painted in deep indigo with a single lit edge */
-	     return Math.round((0.57 + vnoise(wx, 47) * 0.12 + vnoise(wx, 101) * 0.04) * rows);
-	   }
-	   function midRow(wx, rows) {
-	     /* mid ridge — a gentler silhouette with a warm lit top edge */
-	     return Math.round((0.65 + vnoise(wx, 23) * 0.11 + vnoise(wx, 53) * 0.03) * rows);
-	   }
+     /* slow silhouette ridge — the mountains beyond the mountains,
+        painted in deep indigo with a single lit edge */
+     return Math.round((0.57 + vnoise(wx, 47) * 0.12 + vnoise(wx, 101) * 0.04) * groundRows(rows));
+   }
+   function midRow(wx, rows) {
+     /* mid ridge — a gentler silhouette with a warm lit top edge */
+     return Math.round((0.65 + vnoise(wx, 23) * 0.11 + vnoise(wx, 53) * 0.03) * groundRows(rows));
+   }
 
   /* sprites — 16-bit arcade pixel art maps, chars legend-keyed */
 /* the player craft — an original late-80s interceptor: a long white
@@ -1994,6 +1994,68 @@ function farRow(wx, rows) {
     return c;
   }
 
+  /* ── the play area the controls do not own ───────────────
+     On a phone the control deck is absolutely positioned over the foot
+     of the tube, so its bottom edge and top edge are both real: measured
+     68px of the ship can fly behind the deck at 844x390. Guessing a band
+     in CSS cannot work, because the deck's height depends on PXG, on
+     --hero-deck-scale and on which band won — so measure it instead.
+
+     Returns a row count to LIFT the landscape by. terrRow/farRow/midRow
+     all return (constant x rows), so handing them a smaller row count
+     raises the ground, the ridges behind it, and everything standing on
+     it as one piece — and the terrain loop then fills solid from the new
+     ground line all the way to the bottom edge, which puts solid ground
+     under the player's thumbs instead of sky. That reads as deliberate
+     rather than as a control panel floating in mid-air. */
+  function deckBandRows(fieldCssH, rows, px) {
+    if (!hero || !window.getComputedStyle) { return 0; }
+    var deck = hero.querySelector('.hero-deck');
+    if (!deck) { return 0; }
+    var cs = window.getComputedStyle(deck);
+    /* in normal flow the deck is content, not an overlay — nothing to
+       reserve (this is every desktop width) */
+    if (cs.position !== 'absolute') { return 0; }
+    var hr = hero.getBoundingClientRect();
+    var dr = deck.getBoundingClientRect();
+    if (!dr.height) { return 0; }
+    var deckTop = dr.top - hr.top;          /* the deck's top edge, from the glass top */
+    if (!(deckTop > 0) || !(deckTop < fieldCssH)) { return 0; }
+
+    /* Size the band for the WORST terrain, not the terrain under the
+       ship right now: baseTerrRow clamps h to 0.838, and a run must not
+       walk into a band that only existed this second. Solving
+         (TERR_MAX * (rows - B) - SHIP_H) * px == deckTop
+       gives the smallest B that clears the deck at the highest ridge the
+       generator can ever produce. On a tall phone that is ~48 rows; on a
+       landscape tube, where the deck really does sit in the flight path,
+       it is ~69. And when the ground already clears the deck the answer
+       is 0, so the sky is never eaten for nothing. */
+    var TERR_MAX = 0.838, SHIP_H = 11, MARGIN = 8;   /* rows of air above the thumbs */
+    var need = Math.ceil((deckTop / px + SHIP_H + MARGIN) / TERR_MAX);
+    var band = rows - need;
+    if (band <= 0) { return 0; }
+    /* Lift the ground by the shortfall, not by the whole band. `need` is
+       the row count at which the flight floor exactly meets the deck's
+       top edge, so raising the ground to `need` is all it takes; adding
+       any more sky is slack the sky did not ask for.
+
+       The ceiling has to clear the shortest landscape tube by a couple of
+       rows, though: at 740x360 the flight floor wants 62 and a flat third
+       of 180 was 61, which left the ship's belly 10px inside the
+       controls. Past a third, though, the tube stops being a flight game
+       and becomes a trench — so the cap stays and the deck scale buys the
+       rows instead (see the max-height:640px + max-width:860px band). */
+    return Math.max(0, Math.min(rows - need, Math.round(rows * 0.37)));
+  }
+  /* every ground-line function funnels through here, so the whole
+     landscape lifts by one number and stays internally consistent */
+  function groundRows(rows) {
+    var g = world && typeof world.groundRows === 'number' ? world.groundRows : null;
+    if (g == null) { return rows; }
+    return Math.max(8, Math.min(rows, g));
+  }
+
   function buildWorld() {
     if (!cv || !hero) { return; }
     calcGrids();
@@ -2029,6 +2091,18 @@ function farRow(wx, rows) {
     var old = world;
     world = {
       cols: cols, rows: rows, px: PXG, cssH: h, cssW: w,
+      /* how much of the tube's foot the control deck owns. 0 when the
+         deck is in normal flow (every desktop size). On a phone the deck
+         is absolutely positioned over the bottom of the glass, so on a
+         short tube the ship could fly straight down into the controls —
+         measured 68px of overlap at 844x390. deckTopPx is kept so the
+         resize guard can tell when the deck has moved under us. */
+      groundRows: rows - deckBandRows(rect.height, rows, PXG),
+      deckTopPx: (function () {
+        var dk2 = hero && hero.querySelector('.hero-deck');
+        if (!dk2) { return -1; }
+        return dk2.getBoundingClientRect().top - rect.top;
+      })(),
       worldX: old ? old.worldX : Math.random() * 4096,
       t: old ? old.t : 0,
       bootT0: old ? old.bootT0 : performance.now(),
@@ -2614,6 +2688,10 @@ function farRow(wx, rows) {
     paintPBtns();
     setTimeout(function () { pbtnState[0] = 0; paintPBtns(); }, 240);
   }
+  /* The old touch stick used this: it teleported the ship nine columns
+     per tap, which is a nudge, not flight. joyApply() writes `keys`
+     instead, and the sim does the moving — so this is only the sound
+     and the flip cue now, and nothing calls it during a run. */
   function bankShip(right) {
     var w = world;
     if (!w) { return; }
@@ -5569,8 +5647,23 @@ function farRow(wx, rows) {
       g.fillStyle = isCur && blink ? PC.gold : PC.panelHi;
       g.fillRect(sx, 44, slotW - 2, 2);
     }
-    drawText(g, 'W/S CHANGE  A/D MOVE', Math.round(bw / 2 - textW('W/S CHANGE  A/D MOVE') / 2), 52, PC.shellDk, 1);
-    drawText(g, 'FIRE TO LOCK', Math.round(bw / 2 - textW('FIRE TO LOCK') / 2), 61, PC.slateHi, 1);
+    /* The legend tells the truth about the glass in front of you. On a
+       keyboard the W/S and A/D names are the whole instruction; on a
+       thumb they are a lie, because that plate's four bands are the
+       controls. Both are painted, chosen by the pointer, so neither
+       player is left reading keys they do not have. */
+    var kbA = 'W/S CHANGE  A/D MOVE', kbB = 'FIRE TO LOCK';
+    var tcA = '<<  v  ^  LOCK', tcB = 'TAP A BAND';
+    if (finePointer.matches) {
+      drawText(g, kbA, Math.round(bw / 2 - textW(kbA) / 2), 52, PC.shellDk, 1);
+      drawText(g, kbB, Math.round(bw / 2 - textW(kbB) / 2), 61, PC.slateHi, 1);
+    } else {
+      drawText(g, tcA, Math.round(bw / 2 - textW(tcA) / 2), 52, PC.shellDk, 1);
+      drawText(g, tcB, Math.round(bw / 2 - textW(tcB) / 2), 61, PC.slateHi, 1);
+      /* the band seams, so the four targets are visible and not folklore */
+      g.fillStyle = PC.panelHi;
+      for (var seam = 1; seam < 4; seam++) { g.fillRect(Math.round(bw / 4 * seam), 50, 1, 10); }
+    }
     goCv.style.width = (bw * PXG) + 'px';
     goCv.style.height = (bh0 * PXG) + 'px';
   }
@@ -5629,15 +5722,23 @@ function farRow(wx, rows) {
     }
     paintGoPlate();
   }
-  /* the plate itself takes taps during the signing (thumbs on a
-     phone): left third moves the slot, the middle scrolls it */
+  /* the plate takes taps during the signing (thumbs on a phone).
+     Four bands, not three: the old gesture mapped left third -> KeyA,
+     right third -> KeyD, middle -> KeyW, and KeyW only ever scrolled a
+     letter UP. Space is what LOCKS a letter, and it was on no band at
+     all — so the signature could be started on a phone and never
+     finished. The ceremony has four verbs (letter up, letter down, slot
+     back, lock) and the plate is wide enough to carry all four. */
   if (goCv) {
     (goCv.parentElement || goCv).addEventListener('pointerdown', function (e) {
       if (hiEntry) {
         var r = goCv.getBoundingClientRect();
         if (!r.width) { return; }
         var fx = (e.clientX - r.left) / r.width;
-        entryKey(fx < 0.33 ? 'KeyA' : (fx > 0.67 ? 'KeyD' : 'KeyW'));
+        if (fx < 0.25) { entryKey('KeyA'); }        /* slot back   */
+        else if (fx < 0.5) { entryKey('KeyS'); }   /* letter down  */
+        else if (fx < 0.75) { entryKey('KeyW'); }  /* letter up    */
+        else { entryKey('Space'); }                 /* lock it      */
         return;
       }
       if (world && world.shipDead) {
@@ -6415,8 +6516,8 @@ function farRow(wx, rows) {
   if (hero && cv) {
     new IntersectionObserver(function (entries) {
       heroVisible = entries[0].isIntersecting;
-      if (!entries[0].isIntersecting && world && !paused) {
-        paused = true;
+      if (!entries[0].isIntersecting && world) {
+        setPause(true);   /* scrolled away from the tube: pause itself */
       }
     }, { threshold: 0 }).observe(hero);
     buildWorld();
@@ -6489,21 +6590,38 @@ function farRow(wx, rows) {
   /* the service switch: P freezes the sim, the glass blinks PAUSE,
      the coin door keeps its promises until you flip back */
   var paused = false;
-  function togglePause() {
-    paused = !paused;
+  /* Toggle FROM a known state, not from `!paused`. The document's
+     capture-phase pointerdown already un-pauses on ANY tap while paused,
+     so a tap on the HUD switch would run that first (paused -> false)
+     and then this one (false -> true): net zero, and the switch appeared
+     dead. Passing the current value makes both agree. */
+  function setPause(v) {
+    var want = !!v;
+    if (want === paused) { return; }
+    paused = want;
     blip(paused ? 392 : 523, 90);
+    if (typeof paintPause === 'function') { paintPause(); }
+  }
+  function togglePause() {
+    setPause(!paused);
   }
   document.addEventListener('pointerdown', function (e) {
     if (paused) {
       if (coinBtn && (e.target === coinBtn || coinBtn.contains(e.target))) {
         return; /* let coinBtn handle coin insertion */
       }
-      togglePause();
+      /* the HUD pause switch is a real control with its own handler;
+         "tap anywhere to resume" must not swallow its taps too, or the
+         switch would flip twice and read as dead. */
+      if (pauseBtn && (e.target === pauseBtn || pauseBtn.contains(e.target))) {
+        return;
+      }
+      setPause(false);
     }
   }, true);
   document.addEventListener('visibilitychange', function () {
     /* the arcade courtesy: step away, and the deck pauses itself */
-    if (document.hidden && world) { paused = true; }
+    if (document.hidden && world) { setPause(true); }
   });
   function manualGun() {
     var w = world;
@@ -6600,15 +6718,26 @@ function farRow(wx, rows) {
     syncStick();   /* the stick springs back when the tube loses focus */
   });
 
-  var joyTilt = 0, joyPress = false;
+/* the stick is TWO axes now. joyTiltX/Y are in whole game pixels
+     (-3..3) and are the single source of truth for how the stick is
+     drawn — the keyboard, a gamepad and a thumb all write them, so the
+     hardware never tells two stories. joyPress is the bellows: a hand
+     is on the stick, whichever hand it is. */
+  var joyTiltX = 0, joyTiltY = 0, joyPress = false;
   var startState = 0;   /* 0 idle · 1 hover · 2 press */
-  /* one stick, two hands: the keyboard tilts the same stick the
-     pointer does, so the hardware always tells the truth */
+  /* one stick, many hands: the keyboard tilts the same stick the
+     pointer does, so the hardware always tells the truth. The thumb
+     owns the stick outright while it is held (joyHeld) and this defers
+     to it — otherwise a WASD keypress would rip the stick out from
+     under a finger mid-drag. Bellows keep their old meaning on the
+     keyboard (vertical keys compress them) so desktop feel is unchanged. */
   function syncStick() {
-    var nt = (keys.a || padKeys.a) ? -3 : ((keys.d || padKeys.d) ? 3 : 0);
+    if (joyHeld) { return; }
+    var nx = (keys.a || padKeys.a) ? -3 : ((keys.d || padKeys.d) ? 3 : 0);
+    var ny = (keys.w || padKeys.w) ? -3 : ((keys.s || padKeys.s) ? 3 : 0);
     var np = !!(keys.w || keys.s || padKeys.w || padKeys.s);
-    if (nt !== joyTilt || np !== joyPress) {
-      joyTilt = nt; joyPress = np;
+    if (nx !== joyTiltX || ny !== joyTiltY || np !== joyPress) {
+joyTiltX = nx; joyTiltY = ny; joyPress = np;
       paintJoy();
     }
   }
@@ -6732,15 +6861,21 @@ function farRow(wx, rows) {
     g.fillStyle = PC.metalHi;
     g.fillRect(7, 29, 1, 1); g.fillRect(31, 29, 1, 1);
     g.fillRect(13, 32, 1, 1); g.fillRect(25, 32, 1, 1);
-    /* the round black dust washer the shaft passes through */
-    pxOval(g, 20, 26 - pressDy, 8, 3, PC.ink);
-    pxOval(g, 20, 25 - pressDy, 8, 3, PC.metalDk);
-    pxOval(g, 20, 25 - pressDy, 6, 2, PC.ink);
+    /* the round black dust washer the shaft passes through. It rides the
+       vertical tilt too — the whole gait, not just the lean. */
+    var kx = joyTiltX / 3, ky = joyTiltY / 3;
+    var washDy = -Math.round(ky * 1);
+    pxOval(g, 20, 26 - pressDy + washDy, 8, 3, PC.ink);
+    pxOval(g, 20, 25 - pressDy + washDy, 8, 3, PC.metalDk);
+    pxOval(g, 20, 25 - pressDy + washDy, 6, 2, PC.ink);
     /* the shaft — sheared chrome columns, machined ribs every 3rd row,
-       and two rubber bellows rings that compress on press */
-    var topY = 12 + pressDy;
+       and two rubber bellows rings that compress on press. Pushing the
+       stick forward/back walks the top of the shaft up or down its
+       travel; that is the only honest way to draw a second axis in a
+       side elevation without redrawing the whole assembly in plan. */
+    var topY = 12 + pressDy - Math.round(ky * 2);
     var baseY = 25;
-    var k = joyTilt / 3;
+    var k = kx;
     var x, y;
     for (y = topY; y <= baseY; y++) {
       var f = (baseY - y) / (baseY - topY);
@@ -6760,13 +6895,13 @@ function farRow(wx, rows) {
     }
     /* the ball-top — classic red, shaded like lit plastic, with the
        cold white specular every real ball-top carries */
-    var bx = 20 + Math.round(k * 6);
-    var by = 8 + pressDy;
+    var bx = 20 + Math.round(kx * 6);
+    var by = 8 + pressDy - Math.round(ky * 3);
     pxBall(g, bx, by, 7, { out: PC.redOut, hi: PC.redHi, base: PC.red, dk: PC.redDk }, 6);
     g.fillStyle = '#ffffff';
     g.fillRect(bx - 3, by - 4, 2, 1);
     g.fillRect(bx - 4, by - 3, 1, 2);
-    if (Math.abs(k) < 0.5 && !joyPress) { g.fillRect(bx - 2, by - 5, 1, 1); }
+    if (Math.abs(kx) < 0.5 && Math.abs(ky) < 0.5 && !joyPress) { g.fillRect(bx - 2, by - 5, 1, 1); }
     /* rim light along the lower edge — the reflection of the panel */
     g.fillStyle = PC.redHi;
     g.fillRect(bx - 4, by + 5, 3, 1);
@@ -7044,11 +7179,38 @@ function farRow(wx, rows) {
       /* one state, two faces: the HUD chip and the rocker agree */
       soundOn = !soundOn;
       store('fw-sound', soundOn ? '1' : '0');
-      if (soundOn) { ensureCtx(); blip(660, 60); setTimeout(function () { blip(990, 70); }, 90); }
+if (soundOn) { ensureCtx(); blip(660, 60); setTimeout(function () { blip(990, 70); }, 90); }
       else { sfx('switchOff'); stopBossMusic(); }
       paintSound();
     });
   }
+
+  /* ── pause, on the chrome that is already there ────────
+     `togglePause` used to be reachable only from KeyP, or from ANY key
+     while already paused — so a phone, which has no P and no way to
+     press a key, could never pause at all. A notification lands, the
+     cabinet pauses itself on visibilitychange, and there was no door
+     back in. The HUD strip is fixed at every width and is the one piece
+     of cabinet chrome a thumb always has, so the switch lives there. */
+  var pauseBtn = $('#pauseBtn');
+  var pauseLabel = $('#pauseLabel');
+  function paintPause() {
+    if (!pauseBtn) { return; }
+    pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    pauseBtn.setAttribute('aria-label', paused ? 'ادامه‌ی بازی' : 'مکث بازی');
+    if (pauseLabel) { pauseLabel.textContent = paused ? 'ادامه' : 'مکث'; }
+    pauseBtn.classList.toggle('is-paused', !!paused);
+  }
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', function (e) {
+      /* every path into `paused` — this switch, the visibility rule, the
+         scrolled-away rule, the any-key rule — goes through setPause(),
+         which repaints on its own. Nothing to monkey-patch. */
+      e.stopPropagation();
+      togglePause();
+    });
+  }
+  paintPause();
 
   function paintCoin() {
     if (!coinCv) { return; }
@@ -8331,55 +8493,167 @@ function setThumbColumns(box, n) {
     });
   }
 
+  /* ── the stick, under a thumb ────────────────────────────
+     This used to be a single pointerdown that picked the left or right
+     half and teleported the ship nine columns through bankShip(). No
+     keys were written at all, so the sim (which reads only `keys`) never
+     saw a direction: there was no flight, no hold, and no vertical axis
+     whatsoever — a phone could only nudge the ship sideways.
+
+     It is now a real stick. The pivot is the ball-top's rest position,
+     captured ONCE at grab time so the stick cannot teleport when the
+     thumb lands off-centre. `keys.a/d/w/s` are the only channel the sim
+     understands, so we write those and stay binary — the analog feel is
+     the painted stick plus a wider dead zone, not a new physics model.
+     Capture means a thumb that slides off the stick still releases it. */
+  var joyHeld = false;          /* a finger owns the stick right now */
+  var joyPointerId = null;      /* and it is this one */
+  var joyPivotX = 0, joyPivotY = 0;
+  var JOY_DEAD = 5;             /* px of slop before the stick bites */
+  var JOY_LEAN = 3;             /* px of travel that reads as full tilt */
+
+  function joyApply(e) {
+    var dx = e.clientX - joyPivotX;
+    var dy = e.clientY - joyPivotY;
+    /* dead zone: measured along each axis so a thumb resting slightly
+       off-centre does not creep the ship sideways */
+    var ax = dx < 0 ? -Math.max(0, -dx - JOY_DEAD) : Math.max(0, dx - JOY_DEAD);
+    var ay = dy < 0 ? -Math.max(0, -dy - JOY_DEAD) : Math.max(0, dy - JOY_DEAD);
+    var kx = Math.max(-1, Math.min(1, ax / JOY_LEAN));
+    var ky = Math.max(-1, Math.min(1, ay / JOY_LEAN));
+    var nx = Math.round(kx * 3);
+    var ny = Math.round(ky * 3);
+    if (nx !== joyTiltX || ny !== joyTiltY) {
+      joyTiltX = nx; joyTiltY = ny;
+      paintJoy();
+    }
+    /* the one and only bridge into the simulation */
+    keys.a = nx < 0; keys.d = nx > 0;
+    keys.w = ny < 0; keys.s = ny > 0;
+  }
+  function joyRelease() {
+    joyHeld = false; joyPointerId = null;
+    keys.a = keys.d = keys.w = keys.s = false;
+    joyTiltX = 0; joyTiltY = 0; joyPress = false;
+    paintJoy();
+  }
+
   if (joyBox) {
     joyBox.addEventListener('pointerdown', function (e) {
+      if (joyHeld) { return; }              /* one finger owns the stick */
       var r = joyBox.getBoundingClientRect();
-      var right = (e.clientX - r.left) > r.width / 2;
-      joyTilt = right ? 3 : -3;
+      /* pivot = the centre of the ball at rest. Scaling is already baked
+         into the rect by the time we read it, so this is the painted
+         position, not the layout box. */
+      joyPivotX = r.left + r.width / 2;
+      joyPivotY = r.top + r.height * 0.32;   /* the ball sits high on the gait */
+      joyHeld = true; joyPointerId = e.pointerId;
       joyPress = true;
+      try { joyBox.setPointerCapture(e.pointerId); } catch (_) {}
+      joyApply(e);
       paintJoy();
       if (world) { touchDeck(world); }
-      bankShip(right);
+      /* a thunk as the hand takes the weight — the old code blipped here
+         too, and it is the only feedback a tap gets */
+      sfx('thruster');
       blip(190, 110, 90);
-      setTimeout(function () {
-        /* only stand down if no hand is on the keys — the keyboard
-           owns the stick while WASD is held */
-        if (keys.a || keys.d || keys.w || keys.s) { return; }
-        joyPress = false;
-        joyTilt = 0;
-        paintJoy();
-      }, 430);
+      e.preventDefault();
+    });
+    joyBox.addEventListener('pointermove', function (e) {
+      if (!joyHeld || e.pointerId !== joyPointerId) { return; }
+      joyApply(e);
+      if (world) { touchDeck(world); }
+      e.preventDefault();
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (t) {
+      joyBox.addEventListener(t, function (e) {
+        if (!joyHeld || (e.pointerId != null && e.pointerId !== joyPointerId)) { return; }
+        joyRelease();
+      });
     });
   }
 
+  /* ── the domes, under a thumb ─────────────────────────────
+     Same story as the stick: this was pointerdown-only, so a phone got
+     exactly one shot per tap. Holding SPACE is not the same thing —
+     manualGun re-arms the 260ms cooldown and the sim (stepWorld's
+     `keys.space` branch) rides it, which is why a held key is a stream
+     of fire. The red dome now drives `keys.space` for as long as it is
+     held, so a thumb lands on the very same branch the keyboard does
+     and the two hands tell one truth.
+
+     The violet dome has no cooldown of its own to ride — fireSpecial is
+     already self-gating (it needs four kills, and it zeroes them) — so
+     it stays a press. Capture means sliding a thumb off the dome still
+     lets go, which is the classic stuck-button bug. */
+  var pbtnHeld = [null, null];   /* pointerId currently owning each dome */
+
   pbtnEls.forEach(function (b, idx) {
-    b.addEventListener('pointerdown', function () {
-      /* the red dome locks letters while the glass waits for a name */
-      if (hiEntry) {
-        pbtnState[idx] = 2;
-        paintPBtns();
-        entryKey('Space');
-        setTimeout(function () { pbtnState[idx] = 0; paintPBtns(); }, 240);
-        return;
-      }
+    var red = b.classList.contains('pbtn-red');
+
+    function press(e) {
+      if (pbtnHeld[idx] != null) { return; }   /* one finger per dome */
+      pbtnHeld[idx] = e.pointerId;
+      try { b.setPointerCapture(e.pointerId); } catch (_) {}
       pbtnState[idx] = 2;
       paintPBtns();
       if (world) { touchDeck(world); }
-      if (b.classList.contains('pbtn-red')) {
-        fireShip(true);   /* her own blip — the very same one SPACE pulls */
+      if (hiEntry) {
+        /* the glass is waiting for a name: the dome commits the letter,
+           exactly as SPACE does on a keyboard. Held auto-repeat is not
+           wanted here, so this is a discrete press only. */
+        entryKey('Space');
+        return;
+      }
+      if (red) {
+        keys.space = true;      /* held fire rides the cooldown */
+        manualGun();
+        if (typeof navigator !== 'undefined' && navigator.vibrate) { navigator.vibrate(5); }
       } else {
-        fireSpecial();     /* the violet dome calls the plumber */
+        fireSpecial();          /* the violet dome calls the plumber */
         blip(740, 60);
       }
-      setTimeout(function () {
-        pbtnState[idx] = 0;
-        paintPBtns();
-      }, 240);
+      e.preventDefault();
+    }
+    function release(e) {
+      if (pbtnHeld[idx] == null) { return; }
+      if (e && e.pointerId != null && e.pointerId !== pbtnHeld[idx]) { return; }
+      pbtnHeld[idx] = null;
+      pbtnState[idx] = 0;
+      if (red) { keys.space = false; }
+      paintPBtns();
+    }
+
+    b.addEventListener('pointerdown', press);
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (t) {
+      b.addEventListener(t, release);
     });
   });
 
   /* ── master animation loop ──────────────────────────── */
   var lastT = 0;
+  var bandCheckLast = 0;
+  /* Keep the play band honest. The deck is anchored to a CSS var and a
+     scale that can both change AFTER the world was built — the font swap
+     lands, a media-query band flips, the safe-area inset arrives — and
+     the band is a row count baked in at build time. Baking it and
+     watching only the hero's height left the same tube measuring two
+     different bands on two runs. The near terrain is drawn per frame
+     rather than cached in skyCv, so re-deriving the band costs two
+     numbers and no rebuild: self-healing beats a fragile rebuild. */
+  function syncDeckBand(t) {
+    if (!hero || !world || !fieldOn) { return; }
+    if (t - bandCheckLast < 500) { return; }
+    bandCheckLast = t;
+    var dk = hero.querySelector('.hero-deck');
+    if (!dk) { return; }
+    var hr = hero.getBoundingClientRect();
+    var dTop = dk.getBoundingClientRect().top - hr.top;
+    if (!(typeof world.deckTopPx === 'number') || Math.abs(dTop - world.deckTopPx) <= 4) { return; }
+    var nb = deckBandRows(hr.height, world.rows, world.px);
+    if (nb !== world.rows - world.groundRows) { world.groundRows = world.rows - nb; }
+    world.deckTopPx = dTop;
+  }
   var ledLast = 0;
   var bannerWas = false;
   var dimWas = false;
@@ -8420,14 +8694,17 @@ function setThumbColumns(box, n) {
       if (needRepaint) { paintCoin(); }
     }
     /* joystick attract wiggle — stepped, never while pressed, and
-       NEVER while a hand is on WASD: the stick must tell the truth */
-    if (joyCv && !joyPress && !reduced.matches && !keys.a && !keys.d && !keys.w && !keys.s) {
+       NEVER while a hand is on WASD or a thumb is on the stick: the
+       hardware must tell the truth */
+    syncDeckBand(t);
+    if (joyCv && !joyHeld && !joyPress && !reduced.matches &&
+        !keys.a && !keys.d && !keys.w && !keys.s) {
       if (t - joyWiggleLast > 260) {
         joyWiggleLast = t;
         joyWigglePhase = (joyWigglePhase + 1) % JOY_WIGGLE.length;
         var nt = JOY_WIGGLE[joyWigglePhase];
-        if (nt !== joyTilt) {
-          joyTilt = nt;
+        if (nt !== joyTiltX) {
+          joyTiltX = nt;
           paintJoy();
         }
       }
@@ -8523,9 +8800,9 @@ function setThumbColumns(box, n) {
   window.__fw_memoHold = function (on) {
     memoHold = !!on;
     if (on) {
-      paused = true;
+      setPause(true);
     } else {
-      paused = false;
+      setPause(false);
       attractIdleMs = 0;
       lastT = 0;
     }

@@ -501,6 +501,24 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
   cursor: pointer;
   transform: scale(1.06);
   transform-origin: center bottom;
+  /* a stick is a hardware button: no UA affordances, same as .pstart */
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+}
+/* Thumb controls, not links. `touch-action: none` is load-bearing on the
+   stick and the domes: without it a drag on the stick is handed to the
+   scroller, and the first 8px of every flight becomes a page pan. The
+   callout and user-select guards stop a long press turning into an iOS
+   text-selection or magnifier sheet over the game. */
+.joy,
+.pbtn {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .pstart {
   display: flex;
@@ -532,7 +550,31 @@ html.coin-hidden .coin-row { visibility: hidden; }
   transform: scale(0.85);
   transform-origin: center bottom;
 }
-.pbtn { position: relative; display: block; flex: none; cursor: pointer; }
+.pbtn { position: relative; display: block; flex: none; cursor: pointer;
+  background: none; border: none; padding: 0; font-family: inherit; }
+/* Touch captions. A phone must never be told its controls are WASD, E
+   and SPACE — those are keyboard names, and on a tube with no keyboard
+   they are a lie. The pixel twins keep the desktop look; these plain
+   Persian captions take over on a coarse pointer, where the only honest
+   instruction is what the thumb does. Gated on the pointer, not on size:
+   the height bands were hiding captions on short tubes that are still
+   driven by mouse or keyboard. */
+.joy-fa-touch,
+.pbtn-fa-touch {
+  display: none;
+  margin: .4rem 0 0;
+  text-align: center;
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--c-accent);
+  line-height: 1.3;
+}
+@media (pointer: coarse) {
+  .joy-fa,
+  .pbtn-fa { display: none; }
+  .joy-fa-touch,
+  .pbtn-fa-touch { display: block; }
+}
 /* the deck's SOUND rocker — a real switch, not a chip: same hardware
    rules as the other controls, a 44px hand target, keyboard focus
    ring tuned to the cabinet's gold */
@@ -2650,7 +2692,7 @@ html.lb-lock body {
   from { transform: translate(0, 0) rotate(0deg); opacity: 1; }
   to { transform: translate(var(--cx), var(--cy)) rotate(180deg); opacity: 0; }
 }
-.hud-left { display: flex; justify-content: flex-end; }
+.hud-left { display: flex; justify-content: flex-end; gap: .15rem; }
 .hud-sound {
   display: flex;
   gap: .4rem;
@@ -2691,6 +2733,37 @@ html.lb-lock body {
 }
 .hud-sound.is-hover { color: var(--shell-text); }
 .hud-sound[aria-pressed="true"] { color: var(--c-accent); }
+
+/* the pause switch — same hardware rules as the sound rocker next to it,
+   because it is the same kind of thing: a real target, a pressed state
+   that reads at a glance, and a label that says which way it goes. */
+.hud-pause {
+  display: flex;
+  gap: .4rem;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--shell-muted);
+  font-family: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  padding: .5rem .3rem;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
+  flex: none;
+}
+.hud-pause-icon { display: inline-block; vertical-align: middle; flex-shrink: 0; color: inherit; }
+.hud-pause .mono { font-size: .68rem; letter-spacing: .12em; }
+/* idle shows the bars, pressed shows the play triangle — the switch
+   wears the state it is in rather than asking to be read */
+.hud-pause .pause-bars { display: inline; }
+.hud-pause .pause-play { display: none; }
+.hud-pause[aria-pressed="true"] { color: var(--c-accent); }
+.hud-pause[aria-pressed="true"] .pause-bars { display: none; }
+.hud-pause[aria-pressed="true"] .pause-play { display: inline; }
+.hud-pause:hover { color: var(--shell-text); }
 
 /* ── modal & toast ──────────────────────────────────── */
 .modal { position: fixed; inset: 0; z-index: 800; display: flex; align-items: center; justify-content: center; }
@@ -2787,7 +2860,11 @@ html.lb-lock body {
      instead: "CORE 00/04" identifies nothing to a visitor who has not
      opened a world yet, and the four 10px pips were unreadable crumbs.
      the name is the only part that tells you where you are. */
-  :root { --hud-h: 56px; }
+  /* 56 was sized for a 36px switch. The HUD now carries a 44px pause
+     switch beside the sound rocker, so the strip grows with it — and
+     this variable is what the deck, coin row and foot are anchored
+     against. Stale it and the control deck slides under the strip. */
+  :root { --hud-h: 64px; }
   .hud {
     background: linear-gradient(180deg, rgba(20, 20, 30, 0.96) 0%, rgba(10, 10, 15, 0.98) 100%);
     border-top: 2px solid var(--c-accent, #d4af37);
@@ -2839,19 +2916,23 @@ html.lb-lock body {
     background: var(--c-accent);
     box-shadow: 0 0 8px var(--c-accent);
   }
-  .hud-sound {
+  .hud-sound,
+  .hud-pause {
     padding: 4px 8px;
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.14);
-    min-height: 36px;
-    min-width: 36px;
+    /* 36px was under the thumb floor. The sound rocker was already
+       grandfathered here; the pause switch must not arrive repeating it,
+       and holding both at 44 is what keeps this switch a real target. */
+    min-height: 44px;
+    min-width: 44px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   /* mobile hero rhythm & title */
   .hero {
     --hero-pad-top: clamp(2.4rem, 5.5vh, 3.2rem);
-    --hero-pad-bottom: calc(var(--hud-h, 56px) + 12px);
+    --hero-pad-bottom: calc(var(--hud-h, 64px) + 12px);
   }
   .hero-name {
     font-size: clamp(1.9rem, 8vw, 2.6rem);
@@ -2863,7 +2944,7 @@ html.lb-lock body {
   /* mobile gamepad controls (twin-thumb arcade layout) */
   .hero-deck {
     position: absolute;
-    bottom: calc(var(--hud-h, 56px) + 68px);
+    bottom: calc(var(--hud-h, 64px) + 68px);
     left: 14px;
     right: 14px;
     width: auto;
@@ -2911,7 +2992,7 @@ html.lb-lock body {
   /* bottom bar: coin slot & sound switch at bottom-left corner */
   .coin-row {
     position: absolute;
-    bottom: calc(var(--hud-h, 56px) + 8px);
+    bottom: calc(var(--hud-h, 64px) + 8px);
     left: 10px;
     display: flex;
     align-items: center;
@@ -2924,7 +3005,7 @@ html.lb-lock body {
   .coin-fa { font-size: .75rem; }
   .hero-foot {
     position: absolute;
-    bottom: calc(var(--hud-h, 56px) + 8px);
+    bottom: calc(var(--hud-h, 64px) + 8px);
     right: 10px;
     left: auto;
     transform: none;
@@ -2948,7 +3029,10 @@ html.lb-lock body {
     font-size: .71rem;
     white-space: nowrap;
     flex-shrink: 0;
-    min-height: 38px;
+    /* 38px was under the 44px floor on every phone width. This is an
+       affordance — the way into the four worlds — not cartridge art, so
+       it gets a real target like .view-tab-btn and .pstart do. */
+    min-height: 44px;
   }
   .snddeck {
     padding: 2px 2px 6px;
@@ -3004,6 +3088,13 @@ html.lb-lock body {
    the hero crisp and prevent overlap with attract sprites */
 @media (max-height: 760px), (max-width: 860px) {
   .hero-para { display: none; }
+  /* On a phone the deck, the coin row and the foot are all absolutely
+     positioned, so .hero-inner and .hero-cue are the only in-flow
+     children — and space-between parks the cue at the very bottom of
+     the tube, straight through the coin door and the CTA. It is also a
+     redundant telling: the physical START button under the thumb says
+     the same thing in Persian. The desktop marquee keeps its blink. */
+  .hero-cue { display: none; }
   .hero-inner {
     margin-top: clamp(2.4rem, 5.5vh, 3.4rem);
     padding-inline: 12px;
@@ -3044,18 +3135,16 @@ html.lb-lock body {
     --hero-pad-bottom: .9rem;
     --hero-deck-gap: 8px;
     --hero-deck-scale: .7;
-    /* last resort, and the honest one: if the parts still cannot fit,
-       the cabinet grows and the page scrolls. The alternative is
-       swallowing the coin door, which is the one thing the coin door
-       must never be.
-       overflow-x:clip with overflow-y:visible is a legal pairing (clip
-       does not force the other axis to auto, unlike hidden) and it
-       keeps the GAME OVER plate — an absolutely positioned canvas
-       sized for a wider tube — from widening the document by 4px. */
-    min-height: auto;
+    /* same compensation the 760px band does, and it matters more here:
+       at .7 a 44px START is a 31px button and a 60px dome is 42px — the
+       760px band already divides the scale back out, this one never did,
+       which is how the smallest tube in the sweep ended up with the
+       smallest targets. 46 for the same 2px of sub-pixel slack. */
+    min-height: 100svh;
     overflow-x: clip;
     overflow-y: visible;
   }
+  .pstart { min-height: calc(46px / var(--hero-deck-scale)); }
   /* a wide, short tube wants the desktop control ROW back. The stacked
      phone deck is two rows tall and pushes START under the fold, which
      is precisely backwards for a landscape phone. */
@@ -3085,6 +3174,17 @@ html.lb-lock body {
      landscape one; narrow-but-short (320x568) still gets the row */
   .pstart { flex: 0 1 auto; }
   .hero-name { font-size: clamp(1.3rem, 5vh, 1.9rem); }
+  /* Landscape is the one case where the floating deck and the ground
+     line genuinely fight for the same rows: at 740x360 the play band
+     had to be clamped and the ship still dipped 6px into the controls.
+     Compress the deck a further step and the ground gets its rows back
+     without the sky becoming a trench. Portrait keeps .7 — there the
+     band fits comfortably. */
+  .hero { --hero-deck-scale: .58; }
+  /* and the scale came down, so the targets have to be divided back out
+     by hand — .58 would otherwise paint START at 26px */
+  .pstart { min-height: calc(46px / .58); }
+  .joy, .pbtn { min-height: calc(46px / .58); min-width: calc(46px / .58); }
 }
 @media (max-width: 560px) {
   /* the CREDIT counter owns the foot row on phones; the decal is
@@ -3094,6 +3194,9 @@ html.lb-lock body {
 }
 @media (max-width: 480px) {
   .sound-label { display: none; }
+  /* same fold for the pause switch: the Persian label is the first thing
+     to go when the strip gets tight, the II glyph carries the meaning */
+  .pause-label { display: none; }
   .contact-ctas .btn-gate { width: 100%; justify-content: center; }
   .world-cta { width: 100%; }
   /* STACK, do not share a line. `flex: 1` is `flex: 1 1 0%`, so the
