@@ -339,7 +339,23 @@ html.has-cursor .cursor { display: block; }
   --hero-pad-top: clamp(3.2rem, 6.5vh, 4.4rem);
   --hero-pad-bottom: clamp(3.4rem, 5.6vh, 4.2rem);
   --hero-deck-gap: clamp(63px, calc(4.2vh + 35px), 77px);
-  --hero-deck-scale: 1.22;
+  /* how big the deck's CONTROLS paint. Not a scale on .hero-deck — see the
+     note there: the deck is a width:100% row and scaling it moves its
+     contents. Applied per control instead, so each grows in place.
+
+     --hero-ctl-w is the WIDTH-derived ceiling. The phone deck is a single
+     `space-between` row that has to seat stick + START + two domes inside
+     (100vw - 28), and at PXG 3 those three art blocks are 120 + 178 + 192
+     = 490px wide BEFORE a single step of scale. A centred START is what
+     makes that brutal: an item of half-width h sitting on the row's
+     midpoint forces `domes + h <= deck/2`, so START alone caps the stick
+     and the domes at 0.88 on a 390 tube no matter how much room there is.
+     Every phone band below therefore clamps --hero-ctl to what the row can
+     actually hold, which is what finally makes the controls as big as the
+     tube allows. 9 = unconstrained (desktop: the deck is centred with real
+     gaps, and 490 * 1.45 + gaps clears even an 880px viewport). */
+  --hero-ctl-w: 9;
+  --hero-ctl: min(1.45, var(--hero-ctl-w));
   /* the bottom band never shrinks below the fixed HUD strip: --hero-pad-bottom
      is a compression dial and the strip is not something the hero can
      push. max() makes the dial one-way — it can buy back padding, never
@@ -403,9 +419,19 @@ html.attract-show .hero-cue { visibility: hidden; }
 }
 html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: auto; cursor: pointer; }
 .go-plate .go-cv { image-rendering: pixelated; image-rendering: crisp-edges; image-rendering: pixelated; }
+/* Animate the INDEPENDENT `translate` property, never `transform`.
+   `html.awake .hero-deck { animation: fadeinstep ... forwards }` holds this
+   keyframe's `to` state forever, and an animation's forwards fill
+   outranks ordinary declarations in the cascade — so ending on
+   `transform: none` silently deleted `.hero-deck`'s
+   `transform: scale(var(--hero-ctl))` and left the deck at 1:1 on
+   every screen size. --hero-deck-scale was set in three media bands and
+   consumed by nothing. `translate` composes with `transform` instead of
+   overwriting it, which is the same lesson as the deckdim comment above,
+   one level deeper. */
 @keyframes fadeinstep {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; translate: 0 10px; }
+  to { opacity: 1; translate: 0 0; }
 }
 
 .hero-inner {
@@ -473,7 +499,11 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
   /* a control panel is hardware, not prose: stick on the player's left,
      action buttons on the right — even though the page reads RTL */
   direction: ltr;
-  transform: scale(var(--hero-deck-scale));
+  /* NO scale on the deck itself. It is a width:100% flex row, so scaling
+     it magnifies its FOOTPRINT as well as its contents: at 1.45 a 362px
+     deck became 525px wide and pushed the stick off the left edge of a
+     390px tube. The scale belongs on each control, where it grows the
+     thing you touch without moving where it sits — see --hero-ctl below. */
   transform-origin: center bottom;
 }
 /* round 13 · the deck lights dim while the tube talks: a real cabinet
@@ -499,7 +529,7 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
   position: relative;
   flex: none;
   cursor: pointer;
-  transform: scale(1.06);
+  transform: scale(var(--hero-ctl));
   transform-origin: center bottom;
   /* a stick is a hardware button: no UA affordances, same as .pstart */
   background: none;
@@ -531,6 +561,11 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
   font-family: inherit;
   cursor: pointer;
   min-height: 44px;
+  /* START was the one control with no scale of its own, so it painted at
+     1:1 while everything else on the panel grew — the odd one out on the
+     deck. It carries --hero-ctl like the rest. */
+  transform: scale(var(--hero-ctl));
+  transform-origin: center bottom;
 }
 .pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); }
 .joy-fa { margin: .4rem 0 0; text-align: center; }
@@ -547,7 +582,9 @@ html.coin-hidden .coin-row { visibility: hidden; }
   align-items: flex-end;
   flex: none;
   padding-bottom: 8px;
-  transform: scale(0.85);
+  /* the domes carry the same control scale as the stick, not the old 0.85
+     — they were the smallest thing on the panel at every size */
+  transform: scale(var(--hero-ctl));
   transform-origin: center bottom;
 }
 .pbtn { position: relative; display: block; flex: none; cursor: pointer;
@@ -2011,16 +2048,20 @@ html[data-show='cast'] .cast-caption {
   white-space: nowrap;
   flex-shrink: 0;
 }
-/* Titley through HIERARCHY, not decoration. The tagline sat at the same
-   grey and a size below .spec-k, so it read as a fifth key rather than as
-   the heading above them. Same size, one step lighter, one step heavier —
-   and the keys drop a weight to open the gap. No accent colour, no caps,
-   no size change: the plate is a technical label, not a poster. */
+/* Now that the row is LTR, the tagline answers to the badge beside it
+   instead of to the list below — so it wears the badge's language: the
+   world accent, the heaviest weight, wide tracking. It is Persian, so
+   letter-spacing stays modest (tracking is a mono-Latin trick and
+   overdone spacing breaks the way a joined script reads); the `mono`
+   class in the markup is harmless here because Space Mono carries no
+   Persian glyphs and the Persian face falls through — what it borrows is
+   the intent, not the typeface. */
 .specs-tagline {
   font-size: clamp(0.54rem, 1.8vw, 0.62rem);
-  font-weight: 800;
-  color: #c9cbe0;
-  letter-spacing: .01em;
+  font-weight: 900;
+  color: var(--c-accent);
+  letter-spacing: .05em;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--c-accent) 45%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2948,6 +2989,25 @@ html.lb-lock body {
     --hero-pad-top: clamp(2.4rem, 5.5vh, 3.2rem);
     --hero-pad-bottom: calc(var(--hud-h, 64px) + 12px);
   }
+  /* ── START comes off the thumb row where the row can't seat it ──
+     Every threshold below is the same arithmetic, written out:
+     `490 * scale + 44 <= 100vw` — the three blocks plus the deck's own
+     28px of side inset and 16px of air to keep them off each other.
+
+       490 * 1.2  + 44 = 632   START stays from here up
+       490 * 1.3  + 44 = 681
+       490 * 1.45 + 44 = 755   and again at the top step
+       212 * 1.3  + 44 = 320   with START gone, the narrowest tube in the
+       212 * 1.45 + 44 = 352   sweep is exactly the floor for each step
+
+     Under 632 the three-across row paints START straight through both
+     domes — measured 82px of overlap at 390, 108px at 320, with
+     «شروع بازی» and «ویژه» printed on top of each other. So there START
+     is removed outright and the glass takes over the job: with START
+     hidden, a tap anywhere on the tube IS a start press (see
+     startTappedGlass in main.js — it also carries the dead-run continue,
+     which START used to own). Dropping START frees 490 - 212 = 278px,
+     which is what finally buys the stick and the domes their size. */
   .hero-name {
     font-size: clamp(1.9rem, 8vw, 2.6rem);
     text-shadow: 0 2px 12px rgba(5, 5, 10, 0.95), 0 0 20px rgba(5, 5, 10, 0.9);
@@ -2976,7 +3036,7 @@ html.lb-lock body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transform: scale(0.92);
+    transform: scale(var(--hero-ctl));
     transform-origin: bottom left;
   }
   /* Right Thumb: Action Buttons (FIRE & SPECIAL) */
@@ -2987,15 +3047,17 @@ html.lb-lock body {
     gap: 12px;
     align-items: center;
     padding-bottom: 4px;
-    transform: scale(0.92);
+    transform: scale(var(--hero-ctl));
     transform-origin: bottom right;
   }
-  /* Center: START Button */
+  /* Center: START Button. Centred, so its transform is a translate AND a
+     scale — translate first, or the scale would move the centring. */
   .hero-deck .pstart {
     position: absolute;
     left: 50%;
     bottom: 8px;
-    transform: translateX(-50%);
+    transform: translateX(-50%) scale(var(--hero-ctl));
+    transform-origin: bottom center;
     pointer-events: auto;
     z-index: 30;
     flex: 0 0 auto;
@@ -3098,6 +3160,69 @@ html.lb-lock body {
   .phone-chin { height: 2px; margin: 1px auto 2px; }
 }
 
+/* ── how many controls the tube can seat, and how big ────────────
+   Written at top level rather than inside the 860px band above: nested
+   conditional group rules are valid CSS but nothing else in this file
+   does it, and these all resolve to values that are already correct
+   outside the band (the 755px rule just restates the desktop 1.45).
+
+   Every threshold below is the same arithmetic, written out.
+   With START VISIBLE at PXG 3, START sits on the row's midpoint and the
+   domes are a full-width block hard against the right inset, so those two
+   meet when `start/2 + domes <= deck/2` — 89 + 192 = 281 per scale step,
+   NOT half of the 490 total. Halving the total is what put a 35px overlap
+   at 632 in the first draft of these bands:
+     281 * 1.2  * 2 + 44 = 719
+     281 * 1.3  * 2 + 44 = 775
+     281 * 1.45 * 2 + 44 = 859
+   Read the other way round, that says the whole phone band cannot seat all
+   three at a thumb-happy size: even 1.2 — a 25% cut from the 1.45 the deck
+   is aiming for — does not fit until 719px, and every step below that is
+   worse. So START comes off the row for the WHOLE phone/tablet band, not
+   just the narrow end. Keeping it above 632 would also have made the
+   controls SHRINK as the tube widened (1.45 at 631, then 1.2 at 632),
+   which is not a trade anyone would accept. Desktop keeps START: that row
+   is centred with real gaps and has the width for all three.
+   With START gone, the stick and the domes sit at the two ends with nothing
+   between them but air, so the row only has to fit whole:
+     212 * 1.3  + 44 = 320   <- the narrowest tube in the sweep is
+     212 * 1.45 + 44 = 352      exactly this step's floor */
+@media (max-width: 860px) {
+  /* The three-across phone row painted START straight through both domes:
+     82px of overlap at 390 and 108px at 320, with the Persian captions
+     «شروع بازی» and «ویژه» printing over each other. So on this band START
+     comes off the deck outright and the glass takes the job over — with
+     START hidden, a tap anywhere on the tube IS a start press
+     (startTappedGlass in main.js, which also carries the dead-run continue
+     START used to own, so the game stays startable AND continuable by
+     thumb). Dropping it frees 490 - 212 = 278px, and that is what finally
+     buys the stick and the domes their size. */
+  .hero-deck .pstart { display: none; }
+  .hero { --hero-ctl-w: 1.3; }
+}
+@media (min-width: 352px) and (max-width: 860px) {
+  .hero { --hero-ctl-w: 1.45; }
+}
+
+/* The desktop row is `justify-content: center` with a real flex gap, and
+   that gap was sized as if the controls painted INSIDE the box they lay
+   out in. They don't: `transform: scale()` paints outside it, so at 1.45 a
+   PXG-3 START overflows 40px and a PXG-3 dome overflows 43px — 83px of
+   bleed into a gap clamped at 51px, which left START and the domes
+   overlapping by ~32px at 1280 and at every width down to 880. Pre-existing,
+   and invisible to a "does the deck fit the viewport" check, because the
+   deck did fit — it was its own contents colliding.
+   The gap must clear the worst adjacent pair:
+     PXG 3: (178 + 192) * 0.45 / 2 = 83
+     PXG 4: (228 + 252) * 0.45 / 2 = 108
+   The row is centred in a deck much wider than its contents, so a large
+   gap costs nothing but air. The phone band deliberately keeps the small
+   one: space-between does the placing there, and an 84px floor with two
+   `flex: none` controls would shove them off the tube. */
+@media (min-width: 861px) {
+  .hero-deck { gap: clamp(84px, 8vw, 108px); }
+}
+
 /* The paragraph is dropped on mobile screens and short tubes to keep
    the hero crisp and prevent overlap with attract sprites */
 @media (max-height: 760px), (max-width: 860px) {
@@ -3127,7 +3252,11 @@ html.lb-lock body {
     --hero-pad-top: clamp(1.6rem, 4vh, 2.6rem);
     --hero-pad-bottom: clamp(1.4rem, 3.6vh, 2.4rem);
     --hero-deck-gap: clamp(14px, 3.4vh, 34px);
-    --hero-deck-scale: .9;
+    /* min() against the width ceiling: this band's whole job is to spend
+       height on the controls, but it must not spend more than the row can
+       seat — otherwise a short tube re-introduces the overlap that
+       --hero-ctl-w exists to prevent. */
+    --hero-ctl: min(1.3, var(--hero-ctl-w));
   }
   .hero-inner {
     margin-top: clamp(2.4rem, 5.5vh, 3.4rem);
@@ -3138,7 +3267,7 @@ html.lb-lock body {
      glass. divide it back out so a thumb still meets 44. */
   /* 46, not 44: dividing by the scale lands the painted box exactly on
      44, and sub-pixel rounding drops it just under. 2px of slack. */
-  .pstart { min-height: calc(46px / var(--hero-deck-scale)); }
+  .pstart { min-height: calc(46px / var(--hero-ctl)); }
   .hero-cue,
   .cast-caption { display: none; }
   .hero-role { margin-bottom: 4px; }
@@ -3148,7 +3277,7 @@ html.lb-lock body {
     --hero-pad-top: .9rem;
     --hero-pad-bottom: .9rem;
     --hero-deck-gap: 8px;
-    --hero-deck-scale: .7;
+    --hero-ctl: min(1.3, var(--hero-ctl-w));
     /* same compensation the 760px band does, and it matters more here:
        at .7 a 44px START is a 31px button and a 60px dome is 42px — the
        760px band already divides the scale back out, this one never did,
@@ -3158,7 +3287,7 @@ html.lb-lock body {
     overflow-x: clip;
     overflow-y: visible;
   }
-  .pstart { min-height: calc(46px / var(--hero-deck-scale)); }
+  .pstart { min-height: calc(46px / var(--hero-ctl)); }
   /* a wide, short tube wants the desktop control ROW back. The stacked
      phone deck is two rows tall and pushes START under the fold, which
      is precisely backwards for a landscape phone. */
@@ -3176,12 +3305,17 @@ html.lb-lock body {
      the "1 PLAYER · 4 WORLDS" decal are the first things to go: the
      canvas already draws START and 1P/2P in pixels, so the captions
      are a second, redundant telling of the same thing — and at this
-     height they were landing on top of the coin door and the CTA. */
+     height they were landing on top of the coin door and the CTA. The
+     Persian TOUCH captions go with them: they are the same caption in
+     another language, and on the shortest tubes they were 22px of deck
+     height that could have been given to the controls instead. */
   .joy-fa,
   .pstart-fa,
   .pbtn-fa,
   .coin-fa,
-  .crt-decal { display: none; }
+  .crt-decal,
+  .joy-fa-touch,
+  .pbtn-fa-touch { display: none; }
 }
 @media (max-height: 640px) and (max-width: 860px) {
   /* stacked deck is the right call on a portrait phone but not on a
@@ -3190,19 +3324,18 @@ html.lb-lock body {
   .hero-name { font-size: clamp(1.3rem, 5vh, 1.9rem); }
   /* Landscape is the one case where the floating deck and the ground
      line genuinely fight for the same rows: at 740x360 the play band
-     had to be clamped and the ship still dipped 6px into the controls.
-     Compress the deck a further step and the ground gets its rows back
-     without the sky becoming a trench. Portrait keeps .7 — there the
-     band fits comfortably. */
-  .hero { --hero-deck-scale: .82; }
-  /* NO min-height divided by the scale here. That band-aid is what caused
-     the loop it was meant to fix: `calc(46px / .58)` inflated each button
-     box to 79px, which inflated the deck's height, which ate the sky, which
-     is why the scale had been dropped to .58 in the first place — and the
-     ART inside stayed 32px, which is what you actually see and touch. At
-     .82 the painted art is already past the thumb floor (domes
-     60 * .82 * .92 = 45px, stick 80 * .82 * .92 = 60px), so the boxes can
-     simply hug it and the deck ends up SHORTER than it was. */
+     had to be clamped and the ship dipped into the controls. The deck
+     stays at the short-tube scale here — with the Persian captions
+     hidden above there is finally height to spend on the controls
+     themselves instead of on shrinking them. */
+  .hero { --hero-ctl: min(1.3, var(--hero-ctl-w)); }
+  /* NO min-height divided by the scale. That band-aid caused the loop it
+     was meant to fix: `calc(46px / .58)` inflated each button box to 79px,
+     which inflated the deck, which ate the sky, which is why the scale had
+     been dropped — while the ART inside stayed 32px, which is what you
+     actually see and touch. The art now clears the floor on its own, so
+     the boxes hug it. (And the scale only started applying at all once
+     fadeinstep stopped ending on `transform: none`.) */
 }
 @media (max-width: 560px) {
   /* the CREDIT counter owns the foot row on phones; the decal is

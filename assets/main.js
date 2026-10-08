@@ -2275,8 +2275,13 @@ function farRow(wx, rows) {
      on a 390px tube. Worse, its own map fallback (the 30x12 SPR_SHIP)
      draws smaller than the sheet, so the two paths already disagreed by
      1.73x. 32 is the smallest integer that keeps a 195px-wide cell
-     legible (0.164 resample) while cutting the share by 39%, and it is
-     aspect-exact: 32 / (195/85) = 13.9 -> 14.
+     legible while cutting the share by 39%, and it is aspect-exact.
+     40 is the current compact size: 32 was the floor set by the sheet's
+     resample limit, but the VERTICAL share on a tall phone was only 3.3%
+     against desktop's 7.7% — the hull was undersized where it had the
+     most room, which is why 40 (0.205 resample, aspect-exact at
+     40 / (195/85) = 17.4 -> 17) reads as a better fit rather than a
+     regression toward the 52.
 
      Render-only. Every gameplay dimension reads the 30x12 map — bolt nose
      and collision via sprW(SPR_SHIP), the terrain kill via S.y + 11, and
@@ -2285,12 +2290,12 @@ function farRow(wx, rows) {
      unfairness: at 52 wide the art was 73% wider than its own hitbox;
      at 32 it nearly matches the 30-wide box. */
   function shipDest(w) {
-    return (w && w.compact) ? { w: 32, h: 14 } : { w: 52, h: 23 };
+    return (w && w.compact) ? { w: 40, h: 17 } : { w: 52, h: 23 };
   }
   /* the cameo has no collision at all — it is the four-kill gift walking
      in — so its destination box is free to shrink on a compact tube */
   function marioDest(w) {
-    return (w && w.compact) ? { w: 18, h: 27 } : { w: 28, h: 42 };
+    return (w && w.compact) ? { w: 22, h: 33 } : { w: 28, h: 42 };
   }
   /* offsets and flourishes are sized off the hull, so they follow it:
      scaled by the same ratio keeps the nose on the same game pixel at
@@ -6845,6 +6850,35 @@ function farRow(wx, rows) {
       setPause(false);
     }
   }, true);
+  /* ── with START off the deck, the glass IS the START button ──
+     Across the whole phone/tablet band the deck cannot seat stick + START
+     + two domes at a thumb-sized scale, so the row drops START (see the
+     --hero-ctl-w bands in styles.css) and the tube takes the press
+     instead. START was not only the way in: it is also the dead-run
+     continue, because doStart() routes a corpse to coinBtn. Removing it
+     without this would leave a touch player unable to start OR continue,
+     which is why the handler below stands in for it rather than merely
+     adding a shortcut.
+
+     Gated on START genuinely being hidden. If it is on screen the glass
+     must stay inert, or the two paths race and a paid coin is spent twice
+     by a single tap. `human-run` is the other gate, and it matters most:
+     doStart() on a live run RESETS it — score to zero, ship back to the
+     top — so a stray thumb on the sky would throw away a run in progress.
+     Only the pre-run and the dead-run states may start. */
+  var START_GLASS_IGNORE = '.joy,.panel-btns,.pbtn,.pstart,.coin-row,.snddeck,' +
+    '.hero-foot,.go-plate,.hud,.boot,.cart,.lightbox,.modal,a,button,input,select,textarea,[data-close]';
+  function startIsOffDeck() {
+    return !!(startBtn && startBtn.offsetParent === null);
+  }
+  document.addEventListener('pointerdown', function (e) {
+    if (paused) { return; }                    /* the resume rule above owns it */
+    if (!startIsOffDeck()) { return; }         /* START is on the deck: it is the button */
+    if (html.classList.contains('human-run') && world && !world.shipDead) { return; }
+    var t = e.target;
+    if (t && t.closest && t.closest(START_GLASS_IGNORE)) { return; }
+    doStart();
+  });
   document.addEventListener('visibilitychange', function () {
     /* the arcade courtesy: step away, and the deck pauses itself */
     if (document.hidden && world) { setPause(true); }
