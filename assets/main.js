@@ -736,6 +736,7 @@
      rounded domes anywhere: hi-bit pixel art, 2020s standard. */
   var PXG = 4;  /* css px per game pixel (art + display text)      */
   var PXT = 2;  /* css px per text pixel (dense body copy)         */
+  var COIN_ART_K = 1; /* coin-door art ceiling; set by calcGrids   */
   function calcGrids() {
     var w = html.clientWidth || 1280;
     var h = html.clientHeight || 800;
@@ -746,6 +747,72 @@
     var gh = h < 860 ? 2 : (h < 960 ? 3 : 4);
     PXG = Math.max(2, Math.min(gw, gh));
     PXT = 2;
+    /* The coin door is CHROME, not a control, and it was being sized like
+       a control — raw grid multiples. At PXG 4 that is a 104x108px object
+       in the corner of a 1080p monitor, and because the row owns a band
+       wherever it cannot share the foot's line, it was taking 112px out of
+       the play field: the stick's base ended up level with the coin slot.
+
+       So it gets a ceiling,        and the ceiling is the band it has to live in.
+       A phone gives it 60px (it owns the strip's row outright). On the
+       desktop it SHARES the foot's line, whose band is the foot's own
+       44px — a door taller than that pokes up past the foot's top edge and
+       into the control deck above it, which is exactly what an overlay at
+       PXG 4 did when the art was unscaled. At PXG 2 the art is 54px and
+       the phone cap does not bind, so handsets are untouched.
+
+       The SOUND rocker shares that factor: it is the same chrome in the
+       same row, and left on the raw grid it was 68px tall at PXG 4 — the
+       row is as tall as its tallest child, so capping only the coin left
+       the row 68px anyway and it still poked into the deck. */
+    COIN_ART_K = Math.min(1, (w <= 860 ? 60 : 40) / (27 * PXG));
+    /* Two things css cannot work out on its own, published here because
+       this is already the one place that runs on load, on resize and on
+       the scrolled-away refresh — and both were wrong before.
+
+       --hero-deck-max: the deck's controls are canvas art sized to the
+       game grid and then scaled by --hero-ctl, so their PAINTED size is
+       (game px * PXG * scale). PXG steps 2 -> 3 -> 4 with the viewport,
+       which means a flat 1.45 turned a 174px stick on a 1280x900 tube
+       into a 232px one at 1920x1000 — the deck had quietly become
+       PYGANTIC exactly where the screen was widest. A media query cannot
+       see PXG (it depends on width AND height), so the ceiling is
+       computed here instead: 4.35 / PXG pins the stick at 174px, the
+       size that reads correctly, at every grid step. */
+    html.style.setProperty('--hero-deck-max', (4.35 / PXG).toFixed(4));
+
+    /* --hud-h: the strip is position:fixed at EVERY width and the hero's
+       bottom band, the coin door and the foot are all anchored against
+       this number. It was a hand-written 42px from when the strip was a
+       thin text bar; it is really ~61px (44px min-height switch + 3px
+       border + .45rem padding either side), so every desktop width
+       under-reserved by ~19px and the foot row rode under the strip.
+       A hardcoded number goes stale the moment the strip's contents
+       change, and this one already had. Measure it instead — one rect
+       read per rebuild, never per frame. */
+    var hudEl = doc.querySelector('.hud');
+    if (hudEl) {
+      var hh = Math.round(hudEl.getBoundingClientRect().height);
+      if (hh > 0) { html.style.setProperty('--hud-h', hh + 'px'); }
+    }
+
+    /* --coin-row-h / --hero-foot-h: the phone band floats the deck, the
+       coin door and the foot as three overlays stacked up from the strip,
+       and the deck's offset was a hand-picked 68px — a guess that assumed
+       the band below the deck was never taller than it. It is: the coin
+       row grows with the grid (58px at PXG 2, 85px once its Persian
+       caption wraps to two lines at PXG 3), and past 68 it reached UP into
+       the stick's own base. The foot and the coin row deliberately share
+       one band — left half and right half — so the deck has to clear
+       whichever of the two is taller. Measure both, take the max in css. */
+    ['.coin-row', '.hero-foot'].forEach(function (sel) {
+      var el = doc.querySelector(sel);
+      if (!el) { return; }
+      var bh = Math.round(el.getBoundingClientRect().height);
+      if (bh > 0) {
+        html.style.setProperty(sel === '.coin-row' ? '--coin-row-h' : '--hero-foot-h', bh + 'px');
+      }
+    });
   }
 
   /* deterministic noise — the whole world is a function of position */
@@ -2898,6 +2965,7 @@ function farRow(wx, rows) {
       w.dispScore += (sDiff > 0 ? 1 : -1) * Math.min(Math.abs(sDiff), sStep);
     }
     if (w.flash > 0) { w.flash = Math.max(0, w.flash - dt); }
+    bossMusicReconcile(w, dt);
     var i, j;
 
     /* stars drift left at their layer speed and wrap around */
@@ -5284,6 +5352,9 @@ function farRow(wx, rows) {
     /* PAUSE: the sim holds its breath — the glass blinks it (the sim's
        own clock is frozen, so the blink runs on the wall clock) */
     if (paused && (Math.floor(performance.now() / 480) % 2) === 0) {
+      var pauseScale = 2;
+      var pauseW = (5 * 4 - 1) * pauseScale; /* 38px at scale 2 */
+      var pauseH = 5 * pauseScale;           /* 10px at scale 2 */
       var pauseY = Math.round(rows * 0.58);
       if (cueSubCv && cv) {
         var rSub = cueSubCv.getBoundingClientRect();
@@ -5292,8 +5363,24 @@ function farRow(wx, rows) {
           pauseY = Math.round((rSub.bottom - rCv.top) / PXG) + 5;
         }
       }
-      var pauseScale = 2;
-      var pauseW = (5 * 4 - 1) * pauseScale; /* 38px at scale 2 */
+      /* …but never INSIDE the control deck. Hanging the word off the cue
+         subtitle looks right until the subtitle itself descends into the
+         deck band on a short tube, and then the overlay prints straight
+         through START's own caption — which is what it did at 861x680.
+         The deck is the one thing on the glass a thumb is aiming at, so
+         the overlay yields to it: measure the deck's top edge in game
+         rows and lift the word above it. */
+      var deckEl = doc.querySelector('.hero-deck');
+      if (deckEl && cv) {
+        var rDeck = deckEl.getBoundingClientRect();
+        var rCv2 = cv.getBoundingClientRect();
+        if (rDeck.height > 0 && rCv2.height > 0 && rDeck.bottom > rCv2.top) {
+          var deckTop = Math.round((rDeck.top - rCv2.top) / PXG);
+          if (pauseY + pauseH > deckTop - 2) {
+            pauseY = Math.max(2, deckTop - 2 - pauseH);
+          }
+        }
+      }
       var pauseX = Math.round(cols / 2 - pauseW / 2);
       drawMText(g, 'PAUSE', pauseX + 1, pauseY + 1, PC.goldDk, pauseScale);
       drawMText(g, 'PAUSE', pauseX, pauseY, PC.gold, pauseScale);
@@ -5394,8 +5481,15 @@ function farRow(wx, rows) {
         var barW = isMobileTube ? Math.min(120, cols - 24) : Math.min(160, cols - 40);
         var barH = isMobileTube ? 4 : 5;
         var barX = Math.round(cols / 2 - barW / 2);
-        var titleY = isMobileTube ? Math.round(y3 + 9) : Math.round(y3 + 1);
-        var barY = isMobileTube ? Math.round(titleY + 7) : Math.round(y3 + 9);
+        /* The title gets its OWN row on every width. It used to sit at
+           y3 + 1 on desktop — and y3 is the row the combat and attract
+           labels are drawn on (MUTANT, FLAGSHIP, CHAIN, COMET), so
+           "DREADNOUGHT SHIELDED" printed straight through "CHAIN" at
+           861px wide. The phone branch already stacked it at y3 + 9; the
+           desktop branch was the outlier, and the narrow-desktop band is
+           exactly where the two collided. */
+        var titleY = Math.round(y3 + 9);
+        var barY = Math.round(titleY + 7);
         if (barY < rows * 0.35) {
           g.save();
           var bTitle = MoH.hp <= 10 ? '◆ DREADNOUGHT CRITICAL ◆' : (MoH.shield > 0 ? '◆ DREADNOUGHT SHIELDED ◆' : '◆ DREADNOUGHT CORE EXPOSED ◆');
@@ -6807,6 +6901,41 @@ function farRow(wx, rows) {
 
   var keys = { w: false, a: false, s: false, d: false };
   var KEYMAP = { KeyW: 'w', KeyA: 'a', KeyS: 's', KeyD: 'd' };
+  /* ── the boss theme is a STATE, not an event list ──
+     Every reason to stop the anthem was wired up as its own call —
+     stopBossMusic on death, on pause, on sound-off, on the boss dying,
+     on the boss dying again from a second code path. What none of them
+     did was the other half of the contract: put it BACK. killShip()
+     stops it for the respiratory beat, and then nothing ever restarted
+     it, because doStart() on a corpse only clicks coinBtn and returns.
+     So a player who died mid-boss-fight, spent a coin and came back
+     fought the rest of the fight in silence, with the boss still alive
+     the whole time.
+
+     One predicate, polled, is harder to get wrong than a list of
+     counterpart calls: the theme plays exactly while the boss is alive
+     and the game is running, and any reason that stops being true stops
+     the music. Polled at 4Hz off the world clock — it is a few boolean
+     tests, and it costs nothing per frame. */
+  function bossMusicWanted(w) {
+    return !!(soundOn && w && w.mother && w.mother.state !== 'dying' &&
+              !paused && !w.shipDead && !html.classList.contains('gameover-dim'));
+  }
+  var bossMusicPoll = 0;
+  function bossMusicReconcile(w, dt) {
+    bossMusicPoll -= dt;
+    if (bossMusicPoll > 0) { return; }
+    bossMusicPoll = 250;
+    var want = bossMusicWanted(w);
+    if (want && !bossMusicSource) {
+      startBossMusic();
+      /* the pause switch remembers that it stopped it, so clearing the
+         hold here keeps a later unpause from starting a second voice */
+      if (typeof bossThemeHeld !== 'undefined') { bossThemeHeld = false; }
+    } else if (!want && bossMusicSource) {
+      stopBossMusic(w && w.shipDead ? 500 : 260);
+    }
+  }
   /* the service switch: P freezes the sim, the glass blinks PAUSE,
      the coin door keeps its promises until you flip back */
   var paused = false;
@@ -7422,8 +7551,8 @@ joyTiltX = nx; joyTiltY = ny; joyPress = np;
       g.fillStyle = on ? 'rgba(80, 227, 194, .5)' : 'rgba(255, 215, 106, .3)';
       g.fillRect(9, 4, 6, 8);
     }
-    sndDeckCv.style.width = (24 * PXG) + 'px';
-    sndDeckCv.style.height = (22 * PXG) + 'px';
+    sndDeckCv.style.width = Math.round(24 * PXG * COIN_ART_K) + 'px';
+    sndDeckCv.style.height = Math.round(22 * PXG * COIN_ART_K) + 'px';
   }
   if (sndDeckBtn) {
     sndDeckBtn.addEventListener('pointerenter', function () {
@@ -7543,8 +7672,11 @@ if (soundOn) { ensureCtx(); blip(660, 60); setTimeout(function () { blip(990, 70
         drawCoinSpr(g, 9, cy, 2.99, 0.02);
       }
     }
-    coinCv.style.width = (26 * PXG) + 'px';
-    coinCv.style.height = (27 * PXG) + 'px';
+    /* COIN_ART_K: the coin door is chrome, not a control, so it gets a
+       ceiling rather than the raw grid. See calcGrids for why, and for why
+       the sound rocker shares the factor. */
+    coinCv.style.width = Math.round(26 * PXG * COIN_ART_K) + 'px';
+    coinCv.style.height = Math.round(27 * PXG * COIN_ART_K) + 'px';
   }
 
   function setCoinCredit(on) {

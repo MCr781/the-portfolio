@@ -132,13 +132,21 @@ body[data-world="04"] ::selection { background: #ed145b; }
   --sl-mask-r: rgba(255, 64, 64, .028);
   --sl-mask-g: rgba(64, 255, 128, .020);
   --sl-mask-b: rgba(96, 128, 255, .028);
-  /* the height of the fixed world-HUD strip. it is position:fixed at
+  /* The height of the fixed world-HUD strip. it is position:fixed at
      EVERY width, so the hero's bottom band has to clear it at every
      width — the hero's own --hero-pad-bottom could shrink to 22px in a
      short-viewport band while the strip is 61px, which parked the foot
-     and the coin door underneath it at 375x650. desktop clears it with
-     room to spare; the phone band below states the taller number. */
-  --hud-h: 42px;
+     and the coin door underneath it at 375x650.
+
+     62px is the honest number: a 44px min-height switch, plus the strip's
+     3px border and .45rem of padding above and below. This used to say
+     42px, which was true back when the strip was a bare text bar, and it
+     had quietly gone stale — every desktop width under-reserved by ~19px
+     and the foot row's bottom edge rode under the strip. calcGrids() now
+     MEASURES the strip and overwrites this var (main.js), so it cannot
+     drift again when the strip's contents change; this value is only the
+     pre-script fallback. */
+  --hud-h: 62px;
 }
 .scanlines {
   position: fixed;
@@ -339,6 +347,7 @@ html.has-cursor .cursor { display: block; }
   --hero-pad-top: clamp(3.2rem, 6.5vh, 4.4rem);
   --hero-pad-bottom: clamp(3.4rem, 5.6vh, 4.2rem);
   --hero-deck-gap: clamp(63px, calc(4.2vh + 35px), 77px);
+  --hero-foot-gap: clamp(1px, 0.3vh, 2px);
   /* how big the deck's CONTROLS paint. Not a scale on .hero-deck — see the
      note there: the deck is a width:100% row and scaling it moves its
      contents. Applied per control instead, so each grows in place.
@@ -353,15 +362,28 @@ html.has-cursor .cursor { display: block; }
      Every phone band below therefore clamps --hero-ctl to what the row can
      actually hold, which is what finally makes the controls as big as the
      tube allows. 9 = unconstrained (desktop: the deck is centred with real
-     gaps, and 490 * 1.45 + gaps clears even an 880px viewport). */
+     gaps, and 490 * 1.45 + gaps clears even an 880px viewport).
+
+     --hero-deck-max is the other ceiling, and it is the one css cannot
+     compute: the controls are grid-sized canvas art, so their painted size
+     is (game px * PXG * scale) and PXG steps with width AND height. At
+     PXG 4 a flat 1.45 paints a 232px stick where PXG 3 painted 174px —
+     the deck doubled on the widest screens. calcGrids() publishes
+     4.35 / PXG (see main.js), which pins the stick at 174px at every grid
+     step. Defaulted to 9 so the layout is still correct before JS runs. */
   --hero-ctl-w: 9;
-  --hero-ctl: min(1.45, var(--hero-ctl-w));
+  --hero-ctl: min(1.45, var(--hero-ctl-w), var(--hero-deck-max, 9));
   /* the bottom band never shrinks below the fixed HUD strip: --hero-pad-bottom
      is a compression dial and the strip is not something the hero can
      push. max() makes the dial one-way — it can buy back padding, never
-     spend below what the strip occupies. */
-  padding: var(--hero-pad-top) clamp(1rem, 3vw, 2rem)
-    max(var(--hero-pad-bottom), calc(var(--hud-h) + 12px));
+     spend below what the strip occupies.
+
+     It is also named, because the coin door has to sit on exactly this
+     band when it shares the foot's line, and a second hand-written copy
+     of this expression is precisely how "INSERT COIN printed through
+     «شروع بازی»" happened once already. One expression, one name. */
+  --hero-pad-bottom-eff: max(var(--hero-pad-bottom), calc(var(--hud-h) + 12px));
+  padding: var(--hero-pad-top) clamp(1rem, 3vw, 2rem) var(--hero-pad-bottom-eff);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -647,7 +669,13 @@ html.coin-hidden .coin-row { visibility: hidden; }
        landed straight on .hero-deck, because the deck is what sits above
        the foot: the row covered the START button's own caption, and
        INSERT COIN printed through «شروع بازی».
-   In normal flow it owns a band and cannot collide with either.
+   In normal flow it owns a band and cannot collide with either. The DOM
+   order is already deck -> coin-row -> foot, so no markup moved.
+
+   It was absolute AGAIN at last count, anchored to a hand-copied
+   `bottom: calc(clamp(3.2rem, 5.6vh, 4.2rem) + 15px)` — a duplicate of a
+   padding expression that no band was setting any more, which is how
+   "INSERT COIN printed through «شروع بازی»" came back at 861px wide.
 
    Horizontal placement: the hero is an RTL column, where `flex-start` on
    the cross axis means RIGHT — so `align-self: flex-start` put the coin
@@ -657,18 +685,67 @@ html.coin-hidden .coin-row { visibility: hidden; }
    `left: clamp(16px, 2.8vw, 32px)` put it: that offset was hand-tuned to
    the same value as the hero's side padding (16px at 375, 32px at 1440),
    so the content-box edge IS the old left edge. */
-/* ── coin row · a pixel coin door on the glass ──────── */
 .coin-row {
-  position: absolute;
-  left: clamp(16px, 2.8vw, 32px);
-  bottom: calc(clamp(3.2rem, 5.6vh, 4.2rem) + 15px);
+  position: relative;
   z-index: 4;
+  flex: 0 0 auto;
+  align-self: stretch;
   display: flex;
   align-items: center;
   gap: 8px 12px;
   direction: ltr;
 }
-@media (max-width: 680px) {
+/* The coin door gets a band of its own wherever the foot's centred cluster
+   cannot leave it room, and shares the foot's line where it can.
+
+   Measured, not guessed: with the Persian caption folded (see below) the
+   row's CONTENT runs to 358px at PXG 3, and the foot cluster's left edge
+   is at 454px at 1280, 534px at 1440, 614px at 1600 — 96px of clearance
+   at the tightest. Below 1206 the cluster starts at 244-416px and there is
+   no room at any width, so the row takes its own band there.
+
+   The overlay is anchored to --hero-pad-bottom-eff, which is the SAME
+   expression the hero uses for its own padding-bottom. The foot is the
+   last in-flow child, so its bottom edge sits exactly that far up the
+   tube and the coin door lands on the foot's band by construction. The
+   old code hand-copied a padding expression into `bottom:` and drifted out
+   of step with the hero — which is how this row ended up printed through
+   START's own caption. One name, two consumers, no drift.
+
+   It only works because --coin-art-cap keeps the door inside the foot's
+   44px band; see COIN_ART_K in main.js. */
+@media (min-width: 1206px) {
+  .coin-row {
+    position: absolute;
+    left: clamp(16px, 2.8vw, 32px);
+    bottom: var(--hero-pad-bottom-eff);
+    display: flex;
+    align-items: center;
+    gap: 8px 12px;
+    direction: ltr;
+  }
+}
+/* The coin door's Persian caption folds away wherever the row cannot have
+   the width for it, and keeps it only in the one band where the row owns
+   its own full-width line:
+
+     <= 860px   hidden — on a phone the caption wraps to two lines and the
+                 row is 58px tall vs the 68px the deck reserved above it,
+                 so the coin door reached up over the stick's base
+   861 - 1205   SHOWN — the row has its own band here (see below), so
+                 there is width to spare and the line "no coin needed" is
+                 the most useful thing on screen
+     >= 1206px  hidden — the row goes back to sharing the foot's line, and
+                 with the caption it is 518px wide against a foot cluster
+                 that starts at 454px at 1280: they overlap. Without it the
+                 row is 358px and clears by 96px.
+
+   The coin art and the pixel INSERT COIN plate stay at every width; the
+   coin door is still a coin door. */
+@media (max-width: 860px) {
+  .coin-fa { display: none; }
+}
+@media (min-width: 1206px) {
   .coin-fa { display: none; }
 }
 .coin-slot {
@@ -687,7 +764,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
-  margin-top: clamp(1px, 0.3vh, 2px);
+  margin-top: var(--hero-foot-gap);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2055,12 +2132,23 @@ html[data-show='cast'] .cast-caption {
    overdone spacing breaks the way a joined script reads); the `mono`
    class in the markup is harmless here because Space Mono carries no
    Persian glyphs and the Persian face falls through — what it borrows is
-   the intent, not the typeface. */
+   the intent, not the typeface.
+
+   Tracking is now ZERO, and the copy is short. Both were eating the one
+   thing this row cannot spare: horizontal space. The badge is
+   flex-shrink: 0 and this line is nowrap + ellipsis, so whatever the
+   badge leaves is all the Persian gets — at a 306px cartridge back the
+   badge takes ~74px of a ~250px plate and the line was truncating on
+   every cartridge. .05em across ~30 joined glyphs was ~14px of that
+   budget for a "mono" cue the badge already carries, and the Persian
+   strings are now two words instead of four. The `mono` class stays on
+   the element: it is the badge's language, and it costs nothing now that
+   no tracking is being asked of a script that has no letters. */
 .specs-tagline {
-  font-size: clamp(0.54rem, 1.8vw, 0.62rem);
+  font-size: clamp(0.58rem, 1.8vw, 0.68rem);
   font-weight: 900;
   color: var(--c-accent);
-  letter-spacing: .05em;
+  letter-spacing: 0;
   text-shadow: 0 0 10px color-mix(in srgb, var(--c-accent) 45%, transparent);
   white-space: nowrap;
   overflow: hidden;
@@ -2677,7 +2765,16 @@ html.lb-lock body {
   bottom: 0;
   z-index: 500;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* minmax(0, 1fr), not 1fr: a bare `1fr` is minmax(auto, 1fr), and `auto`
+     floors the track at its content's min-content width. The side cells
+     hold nowrap text — the WORLD 01/04 chip, the world name, the sound
+     rocker, the pause switch — so below ~1000px the two 1fr tracks refused
+     to shrink, the whole strip overflowed the viewport, and the
+     left-hand labels were sliced off at the page edge (the Persian pause
+     label rendered as a bare "ث" at 861px). Zero lets the tracks give way
+     and the content inside them ellipsise instead; the pips stay centred
+     because both sides are still equal fractions. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 1rem;
   background: rgba(12, 12, 17, .94);
@@ -2689,6 +2786,11 @@ html.lb-lock body {
   display: flex;
   gap: .9rem;
   align-items: baseline;
+  /* the tracks may now shrink (see .hud), so the row has to be allowed to
+     shrink with them — without min-width:0 a nowrap child re-inflates the
+     track to min-content and the overflow comes straight back */
+  min-width: 0;
+  overflow: hidden;
 }
 .hud-index {
   color: var(--shell-muted);
@@ -2699,6 +2801,13 @@ html.lb-lock body {
   color: var(--shell-text);
   font-weight: 700;
   font-size: .95rem;
+  /* nowrap so the world name never breaks across two lines, but it must
+     be allowed to ellipsise: the strip is fixed to every width from 320 up
+     and this is the one cell whose content is unbounded */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .hud-pips { display: flex; gap: .55rem; }
 .pip {
@@ -2747,7 +2856,7 @@ html.lb-lock body {
   from { transform: translate(0, 0) rotate(0deg); opacity: 1; }
   to { transform: translate(var(--cx), var(--cy)) rotate(180deg); opacity: 0; }
 }
-.hud-left { display: flex; justify-content: flex-end; gap: .15rem; }
+.hud-left { display: flex; justify-content: flex-end; gap: .15rem; min-width: 0; }
 .hud-sound {
   display: flex;
   gap: .4rem;
@@ -2859,19 +2968,31 @@ html.lb-lock body {
 }
 
 /* ── adaptation ─────────────────────────────────────── */
-/* The pixel canvases size themselves to whole multiples of the game grid,
-   so no per-control size overrides are needed anymore: the deck scales
-   by grid, not by css clamps. Only rhythm + copy fallbacks adapt. */
+/* This band used to open with a `padding` SHORTHAND:
+     .hero { padding: 3.6rem clamp(1.1rem,3vw,2rem) 4.5rem }
+   and that was the single worst line in the file. `.hero` sizes itself
+   from --hero-pad-top / --hero-pad-bottom (see the base block), so a
+   shorthand assigning `padding` outright outranks those dials in the
+   cascade for good — the short-viewport bands below go on setting
+   --hero-pad-top/bottom at 760px and 640px, and at EVERY desktop width
+   nothing consumed them. The vertical compression dials were dead exactly
+   where they were needed, which is the 861-1205 band this file never
+   handled: below ~960px tall the hero kept its full-height padding while
+   the deck, the coin door and the foot all crowded into what was left.
+   Its hardcoded 4.5rem bottom had been quietly covering for the stale
+   --hud-h too, so removing it exposed that as well — hence both.
+
+   Only rhythm + copy fallbacks belong here now, and they are assigned as
+   VARIABLES so the bands after this one keep winning by cascade order. */
 @media (max-height: 960px) and (min-width: 861px) {
-  .hero { padding: 3.6rem clamp(1.1rem, 3vw, 2rem) 4.5rem; }
   .hero-name { font-size: clamp(2.1rem, 4.8vw, 3rem); }
   .hero-statement { font-size: clamp(1rem, 1.9vw, 1.3rem); }
   .hero-para { font-size: .95rem; }
   .hero-role { margin-bottom: 8px; }
-  /* gap was byte-identical to the base .hero-deck and did nothing;
-     only the rhythm is worth overriding here */
-  .hero-deck { margin-top: .9rem; }
-  .hero-foot { margin-top: .5rem; }
+  /* these two were direct `margin-top` declarations, which quietly
+     outranked the short-tube bands' own --hero-deck-gap / foot gap for
+     the same reason the padding shorthand did */
+  .hero { --hero-deck-gap: .9rem; --hero-foot-gap: .5rem; }
 }
 @media (max-width: 860px) {
   .world-inner {
@@ -2956,6 +3077,22 @@ html.lb-lock body {
     font-weight: 800;
     white-space: nowrap;
   }
+  /* The phone bar carries the sound rocker and the world name and nothing
+     else. The pause switch was put here in the first place because "a
+     phone, which has no P and no way to press a key, could never pause at
+     all" — and the honest answer is that on a tube this size the switch is
+     the wrong tool: it is a 44px target in a bar that already owns the
+     bottom of the screen, and the cabinet pauses itself anyway (tab
+     hidden, scrolled away) with tap-anywhere to resume. So it goes, and
+     the bar keeps the two things a thumb actually reaches for.
+
+     Desktop keeps it: with a keyboard, P is one key and the switch shows
+     the state of something that is otherwise invisible. Purely a display
+     change — every reference in main.js is already guarded on
+     `if (!pauseBtn)` or `pauseBtn &&`, including the capture-phase
+     "tap anywhere to resume" rule, so removing it from the layout cannot
+     break the resume path. */
+  .hud-pause { display: none; }
   .hud-pips {
     justify-content: center;
     gap: .5rem;
@@ -3018,7 +3155,16 @@ html.lb-lock body {
   /* mobile gamepad controls (twin-thumb arcade layout) */
   .hero-deck {
     position: absolute;
-    bottom: calc(var(--hud-h, 64px) + 68px);
+    /* Not a hand-picked 68px any more. The coin door and the foot share
+       ONE band below the deck — left half and right half — and that band
+       is not a fixed height: the coin row is 58px at PXG 2 and 85px once
+       its Persian caption wraps to two lines at PXG 3. A fixed 68 was
+       shorter than the band it had to clear, so past that height the coin
+       door reached up over the stick's own base (measured at 700x1000).
+       calcGrids() measures both (--coin-row-h / --hero-foot-h) and the
+       deck clears whichever is taller. */
+    bottom: calc(var(--hud-h, 64px) + 8px +
+      max(var(--coin-row-h, 58px), var(--hero-foot-h, 44px)) + 14px);
     left: 14px;
     right: 14px;
     width: auto;
@@ -3256,7 +3402,7 @@ html.lb-lock body {
        height on the controls, but it must not spend more than the row can
        seat — otherwise a short tube re-introduces the overlap that
        --hero-ctl-w exists to prevent. */
-    --hero-ctl: min(1.3, var(--hero-ctl-w));
+    --hero-ctl: min(1.3, var(--hero-ctl-w), var(--hero-deck-max, 9));
   }
   .hero-inner {
     margin-top: clamp(2.4rem, 5.5vh, 3.4rem);
@@ -3277,7 +3423,7 @@ html.lb-lock body {
     --hero-pad-top: .9rem;
     --hero-pad-bottom: .9rem;
     --hero-deck-gap: 8px;
-    --hero-ctl: min(1.3, var(--hero-ctl-w));
+    --hero-ctl: min(1.3, var(--hero-ctl-w), var(--hero-deck-max, 9));
     /* same compensation the 760px band does, and it matters more here:
        at .7 a 44px START is a 31px button and a 60px dome is 42px — the
        760px band already divides the scale back out, this one never did,
@@ -3328,7 +3474,7 @@ html.lb-lock body {
      stays at the short-tube scale here — with the Persian captions
      hidden above there is finally height to spend on the controls
      themselves instead of on shrinking them. */
-  .hero { --hero-ctl: min(1.3, var(--hero-ctl-w)); }
+  .hero { --hero-ctl: min(1.3, var(--hero-ctl-w), var(--hero-deck-max, 9)); }
   /* NO min-height divided by the scale. That band-aid caused the loop it
      was meant to fix: `calc(46px / .58)` inflated each button box to 79px,
      which inflated the deck, which ate the sky, which is why the scale had
@@ -3348,6 +3494,15 @@ html.lb-lock body {
   /* same fold for the pause switch: the Persian label is the first thing
      to go when the strip gets tight, the II glyph carries the meaning */
   .pause-label { display: none; }
+  /* …and the coin door's INSERT COIN plate. On a phone the coin row and
+     the foot SHARE one band — coin door left, CTA right — and below ~380px
+     the two no longer fit side by side: at 320 the row is 252px and the
+     CTA 109px, which is 361px of content in a 306px band, so the CTA's
+     left edge landed 61px inside the coin door's "INSERT COIN". Same
+     answer as everywhere else on this tube: the caption yields, the
+     hardware stays. The slot's pixel art is still a coin door, and it is
+     the only thing in that row a thumb can actually press. */
+  .coin-label { display: none; }
   .contact-ctas .btn-gate { width: 100%; justify-content: center; }
   .world-cta { width: 100%; }
   /* STACK, do not share a line. `flex: 1` is `flex: 1 1 0%`, so the
