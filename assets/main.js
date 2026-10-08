@@ -2159,6 +2159,14 @@ function farRow(wx, rows) {
         if (!dk2) { return -1; }
         return dk2.getBoundingClientRect().top - rect.top;
       })(),
+      /* Is this a compact tube? The tube's SHAPE decides the art, not its
+         column count. A 844x390 landscape phone is 422 columns wide —
+         plenty — but only 195 rows tall, and height is the resource the
+         sky runs out of; keying the hull on columns kept the desktop
+         52x23 ship there, 23 rows of 195 against desktop's 23 of 300.
+         These are the two breakpoints the stylesheet already uses for the
+         phone layout, so the art follows the same line as the chrome. */
+      compact: html.clientWidth <= 860 || html.clientHeight <= 640,
       worldX: old ? old.worldX : Math.random() * 4096,
       t: old ? old.t : 0,
       bootT0: old ? old.bootT0 : performance.now(),
@@ -2255,6 +2263,40 @@ function farRow(wx, rows) {
     });
   }
 
+  /* ── sheet sprites: an integer DESTINATION box, never a scale ──
+     Only the sheet paths can be adapted at all. drawSpr multiplies by
+     an integer `sc` and every map-drawn sprite already sits at sc=1, so
+     landers, tractors, mutants and the humanoids have no integer route
+     to a smaller size without new pixel art — which is exactly why the
+     adaptation is scoped to the ship and the cameo.
+
+     The hull was a flat 52x23 into a 195x85 cell, so it took 12.2% of a
+     427-column desktop arena but 26.7% of a 195-column phone — 104 CSS px
+     on a 390px tube. Worse, its own map fallback (the 30x12 SPR_SHIP)
+     draws smaller than the sheet, so the two paths already disagreed by
+     1.73x. 32 is the smallest integer that keeps a 195px-wide cell
+     legible (0.164 resample) while cutting the share by 39%, and it is
+     aspect-exact: 32 / (195/85) = 13.9 -> 14.
+
+     Render-only. Every gameplay dimension reads the 30x12 map — bolt nose
+     and collision via sprW(SPR_SHIP), the terrain kill via S.y + 11, and
+     the movement clamps off `cols` — so no hitbox, firing point or
+     movement bound can move. As a bonus it shrinks a pre-existing
+     unfairness: at 52 wide the art was 73% wider than its own hitbox;
+     at 32 it nearly matches the 30-wide box. */
+  function shipDest(w) {
+    return (w && w.compact) ? { w: 32, h: 14 } : { w: 52, h: 23 };
+  }
+  /* the cameo has no collision at all — it is the four-kill gift walking
+     in — so its destination box is free to shrink on a compact tube */
+  function marioDest(w) {
+    return (w && w.compact) ? { w: 18, h: 27 } : { w: 28, h: 42 };
+  }
+  /* offsets and flourishes are sized off the hull, so they follow it:
+     scaled by the same ratio keeps the nose on the same game pixel at
+     every destination size, and every result stays an integer */
+  function shipScaleOf(dw) { return dw / 52; }
+
   /* The dreadnought is sized to her arena, not to the source art.
      She was a flat 144x76 in GAME pixels, and a phone's arena is only
      160 columns wide against a desktop's 427 — so on a phone she spanned
@@ -2295,7 +2337,18 @@ function farRow(wx, rows) {
       burst: Math.max(14, Math.round(mw * 0.28)),
       burstIn: Math.max(8, Math.round(mw * 0.14)),
       beamW: Math.max(3, Math.round(mw * 0.042)),
-      beamLen: Math.max(12, Math.round(mw * 0.17))
+      beamLen: Math.max(12, Math.round(mw * 0.17)),
+      /* the drawn turret bodies. These were 7x5 / 5x3 / 3x3 in absolute
+         game pixels, which on a 54-column phone hull was 13% of her length
+         against 5% on a 144-column desktop one — two rectangles and a
+         square, blown up and swallowing the art. Floors keep them legible
+         when she is small. */
+      turW: Math.max(4, Math.round(mw * 0.049)),
+      turH: Math.max(3, Math.round(mh * 0.066)),
+      muz: Math.max(2, Math.round(mw * 0.021)),
+      /* how far the muzzle sits off the turret pivot */
+      muzOut: Math.max(3, Math.round(mw * 0.035)),
+      aura: Math.max(3, Math.round(mw * 0.042))   /* ion-shield bubble */
     };
   }
 
@@ -4406,6 +4459,9 @@ function farRow(wx, rows) {
     if (w.mother) {
       var MoR = w.mother;
       var mw = MoR.w || 144, mh = MoR.h || 76;
+      /* every literal that used to assume a 144-wide hull, derived once —
+         hull offsets AND the drawn turret bodies */
+      var TRR = motherTrim(mw, mh);
       var moRX = Math.round(MoR.sx);
       if (moRX > -mw - 20 && moRX < cols + mw + 20) {
         var moRY = Math.round(MoR.y);
@@ -4452,7 +4508,6 @@ function farRow(wx, rows) {
            so a phone-sized boss does not throw a 6px lance as wide as
            a third of her own length */
         if (MoR.dropFlash > 0) {
-          var TRR = motherTrim(mw, mh);
           for (var dfy = moRY + mh; dfy < moRY + mh + TRR.beamLen; dfy++) {
             var dfp = (dfy + Math.floor(t / 70)) % 6;
             g.fillStyle = dfp < 4 ? BEAM_C1 : BEAM_C2;
@@ -4479,7 +4534,7 @@ function farRow(wx, rows) {
           g.lineWidth = MoR.shieldFlash > 0 ? 2 : 1;
           g.globalAlpha = shAlpha;
           g.beginPath();
-          g.ellipse(moRX + mw / 2, moRY + mh / 2, mw / 2 + 6, mh / 2 + 6, 0, 0, Math.PI * 2);
+          g.ellipse(moRX + mw / 2, moRY + mh / 2, mw / 2 + TRR.aura, mh / 2 + TRR.aura, 0, 0, Math.PI * 2);
           g.stroke();
           if (Math.floor(t / 60) % 2 === 0) {
             g.strokeStyle = '#818cf8';
@@ -4488,23 +4543,26 @@ function farRow(wx, rows) {
           g.restore();
         }
 
-        /* 6. Ventral Turrets */
+        /* 6. Ventral Turrets — drawn where the SIMULATION fires from.
+           This used to be hardcoded to moRX + 28 while stepWorld aimed
+           from MTR.tX (12 on a phone hull), so on a compact tube the
+           turret you could see was not the one shooting at you. */
         var pX = w.ship.x + 15, pY = w.ship.y + 6;
         var tPos = [
-          { x: moRX + 28, y: moRY + mh - 16 },
-          { x: moRX + mw - 28, y: moRY + mh - 16 }
+          { x: moRX + TRR.tX, y: moRY + mh - TRR.tY },
+          { x: moRX + mw - TRR.tX, y: moRY + mh - TRR.tY }
         ];
         for (var ti = 0; ti < tPos.length; ti++) {
           var tp = tPos[ti];
           var ang = Math.atan2(pY - tp.y, pX - tp.x);
           g.fillStyle = '#1e293b';
-          g.fillRect(tp.x - 3, tp.y - 2, 7, 5);
+          g.fillRect(tp.x - (TRR.turW >> 1), tp.y - (TRR.turH >> 1), TRR.turW, TRR.turH);
           g.fillStyle = '#64748b';
-          g.fillRect(tp.x - 2, tp.y - 1, 5, 3);
-          var bx = Math.round(tp.x + Math.cos(ang) * 5);
-          var by = Math.round(tp.y + Math.sin(ang) * 5);
+          g.fillRect(tp.x - (TRR.turW >> 1) + 1, tp.y - (TRR.turH >> 1), TRR.turW - 2, TRR.turH - 2);
+          var bx = Math.round(tp.x + Math.cos(ang) * TRR.muzOut);
+          var by = Math.round(tp.y + Math.sin(ang) * TRR.muzOut);
           g.fillStyle = (MoR.turretCd < 300 && Math.floor(t / 50) % 2) ? '#ef4444' : '#94a3b8';
-          g.fillRect(bx - 1, by - 1, 3, 3);
+          g.fillRect(bx - (TRR.muz >> 1), by - (TRR.muz >> 1), TRR.muz, TRR.muz);
         }
 
         /* 7. Turret Bolts in Flight */
@@ -4815,7 +4873,12 @@ function farRow(wx, rows) {
                    py + 5 + Math.round(Math.sin(pa) * (rr2 - 1)), 1, 1);
       }
       var half = Math.min(4, Math.floor(age / 1500 * 4) + 1);
-      var drewPortalShip = drawSheetFrame(g, 'ship', 0, px - 8, py - 6, 52, 23, 0, Math.min(1, age / 1500));
+      /* same destination box as the live hull, or she materialises at one
+         size and flies at another */
+      var PD = shipDest(w), psk = shipScaleOf(PD.w);
+      var drewPortalShip = drawSheetFrame(g, 'ship', 0, px - Math.round(8 * psk),
+                                          py - Math.round(6 * (PD.h / 23)),
+                                          PD.w, PD.h, 0, Math.min(1, age / 1500));
       if (!drewPortalShip) {
         drawSprClip(g, SPR_SHIP, px, py, SHIP_LEG, 0, 4 - half, 3 + half);
       }
@@ -4851,27 +4914,31 @@ function farRow(wx, rows) {
           /* clean idle hover: 10 frames engine flicker with clean beak */
           shipFrame = Math.floor(t / 80) % 10;
         }
-        var drawShipX = flip ? shipX - 14 : shipX - 8;
-        var drawShipY = shipY - 6;
-        shipDrawn = drawSheetFrame(g, 'ship', shipFrame, drawShipX, drawShipY, 52, 23, flip);
+/* the destination box and every offset sized off it — on a compact tube
+           the hull is 32x14 instead of 52x23, and these follow it so the
+           nose lands on the same game pixel either way */
+        var SD = shipDest(w), ssk = shipScaleOf(SD.w);
+        var drawShipX = flip ? shipX - Math.round(14 * ssk) : shipX - Math.round(8 * ssk);
+        var drawShipY = shipY - Math.round(6 * (SD.h / 23));
+        shipDrawn = drawSheetFrame(g, 'ship', shipFrame, drawShipX, drawShipY, SD.w, SD.h, flip);
 
         if (superOn) {
           /* the gift shows: gold hull, white-hot trim, a pulsing halo
-             and golden sparks trailing the engines — the ship wears
-             the mushroom's promise on the outside too */
+             and golden sparks trailing the engines — the ship wears the
+             mushroom's promise on the outside too */
           if (Math.floor(t / 200) % 2) {
             g.fillStyle = PC.goldHi;
             for (var hk = 0; hk < 12; hk++) {
               var ha = hk / 12 * 6.28 + t * 0.005;
-              g.fillRect(shipX + 10 + Math.round(Math.cos(ha) * 13),
-                         shipY + 5 + Math.round(Math.sin(ha) * 9), 1, 1);
-            }
+              g.fillRect(shipX + Math.round(10 * ssk) + Math.round(Math.cos(ha) * 13 * ssk),
+                         shipY + 5 + Math.round(Math.sin(ha) * 9 * (SD.h / 23)), 1, 1);
+}
           }
           for (var sk2 = 0; sk2 < 3; sk2++) {
             var sph = ((t * 0.0011) + sk2 * 0.33) % 1;
             g.fillStyle = sk2 === 1 ? PC.bulletGlow : PC.gold;
-            g.fillRect(flip ? shipX + sprW(SPR_SHIP) + 2 + Math.round(sph * 12)
-                            : shipX - 3 - Math.round(sph * 12),
+            g.fillRect(flip ? shipX + sprW(SPR_SHIP) + 2 + Math.round(sph * 12 * ssk)
+                            : shipX - 3 - Math.round(sph * 12 * ssk),
                        shipY + 5 + Math.round(Math.sin(sph * 6.28 + sk2 * 2.1) * 2), 1, 1);
           }
         }
@@ -4917,13 +4984,17 @@ function farRow(wx, rows) {
       var mx2 = Math.round(M2.x), my2 = Math.round(M2.y);
       var mFlip = M2.give ? 1 : 0;
       var marioFrame = (M2.toss && !M2.give) ? 16 : (Math.floor(t / 70) % 16);
-      var drewMario = drawSheetFrame(g, 'mario', marioFrame, mx2, my2 - 12, 28, 42, mFlip);
+      /* the cameo had no collision at all, so its box is free to shrink on
+         a compact tube; the offset rides the same ratio as the hull */
+      var MD = marioDest(w), msk = MD.w / 28;
+      var drewMario = drawSheetFrame(g, 'mario', marioFrame, mx2,
+                                     my2 - Math.round(12 * msk), MD.w, MD.h, mFlip);
       if (!drewMario) {
         drawSpr(g, (Math.floor(t / 150) % 2) ? SPR_MARIO2 : SPR_MARIO, mx2, my2, MARIO_LEG, mFlip, 2);
       }
       if (M2.toss && !M2.give) {
         drawSpr(g, SPR_SHROOM, Math.round(M2.sx), Math.round(M2.sy), SHROOM_LEG,
-                (Math.floor(t / 120) % 2) ? 1 : 0, 2);
+                (Math.floor(t / 120) % 2) ? 1 : 0, (w && w.compact) ? 1 : 2);
       }
     }
 
@@ -5194,7 +5265,12 @@ function farRow(wx, rows) {
   function drawAttractChrome(g, cols, rows, w, t) {
     /* micro type on the glass: present, crisp, and out of the
        marquee's way — half the footprint of the old 5×7 row */
-    var isMobileTube = cols < 320 || (html && html.clientWidth < 640);
+    /* The same compact-tube rule the hull uses. A landscape phone is 422
+       columns wide — past both old tests — so this read false at 844x390
+       and the glass row drew at 2x on a 390px-tall tube, where CHAIN and
+       the shield bar printed through each other and the mothership's
+       shield line. Height is the scarce resource here, so ask about it. */
+    var isMobileTube = cols < 320 || !!(w && w.compact) || (html && html.clientWidth < 640);
     var sc = isMobileTube ? 1 : (PXG <= 2 ? 2 : 1);
     var y1 = 2;
     var y2 = y1 + 7 * sc;
@@ -6734,10 +6810,21 @@ function farRow(wx, rows) {
      so a tap on the HUD switch would run that first (paused -> false)
      and then this one (false -> true): net zero, and the switch appeared
      dead. Passing the current value makes both agree. */
+  /* the boss theme is a loop, so a pause that leaves it running sounds
+     like the game never stopped — the tube goes quiet and the anthem keeps
+     marching. Fade it out on the way in, and only pick it back up on the
+     way out if she is still up there and not already dying. */
+  var bossThemeHeld = false;
   function setPause(v) {
     var want = !!v;
     if (want === paused) { return; }
     paused = want;
+    if (paused) {
+      if (bossMusicSource) { bossThemeHeld = true; stopBossMusic(260); }
+    } else if (bossThemeHeld) {
+      bossThemeHeld = false;
+      if (world && world.mother && world.mother.state !== 'dying') { startBossMusic(); }
+    }
     blip(paused ? 392 : 523, 90);
     if (typeof paintPause === 'function') { paintPause(); }
   }

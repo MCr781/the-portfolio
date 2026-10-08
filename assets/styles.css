@@ -1984,13 +1984,20 @@ html[data-show='cast'] .cast-caption {
   border-radius: 6px;
   padding: 7px 10px;
 }
+/* LTR, deliberately. This plate is a bilingual header — an English badge
+   beside a Persian line — and inheriting the document's RTL meant
+   space-between put the badge on the RIGHT with the Persian title pushed
+   out to the left, so it read as a caption for the list below rather than
+   as the label for the row it heads. LTR puts the badge left and the
+   Persian right; each run still sets its own direction internally. */
 .specs-head-row {
+  direction: ltr;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: nowrap;
   gap: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   padding-bottom: 4px;
 }
 .specs-badge {
@@ -2004,10 +2011,16 @@ html[data-show='cast'] .cast-caption {
   white-space: nowrap;
   flex-shrink: 0;
 }
+/* Titley through HIERARCHY, not decoration. The tagline sat at the same
+   grey and a size below .spec-k, so it read as a fifth key rather than as
+   the heading above them. Same size, one step lighter, one step heavier —
+   and the keys drop a weight to open the gap. No accent colour, no caps,
+   no size change: the plate is a technical label, not a poster. */
 .specs-tagline {
   font-size: clamp(0.54rem, 1.8vw, 0.62rem);
-  font-weight: 700;
-  color: #a5a7c2;
+  font-weight: 800;
+  color: #c9cbe0;
+  letter-spacing: .01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2030,9 +2043,10 @@ html[data-show='cast'] .cast-caption {
   overflow: visible;
   text-overflow: clip;
 }
+/* the keys yield the weight so the tagline above them reads as the title */
 .specs-list .spec-k {
   color: #9ea0be;
-  font-weight: 800;
+  font-weight: 700;
   flex-shrink: 0;
   font-size: 0.72rem;
   white-space: nowrap;
@@ -3180,11 +3194,15 @@ html.lb-lock body {
      Compress the deck a further step and the ground gets its rows back
      without the sky becoming a trench. Portrait keeps .7 — there the
      band fits comfortably. */
-  .hero { --hero-deck-scale: .58; }
-  /* and the scale came down, so the targets have to be divided back out
-     by hand — .58 would otherwise paint START at 26px */
-  .pstart { min-height: calc(46px / .58); }
-  .joy, .pbtn { min-height: calc(46px / .58); min-width: calc(46px / .58); }
+  .hero { --hero-deck-scale: .82; }
+  /* NO min-height divided by the scale here. That band-aid is what caused
+     the loop it was meant to fix: `calc(46px / .58)` inflated each button
+     box to 79px, which inflated the deck's height, which ate the sky, which
+     is why the scale had been dropped to .58 in the first place — and the
+     ART inside stayed 32px, which is what you actually see and touch. At
+     .82 the painted art is already past the thumb floor (domes
+     60 * .82 * .92 = 45px, stick 80 * .82 * .92 = 60px), so the boxes can
+     simply hug it and the deck ends up SHORTER than it was. */
 }
 @media (max-width: 560px) {
   /* the CREDIT counter owns the foot row on phones; the decal is
