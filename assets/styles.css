@@ -12,6 +12,31 @@
   font-style: normal;
   font-display: swap;
 }
+/* A Persian face for the specs tagline. Space Mono is Latin-only, so the
+   `mono` class on .specs-tagline never actually reached a monospaced
+   design for its Persian text — the glyphs fell straight through to
+   Estedad and only the *intent* survived, which is what the old comment
+   here said out loud. Vaziratn Mono is a real Persian mono: uniform
+   advance widths, squared terminals, that hardware-label register the
+   badge beside it already speaks.
+
+   ONE face, at the weight the tagline actually uses. Declaring the regular
+   alongside it would double the console noise for a glyph run that never
+   asks for 400.
+
+   The file is optional and the stack below is ordered so that is safe:
+   until `VazirMono-Bold.woff2` is in assets/fonts the browser falls
+   through to Space Mono (Latin) and then Estedad (Persian), which is
+   exactly today's rendering — no layout shift, no broken plate. It does
+   cost one 404 in the console until the file lands. Vazirmatn is
+   SIL OFL 1.1. */
+@font-face {
+  font-family: 'Vazir Mono';
+  src: url('fonts/VazirMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 @font-face {
   font-family: 'Space Mono';
   src: url('fonts/SpaceMono-Bold.woff2') format('woff2');
@@ -40,6 +65,25 @@
   --ease-snap: cubic-bezier(.2, .9, .25, 1);
   --ease-power: cubic-bezier(.7, 0, .2, 1);
 }
+
+/* The ribbon pull-tabs on each cartridge deliberately hang off the shell's
+   side — `.world-inner` keeps `overflow: visible` so they are never cut, and
+   its comment points here for the containment. But `body { overflow-x: clip }`
+   alone does NOT contain them: when the root element's overflow is `visible`,
+   the body's value is PROPAGATED TO THE VIEWPORT and body itself is then
+   treated as visible, so the root element stays a horizontally scrollable box.
+
+   The consequence is exactly the 861-1205 complaint. Four tabs hung ~45px off
+   the left edge, and in this RTL document that leftward overflow is what
+   scrollWidth reports — so the page could be dragged sideways and the whole
+   tube slid 45px left, in the one band where there was no horizontal scroll
+   to give it away. (Hiding the tabs drops the overflow 45 -> 0; `html` gets
+   the clip and it stays there.)
+
+   `clip`, not `hidden`: clip does not create a scroll container, so sticky
+   positioning and any anchored scrolling keep working. Verified at
+   861/1000/1205/1440 — overflow 45 -> 0 and the tube no longer moves. */
+html { overflow-x: clip; }
 
 *,
 *::before,
@@ -369,9 +413,23 @@ html.has-cursor .cursor { display: block; }
      is (game px * PXG * scale) and PXG steps with width AND height. At
      PXG 4 a flat 1.45 paints a 232px stick where PXG 3 painted 174px —
      the deck doubled on the widest screens. calcGrids() publishes
-     4.35 / PXG (see main.js), which pins the stick at 174px at every grid
-     step. Defaulted to 9 so the layout is still correct before JS runs. */
-  --hero-ctl-w: 9;
+     3 / PXG (see main.js), which pins the stick at 120px at every grid
+     step. Defaulted to 9 so the layout is still correct before JS runs.
+
+     --hero-ctl-w is 1 HERE, and that is the desktop answer: the deck
+     renders at its NATIVE grid size — a 120px stick, 150px START, 90px
+     domes at PXG 3 — instead of the 1.45 that was carried over from the
+     phone bands, where it exists to grow a thumb target. On a mouse-driven
+     tube that multiplier just made the panel shout: on a 1900px screen the
+     stick was 174px and START 217px. The phone/tablet bands below override
+     --hero-ctl-w with 1.3/1.45 and are untouched by any of this.
+
+     This was invisible for a while because --hero-deck-max used to be
+     4.35 / PXG, which clamps at PXG 3 to exactly 1.45 — the old value — so
+     a 1900x944 tube (PXG 3, since gh is 3 below 960px tall) saw no change
+     at all. The guard exists to stop the PXG 4 blow-up; it now also agrees
+     with the 120px target by being inert below PXG 4. */
+  --hero-ctl-w: 1;
   --hero-ctl: min(1.45, var(--hero-ctl-w), var(--hero-deck-max, 9));
   /* the bottom band never shrinks below the fixed HUD strip: --hero-pad-bottom
      is a compression dial and the strip is not something the hero can
@@ -577,7 +635,13 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 2px 6px;
+  /* NO padding, like the other two. This was `2px 6px` here and `0 14px`
+     in the phone band, which made START the odd one out in the only way a
+     thumb can feel: its hit box reached 6px past its art on each side
+     (14px on a phone) while the stick and the domes stopped dead at the
+     art. Same tap, two different answers, depending on which control you
+     reached for. See the hitbox note below the deck's captions. */
+  padding: 0;
   background: none;
   border: none;
   font-family: inherit;
@@ -592,6 +656,33 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
 .pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); }
 .joy-fa { margin: .4rem 0 0; text-align: center; }
 .pbtn-fa { display: block; margin: .4rem 0 0; text-align: center; }
+
+/* ── one hitbox shape for all three controls ────────────
+   Audited across 320-1920 (portrait, landscape, desktop): every control
+   was already past the 44px floor everywhere, so nothing here ENLARGES a
+   target. What it fixes is that the three did not agree on one — START
+   carried `padding: 2px 6px` here and `0 14px` on phones, so its hit box
+   reached 6px (14px) past its art on each side while the stick and the domes
+   stopped dead at the art. Same tap, two different answers depending on
+   which control you reached for. With the padding gone all three hit-test
+   exactly their art, plus their caption — which is the control's label and
+   should be pressable.
+
+   A uniform slop halo was tried and removed. It has to be a pseudo-element
+   (real padding lands in the flex layout, and the phone deck's ability to
+   seat stick + domes at all is derived from the ART widths —
+   `212 * scale + 44 <= 100vw` — so padding would move those thresholds from
+   320/352 to 362/398 and quietly shrink the controls on the narrowest
+   phones). But a pseudo-element is inside the element, so it is scaled by
+   `--hero-ctl` along with the art: measured, the halo came out 6px at
+   1920x1080 and 11.6px at 390x844 — not the same shape across widths,
+   which is the thing being fixed here. Worse, at 320x568 the stick-to-dome
+   gap is only 16.4px, so two 8px halos met in the middle and a point 7px
+   right of the stick's edge resolved to the SPECIAL dome: the left/right
+   mapping inverted on the narrowest phone in the sweep.
+
+   Exact-art hit-testing is predictable, cannot swallow a neighbour, and is
+   the same for all three. That is the standard. */
 /* (the old `.panel-btns { align-items: flex-start }` lived here and was
    overridden five lines later by flex-end — it never took effect) */
 /* the paid clock owns the slot: while seconds remain, the door,
@@ -2127,26 +2218,32 @@ html[data-show='cast'] .cast-caption {
 }
 /* Now that the row is LTR, the tagline answers to the badge beside it
    instead of to the list below — so it wears the badge's language: the
-   world accent, the heaviest weight, wide tracking. It is Persian, so
-   letter-spacing stays modest (tracking is a mono-Latin trick and
-   overdone spacing breaks the way a joined script reads); the `mono`
-   class in the markup is harmless here because Space Mono carries no
-   Persian glyphs and the Persian face falls through — what it borrows is
-   the intent, not the typeface.
+   world accent, the heavy weight, a squared technical face.
 
-   Tracking is now ZERO, and the copy is short. Both were eating the one
+   Tracking is ZERO, and the copy is two words. Both were eating the one
    thing this row cannot spare: horizontal space. The badge is
    flex-shrink: 0 and this line is nowrap + ellipsis, so whatever the
    badge leaves is all the Persian gets — at a 306px cartridge back the
    badge takes ~74px of a ~250px plate and the line was truncating on
    every cartridge. .05em across ~30 joined glyphs was ~14px of that
-   budget for a "mono" cue the badge already carries, and the Persian
-   strings are now two words instead of four. The `mono` class stays on
-   the element: it is the badge's language, and it costs nothing now that
-   no tracking is being asked of a script that has no letters. */
+   budget for a cue the badge already carries, and tracking is a mono-Latin
+   trick that breaks the way a joined script reads anyway.
+
+   The typeface finally matches the intent too. The `mono` class used to be
+   a lie here: Space Mono has no Persian glyphs at all, so the Persian fell
+   through to Estedad and the monospaced register was never actually there —
+   only the colour and the weight. Vazir Mono is a real Persian mono, so the
+   line now sets in one. It degrades to today's rendering if the woff2 is
+   not on disk yet; see the @font-face at the top of this file. */
 .specs-tagline {
-  font-size: clamp(0.58rem, 1.8vw, 0.68rem);
-  font-weight: 900;
+  /* Vazir Mono first so a Persian monospace actually wins when the file
+     is present; Space Mono still covers any Latin, and Estedad is the
+     guaranteed fallback. `font-synthesis` off because a synthesised
+     bold on a missing family is what makes Persian look smeared. */
+  font-family: 'Vazir Mono', 'Space Mono', 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
+  font-synthesis: none;
+  font-size: clamp(0.58rem, 1.8vw, 0.7rem);
+  font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 0;
   text-shadow: 0 0 10px color-mix(in srgb, var(--c-accent) 45%, transparent);
@@ -3209,7 +3306,9 @@ html.lb-lock body {
     flex: 0 0 auto;
     width: auto;
     min-height: 44px;
-    padding: 0 14px;
+    /* no padding here either — see the base .pstart. START is centred and
+       absolutely placed on this band, so padding would only push the
+       painted art off the centre line it is supposed to sit on. */
   }
   /* bottom bar: coin slot & sound switch at bottom-left corner */
   .coin-row {

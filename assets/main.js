@@ -749,23 +749,21 @@
     PXT = 2;
     /* The coin door is CHROME, not a control, and it was being sized like
        a control — raw grid multiples. At PXG 4 that is a 104x108px object
-       in the corner of a 1080p monitor, and because the row owns a band
-       wherever it cannot share the foot's line, it was taking 112px out of
-       the play field: the stick's base ended up level with the coin slot.
+       in the corner of a 1080p monitor.
 
-       So it gets a ceiling,        and the ceiling is the band it has to live in.
-       A phone gives it 60px (it owns the strip's row outright). On the
-       desktop it SHARES the foot's line, whose band is the foot's own
-       44px — a door taller than that pokes up past the foot's top edge and
-       into the control deck above it, which is exactly what an overlay at
-       PXG 4 did when the art was unscaled. At PXG 2 the art is 54px and
-       the phone cap does not bind, so handsets are untouched.
+       So it gets a ceiling, exactly like --hero-deck-max for the controls,
+       and the ceiling is the band it has to live in. Measured: at 90px the
+       row is 94px tall and it collides with the deck at 1440x1000 and
+       1600x1000; at 81px the row is 85px and there are zero collisions at
+       1206/1280/1366/1440/1600/1920/2560.
 
-       The SOUND rocker shares that factor: it is the same chrome in the
-       same row, and left on the raw grid it was 68px tall at PXG 4 — the
-       row is as tall as its tallest child, so capping only the coin left
-       the row 68px anyway and it still poked into the deck. */
-    COIN_ART_K = Math.min(1, (w <= 860 ? 60 : 40) / (27 * PXG));
+       81 is also PXG 3's native height (27 game px), so this needs no width
+       branch at all: it is inert at PXG 2 (54px) and PXG 3 (81px — the
+       size the cabinet always had) and only bites at PXG 4, pinning it to
+       that same 81px. The previous attempt used a width branch and a 40px
+       ceiling, which shrank the door to ~35px on every desktop; that was
+       overshooting by more than half. */
+    COIN_ART_K = Math.min(1, 81 / (27 * PXG));
     /* Two things css cannot work out on its own, published here because
        this is already the one place that runs on load, on resize and on
        the scrolled-away refresh — and both were wrong before.
@@ -773,13 +771,21 @@
        --hero-deck-max: the deck's controls are canvas art sized to the
        game grid and then scaled by --hero-ctl, so their PAINTED size is
        (game px * PXG * scale). PXG steps 2 -> 3 -> 4 with the viewport,
-       which means a flat 1.45 turned a 174px stick on a 1280x900 tube
-       into a 232px one at 1920x1000 — the deck had quietly become
-       PYGANTIC exactly where the screen was widest. A media query cannot
-       see PXG (it depends on width AND height), so the ceiling is
-       computed here instead: 4.35 / PXG pins the stick at 174px, the
-       size that reads correctly, at every grid step. */
-    html.style.setProperty('--hero-deck-max', (4.35 / PXG).toFixed(4));
+       which means the same CSS scale paints very different sizes on
+       different screens. Desktop renders the deck at its native grid
+       (--hero-ctl-w: 1), so 40 * PXG alone decides how big the stick is —
+       80px at PXG 2, 120px at PXG 3, 160px at PXG 4. Only the last of
+       those is too big, so this ceiling stays INERT below PXG 4 and pins
+       the biggest step to the 120px the PXG-3 tube gets:
+         PXG 2 -> 9 (no constraint)   PXG 3 -> 9 (no constraint)
+         PXG 4 -> 0.75, i.e. 40 * 4 * 0.75 = 120px
+
+       It must stay inert at PXG 3: the phone and tablet bands paint the
+       deck at 1.3/1.45 (a 174px stick on a tablet), and a ceiling that
+       binds there would quietly shrink the very sizes that were already
+       right. A media query cannot express this either way — PXG depends on
+       width AND height — hence the branch. */
+    html.style.setProperty('--hero-deck-max', PXG >= 4 ? (3 / PXG).toFixed(4) : '9');
 
     /* --hud-h: the strip is position:fixed at EVERY width and the hero's
        bottom band, the coin door and the foot are all anchored against
@@ -4499,6 +4505,57 @@ function farRow(wx, rows) {
       }
     }
 
+    /* ── the rescue chute ──────────────────────────────────
+       A humanoid let go of the sky gets a little striped canopy on the
+       way down. VISUAL ONLY, deliberately: the fall keeps its full speed
+       and the rescue is exactly as hard (or easy) as it was, so this
+       cannot change a run's outcome. It is here because a figure dropping
+       with its arms up and nothing above it reads as a bug, and because
+       the person you dropped is worth watching land.
+
+       Drawn in game pixels as three stacked rects — a gold cap, a
+       red/white striped band, a white rim — plus two strings down to the
+       hands. The strings go down FIRST so the body paints over their tops,
+       which is what sells them as being behind it.
+
+       The canopy scales open from H.vy rather than from a new timer
+       field. vy is 0 on the frame the humanoid is released and grows with
+       gravity, so `vy / 40` gives a pop-open for free at all five places
+       that can drop one (a lander destroyed at three of them, the tractor
+       beam letting go, the beam's ship dying) — and at any future one. */
+    function drawChute(g, cx, hy, open, t) {
+      if (open <= 0.02) { return; }
+      var W = Math.max(2, Math.round(12 * open));
+      /* the canopy drifts a pixel either way, slowly, like it is riding
+         the air rather than welded to the person */
+      var sway = Math.round(Math.sin(t / 620) * (open > 0.9 ? 1 : 0));
+      var ty = hy - 8 - (open > 0.9 ? 1 : 0);
+      var stringLen = hy - (ty + 3);
+      if (stringLen > 0) {
+        g.fillStyle = PC.white;
+        g.fillRect(cx - 4 + sway, ty + 3, 1, stringLen);
+        g.fillRect(cx + 3 + sway, ty + 3, 1, stringLen);
+      }
+      var rows = [[6, PC.gold], [10, null], [12, PC.white]];
+      for (var r = 0; r < rows.length; r++) {
+        var iw = Math.max(1, Math.round(rows[r][0] * open));
+        if (iw > W) { iw = W; }
+        var rx = Math.round(cx - iw / 2) + sway;
+        var ry = ty + r;
+        if (rows[r][1]) {
+          g.fillStyle = rows[r][1];
+          g.fillRect(rx, ry, iw, 1);
+        } else {
+          /* striped band: alternating single game pixels reads as a chute
+             at every grid step without needing a sprite */
+          for (var k = 0; k < iw; k++) {
+            g.fillStyle = (k % 2 === 0) ? PC.red : PC.white;
+            g.fillRect(rx + k, ry, 1, 1);
+          }
+        }
+      }
+    }
+
     /* humanoids on the mountains */
     var cheering = w.cheerUntil && t < w.cheerUntil;
     for (i = 0; i < w.hums.length; i++) {
@@ -4524,6 +4581,9 @@ function farRow(wx, rows) {
         hSpr = ((Math.floor(w.t / 420) + i) % 2) ? SPR_HUM : SPR_HUM2;
       }
       var hy = Math.round(H.y) - (((cheering || selfCheer) && H.state === 'ground') ? 1 : 0);
+      if (H.state === 'fall') {
+        drawChute(g, hx + 3, hy, Math.min(1, (H.vy || 0) / 40), w.t);
+      }
       drawSpr(g, hSpr, hx, hy, HUM_LEG);
     }
 
@@ -6965,19 +7025,44 @@ function farRow(wx, rows) {
   function togglePause() {
     setPause(!paused);
   }
+  /* ── what counts as a control, and what counts as the glass ──
+     Two rules on this page are "a bare touch on the tube means something":
+     tap-to-resume and tap-to-start. Both need the same answer to "was that
+     a control or the sky?", so they share one list instead of each
+     carrying its own — which is how the resume rule ended up exempting only
+     two elements and treating every other click on the page as a thumb on
+     the glass.
+
+     That bug was real and it was nasty: the resume listener sat on
+     `document` in the CAPTURE phase, so it fired before anything else in
+     the document could stop it. Reaching for the gallery, clicking a world
+     in the cartridge, tapping a link in the footer, even a stray click on
+     the page background — every one of those un-paused a game that was
+     deliberately paused, and did it on the way to somewhere else entirely.
+
+     So the rule is: the press must land on the TUBE. `#hero` is the tube,
+     and the HUD strip, the cartridge sections, the footer and every overlay
+     sit outside it. Within the tube, the real controls are still exempt, so
+     reaching for the stick or the coin door while paused does not read as a
+     thumb on the sky. */
+  var CABINET_CONTROL_SEL = '.joy,.panel-btns,.pbtn,.pstart,.coin-row,.snddeck,' +
+    '.hero-foot,.go-plate,button,a,input,select,textarea,[data-close]';
+  function isCabinetControl(t) {
+    return !!(t && t.closest && t.closest(CABINET_CONTROL_SEL));
+  }
+  /* is this press on the tube itself? */
+  function isTubeGlass(t) {
+    if (!t || !hero) { return false; }
+    var n = t;
+    /* text nodes do not happen on pointer events, but be safe */
+    if (n.nodeType === 3) { n = n.parentElement; }
+    return !!(n && hero.contains(n));
+  }
   document.addEventListener('pointerdown', function (e) {
-    if (paused) {
-      if (coinBtn && (e.target === coinBtn || coinBtn.contains(e.target))) {
-        return; /* let coinBtn handle coin insertion */
-      }
-      /* the HUD pause switch is a real control with its own handler;
-         "tap anywhere to resume" must not swallow its taps too, or the
-         switch would flip twice and read as dead. */
-      if (pauseBtn && (e.target === pauseBtn || pauseBtn.contains(e.target))) {
-        return;
-      }
-      setPause(false);
-    }
+    if (!paused) { return; }
+    if (!isTubeGlass(e.target)) { return; }   /* not the game: leave it paused */
+    if (isCabinetControl(e.target)) { return; } /* a control owns this press */
+    setPause(false);
   }, true);
   /* ── with START off the deck, the glass IS the START button ──
      Across the whole phone/tablet band the deck cannot seat stick + START
@@ -6994,9 +7079,11 @@ function farRow(wx, rows) {
      by a single tap. `human-run` is the other gate, and it matters most:
      doStart() on a live run RESETS it — score to zero, ship back to the
      top — so a stray thumb on the sky would throw away a run in progress.
-     Only the pre-run and the dead-run states may start. */
-  var START_GLASS_IGNORE = '.joy,.panel-btns,.pbtn,.pstart,.coin-row,.snddeck,' +
-    '.hero-foot,.go-plate,.hud,.boot,.cart,.lightbox,.modal,a,button,input,select,textarea,[data-close]';
+     Only the pre-run and the dead-run states may start.
+
+     The shared control list lives with the resume rule above: both are
+     "a bare touch on the glass means something", so they must agree on
+     what counts as a control. */
   function startIsOffDeck() {
     return !!(startBtn && startBtn.offsetParent === null);
   }
@@ -7004,8 +7091,7 @@ function farRow(wx, rows) {
     if (paused) { return; }                    /* the resume rule above owns it */
     if (!startIsOffDeck()) { return; }         /* START is on the deck: it is the button */
     if (html.classList.contains('human-run') && world && !world.shipDead) { return; }
-    var t = e.target;
-    if (t && t.closest && t.closest(START_GLASS_IGNORE)) { return; }
+    if (isCabinetControl(e.target)) { return; }
     doStart();
   });
   document.addEventListener('visibilitychange', function () {
