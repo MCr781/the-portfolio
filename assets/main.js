@@ -7889,6 +7889,7 @@ if (soundOn) { ensureCtx(); blip(660, 60); setTimeout(function () { blip(990, 70
        foot row free for the CREDIT counter */
     if (html.clientWidth < 380) { text = 'MMR-84'; }
     else if (html.clientWidth < 520) { text = 'MMR-84 · 4 WORLDS'; }
+    else if (html.clientWidth <= 990) { text = '1P · 4 WORLDS'; }
     var W = textW(text) + 1;
     var mount = decalEl.querySelector('canvas') || doc.createElement('canvas');
     mount.width = W; mount.height = 9;

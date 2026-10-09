@@ -801,9 +801,24 @@ html.coin-hidden .coin-row { visibility: hidden; }
     direction: ltr;
   }
 }
-@media (min-width: 861px) and (max-width: 1205px) {
+@media (min-width: 861px) and (max-width: 990px) {
+  .coin-row {
+    left: clamp(12px, 2vw, 20px);
+    gap: 6px 8px;
+  }
+  .credit {
+    right: clamp(12px, 2vw, 20px);
+  }
   .hero-foot {
-    padding-left: clamp(140px, 16vw, 190px);
+    gap: 12px;
+    padding-left: clamp(185px, 21vw, 220px);
+    padding-right: clamp(40px, 5vw, 60px);
+  }
+}
+@media (min-width: 991px) and (max-width: 1205px) {
+  .hero-foot {
+    padding-left: clamp(150px, 16vw, 200px);
+    padding-right: clamp(30px, 4vw, 50px);
   }
 }
 /* The coin door's Persian caption is hidden on all viewports:
