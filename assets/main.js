@@ -4523,33 +4523,77 @@ function farRow(wx, rows) {
        gravity, so `vy / 40` gives a pop-open for free at all five places
        that can drop one (a lander destroyed at three of them, the tractor
        beam letting go, the beam's ship dying) — and at any future one. */
+    /* ── humanoid parachute ────────────────────────────────────
+       A small, charming pixel-art parachute that fits the game's retro style:
+       - Rounded stepped dome canopy silhouette with crisp pixel grid alignment.
+       - Coordinated cheerful 3-panel palette: Coral Pink-Red on left, Sunny Gold with
+         star crown in center, Bright Sky Mint Cyan on right.
+       - White scalloped lower rim with distinct drops.
+       - Thin suspension lines that angle naturally inward directly into the humanoid's
+         raised hands at (cx - 3, hy) and (cx + 2, hy).
+       - Smooth opening animation driven by falling velocity (open).
+       - Explicitly visual-only: preserves existing falling physics and rescue logic. */
     function drawChute(g, cx, hy, open, t) {
       if (open <= 0.02) { return; }
-      var W = Math.max(2, Math.round(12 * open));
-      /* the canopy drifts a pixel either way, slowly, like it is riding
-         the air rather than welded to the person */
-      var sway = Math.round(Math.sin(t / 620) * (open > 0.9 ? 1 : 0));
-      var ty = hy - 8 - (open > 0.9 ? 1 : 0);
-      var stringLen = hy - (ty + 3);
+      var sway = Math.round(Math.sin(t / 620) * (open > 0.8 ? 1 : 0));
+      var ty = hy - 9 - (open > 0.8 ? 1 : 0);
+
+      /* Thin angled suspension lines connecting to humanoid's hands */
+      var stringLen = hy - (ty + 5);
       if (stringLen > 0) {
-        g.fillStyle = PC.white;
-        g.fillRect(cx - 4 + sway, ty + 3, 1, stringLen);
-        g.fillRect(cx + 3 + sway, ty + 3, 1, stringLen);
+        g.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        /* Left suspension line: starts at left canopy rim (cx - 5) and angles inward to left hand (cx - 3) */
+        g.fillRect(cx - 5 + sway, ty + 5, 1, 1);
+        g.fillRect(cx - 4 + sway, ty + 6, 1, 1);
+        for (var y = ty + 7; y < hy; y++) {
+          g.fillRect(cx - 3 + sway, y, 1, 1);
+        }
+
+        /* Right suspension line: starts at right canopy rim (cx + 4) and angles inward to right hand (cx + 2) */
+        g.fillRect(cx + 4 + sway, ty + 5, 1, 1);
+        g.fillRect(cx + 3 + sway, ty + 6, 1, 1);
+        for (var y2 = ty + 7; y2 < hy; y2++) {
+          g.fillRect(cx + 2 + sway, y2, 1, 1);
+        }
+
+        /* Subtle interior suspension lines at full deployment */
+        if (open > 0.85) {
+          g.fillStyle = 'rgba(255, 255, 255, 0.35)';
+          g.fillRect(cx - 1 + sway, ty + 5, 1, 2);
+          g.fillRect(cx + sway, ty + 5, 1, 2);
+        }
       }
-      var rows = [[6, PC.gold], [10, null], [12, PC.white]];
+
+      /* Coordinated cheerful palette from game theme */
+      var cyanHi = PC.starCyan || '#6ae3ff';
+      var cyanMid = PC.bullet || '#00f0ff';
+      var cyanDk = '#008899';
+
+      /* Rounded stepped dome canopy:
+         r0: star crown pip
+         r1: rounded dome cap
+         r2: upper dome curve
+         r3: mid-dome widest body
+         r4: lower dome shade
+         r5: 3-lobe scalloped white hem */
+      var rows = [
+        { dy: 0, x: -1, w: 2, cols: [PC.goldHi, PC.gold] },
+        { dy: 1, x: -3, w: 6, cols: [PC.redHi, PC.goldHi, PC.gold, PC.gold, PC.goldHi, cyanHi] },
+        { dy: 2, x: -5, w: 10, cols: [PC.redHi, PC.red, PC.red, PC.goldHi, PC.gold, PC.gold, PC.goldHi, cyanMid, cyanMid, cyanHi] },
+        { dy: 3, x: -6, w: 12, cols: [PC.red, PC.red, PC.red, PC.red, PC.goldHi, PC.gold, PC.gold, PC.goldHi, cyanMid, cyanMid, cyanMid, cyanMid] },
+        { dy: 4, x: -6, w: 12, cols: [PC.redDk, PC.red, PC.red, PC.redDk, PC.goldDk, PC.gold, PC.gold, PC.goldDk, cyanDk, cyanMid, cyanMid, cyanDk] },
+        { dy: 5, x: -6, w: 12, cols: [null, PC.white, PC.white, null, null, PC.white, PC.white, null, null, PC.white, PC.white, null] }
+      ];
+
       for (var r = 0; r < rows.length; r++) {
-        var iw = Math.max(1, Math.round(rows[r][0] * open));
-        if (iw > W) { iw = W; }
-        var rx = Math.round(cx - iw / 2) + sway;
-        var ry = ty + r;
-        if (rows[r][1]) {
-          g.fillStyle = rows[r][1];
-          g.fillRect(rx, ry, iw, 1);
-        } else {
-          /* striped band: alternating single game pixels reads as a chute
-             at every grid step without needing a sprite */
-          for (var k = 0; k < iw; k++) {
-            g.fillStyle = (k % 2 === 0) ? PC.red : PC.white;
+        var row = rows[r];
+        var rw = Math.max(1, Math.round(row.w * open));
+        var rx = Math.round(cx + row.x * open) + sway;
+        var ry = ty + row.dy;
+        for (var k = 0; k < rw; k++) {
+          var col = row.cols[Math.floor(k * row.cols.length / rw)];
+          if (col) {
+            g.fillStyle = col;
             g.fillRect(rx + k, ry, 1, 1);
           }
         }
@@ -5667,6 +5711,14 @@ function farRow(wx, rows) {
   if (typeof location !== 'undefined' && /fwdebug/.test(location.hash || '')) {
     window.__fw = {
       world: function () { return world; },
+      keys: function () { return keys; },
+      joyTilt: function () { return { x: joyTiltX, y: joyTiltY }; },
+      calcGrids: function () {
+        calcGrids();
+        if (typeof paintJoy === 'function') { paintJoy(); }
+        if (typeof paintStart === 'function') { paintStart(); }
+        if (typeof paintPBtns === 'function') { paintPBtns(); }
+      },
       actx: function () { return actx; },
       soundOn: function () { return soundOn; },
       hasBossMusic: function () { return !!bossMusicSource; },
@@ -8994,18 +9046,18 @@ function setThumbColumns(box, n) {
   var joyHeld = false;          /* a finger owns the stick right now */
   var joyPointerId = null;      /* and it is this one */
   var joyPivotX = 0, joyPivotY = 0;
-  var JOY_DEAD = 5;             /* px of slop before the stick bites */
-  var JOY_LEAN = 3;             /* px of travel that reads as full tilt */
+  var joyDead = 16;             /* px of dead zone covering visual ball landing */
+  var joyLean = 6;              /* px of travel that reads as full tilt */
 
   function joyApply(e) {
     var dx = e.clientX - joyPivotX;
     var dy = e.clientY - joyPivotY;
-    /* dead zone: measured along each axis so a thumb resting slightly
-       off-centre does not creep the ship sideways */
-    var ax = dx < 0 ? -Math.max(0, -dx - JOY_DEAD) : Math.max(0, dx - JOY_DEAD);
-    var ay = dy < 0 ? -Math.max(0, -dy - JOY_DEAD) : Math.max(0, dy - JOY_DEAD);
-    var kx = Math.max(-1, Math.min(1, ax / JOY_LEAN));
-    var ky = Math.max(-1, Math.min(1, ay / JOY_LEAN));
+    /* dead zone: dynamic radius covering visual ball landing so a finger
+       landing away from the exact single-pixel center does not cause an unexpected jump */
+    var ax = dx < 0 ? -Math.max(0, -dx - joyDead) : Math.max(0, dx - joyDead);
+    var ay = dy < 0 ? -Math.max(0, -dy - joyDead) : Math.max(0, dy - joyDead);
+    var kx = Math.max(-1, Math.min(1, ax / joyLean));
+    var ky = Math.max(-1, Math.min(1, ay / joyLean));
     var nx = Math.round(kx * 3);
     var ny = Math.round(ky * 3);
     if (nx !== joyTiltX || ny !== joyTiltY) {
@@ -9026,12 +9078,18 @@ function setThumbColumns(box, n) {
   if (joyBox) {
     joyBox.addEventListener('pointerdown', function (e) {
       if (joyHeld) { return; }              /* one finger owns the stick */
-      var r = joyBox.getBoundingClientRect();
-      /* pivot = the centre of the ball at rest. Scaling is already baked
-         into the rect by the time we read it, so this is the painted
-         position, not the layout box. */
-      joyPivotX = r.left + r.width / 2;
-      joyPivotY = r.top + r.height * 0.32;   /* the ball sits high on the gait */
+      var cvr = joyCv ? joyCv.getBoundingClientRect() : joyBox.getBoundingClientRect();
+      /* pivot = the center of the visual ball-top at rest.
+         joyCv canvas is 40x38; ball center sits exactly at (20, 8),
+         i.e. 50% across and 8/38 from the top. Calculating directly
+         from the visual artwork canvas guarantees the pivot matches
+         the rendered artwork, completely unaffected by layout boxes,
+         margins, or captions. */
+      joyPivotX = cvr.left + cvr.width * 0.5;
+      joyPivotY = cvr.top + cvr.height * (8 / 38);
+      var ballR = Math.round(cvr.width * (7 / 40));
+      joyDead = Math.max(8, Math.round(ballR * 0.8));
+      joyLean = Math.max(4, Math.round(ballR * 0.35));
       joyHeld = true; joyPointerId = e.pointerId;
       joyPress = true;
       try { joyBox.setPointerCapture(e.pointerId); } catch (_) {}

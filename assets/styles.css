@@ -581,16 +581,33 @@ html.gameover-dim .go-plate { visibility: visible; opacity: 1; pointer-events: a
 }
 html[data-show] .hero-deck { animation: deckdim 320ms steps(3, end) forwards; }
 html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
+.ctl-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: none;
+  position: relative;
+}
+.joy-col {
+  transform: scale(var(--hero-ctl));
+  transform-origin: center bottom;
+}
+.start-col {
+  transform: scale(var(--hero-ctl));
+  transform-origin: center bottom;
+}
+.pbtn-col {
+  align-items: center;
+}
 .joy {
   position: relative;
   flex: none;
   cursor: pointer;
-  transform: scale(var(--hero-ctl));
-  transform-origin: center bottom;
-  /* a stick is a hardware button: no UA affordances, same as .pstart */
   background: none;
   border: none;
   padding: 0;
+  margin: 0;
+  line-height: 0;
   font-family: inherit;
 }
 /* Thumb controls, not links. `touch-action: none` is load-bearing on the
@@ -610,28 +627,18 @@ html[data-show] .coin-row { animation: coindim 320ms steps(3, end) forwards; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  /* NO padding, like the other two. This was `2px 6px` here and `0 14px`
-     in the phone band, which made START the odd one out in the only way a
-     thumb can feel: its hit box reached 6px past its art on each side
-     (14px on a phone) while the stick and the domes stopped dead at the
-     art. Same tap, two different answers, depending on which control you
-     reached for. See the hitbox note below the deck's captions. */
+  justify-content: center;
   padding: 0;
+  margin: 0;
+  line-height: 0;
   background: none;
   border: none;
   font-family: inherit;
   cursor: pointer;
-  min-height: 44px;
-  /* START was the one control with no scale of its own, so it painted at
-     1:1 while everything else on the panel grew — the odd one out on the
-     deck. It carries --hero-ctl like the rest. */
-  transform: scale(var(--hero-ctl));
-  transform-origin: center bottom;
 }
-.pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); }
-.joy-fa { margin: .4rem 0 0; text-align: center; }
-.pbtn-fa { display: block; margin: .4rem 0 0; text-align: center; }
+.pstart-fa { font-size: .78rem; font-weight: 700; color: var(--c-accent); margin: .4rem 0 0; text-align: center; pointer-events: none; flex: none; }
+.joy-fa { margin: .4rem 0 0; text-align: center; pointer-events: none; flex: none; }
+.pbtn-fa { display: block; margin: .4rem 0 0; text-align: center; pointer-events: none; flex: none; }
 
 /* ── one hitbox shape for all three controls ────────────
    Audited across 320-1920 (portrait, landscape, desktop): every control
@@ -677,7 +684,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
   transform-origin: center bottom;
 }
 .pbtn { position: relative; display: block; flex: none; cursor: pointer;
-  background: none; border: none; padding: 0; font-family: inherit; }
+  background: none; border: none; padding: 0; margin: 0; line-height: 0; font-family: inherit; }
 /* Touch captions. A phone must never be told its controls are WASD, E
    and SPACE — those are keyboard names, and on a tube with no keyboard
    they are a lie. The pixel twins keep the desktop look; these plain
@@ -694,6 +701,8 @@ html.coin-hidden .coin-row { visibility: hidden; }
   font-weight: 700;
   color: var(--c-accent);
   line-height: 1.3;
+  pointer-events: none;
+  flex: none;
 }
 @media (pointer: coarse) {
   .joy-fa,
@@ -3251,8 +3260,8 @@ html.lb-lock body {
     pointer-events: none;
     z-index: 25;
   }
-  /* Left Thumb: Joystick */
-  .hero-deck .joy {
+  /* Left Thumb: Joystick column */
+  .hero-deck .joy-col {
     pointer-events: auto;
     display: flex;
     flex-direction: column;
@@ -3260,20 +3269,34 @@ html.lb-lock body {
     transform: scale(var(--hero-ctl));
     transform-origin: bottom left;
   }
+  .hero-deck .joy {
+    pointer-events: auto;
+    display: block;
+    transform: none;
+    padding: 0;
+  }
   /* Right Thumb: Action Buttons (FIRE & SPECIAL) */
   .hero-deck .panel-btns {
     pointer-events: auto;
     display: flex;
     flex-direction: row;
     gap: 12px;
-    align-items: center;
+    align-items: flex-end;
     padding-bottom: 4px;
     transform: scale(var(--hero-ctl));
     transform-origin: bottom right;
   }
-  /* Center: START Button. Centred, so its transform is a translate AND a
-     scale — translate first, or the scale would move the centring. */
-  .hero-deck .pstart {
+  .hero-deck .pbtn-col {
+    align-items: center;
+  }
+  .hero-deck .pbtn {
+    pointer-events: auto;
+    display: block;
+    transform: none;
+    padding: 0;
+  }
+  /* Center: START Button column */
+  .hero-deck .start-col {
     position: absolute;
     left: 50%;
     bottom: 8px;
@@ -3283,10 +3306,13 @@ html.lb-lock body {
     z-index: 30;
     flex: 0 0 auto;
     width: auto;
-    min-height: 44px;
-    /* no padding here either — see the base .pstart. START is centred and
-       absolutely placed on this band, so padding would only push the
-       painted art off the centre line it is supposed to sit on. */
+    display: flex;
+  }
+  .hero-deck .pstart {
+    position: static;
+    transform: none;
+    pointer-events: auto;
+    padding: 0;
   }
   /* bottom bar: coin slot & sound switch at bottom-left corner */
   .coin-row {
@@ -3420,7 +3446,8 @@ html.lb-lock body {
      START used to own, so the game stays startable AND continuable by
      thumb). Dropping it frees 490 - 212 = 278px, and that is what finally
      buys the stick and the domes their size. */
-  .hero-deck .pstart { display: none; }
+  .hero-deck .start-col,
+  .hero-deck .pstart { display: none !important; }
   .hero { --hero-ctl-w: 1.3; }
 }
 @media (min-width: 352px) and (max-width: 860px) {
@@ -3443,7 +3470,27 @@ html.lb-lock body {
    one: space-between does the placing there, and an 84px floor with two
    `flex: none` controls would shove them off the tube. */
 @media (min-width: 861px) {
-  .hero-deck { gap: clamp(84px, 8vw, 108px); }
+  .hero-deck {
+    gap: clamp(84px, 8vw, 108px);
+    align-items: flex-end;
+  }
+  .hero-deck .joy-col {
+    transform: scale(var(--hero-ctl));
+    transform-origin: center bottom;
+  }
+  .hero-deck .start-col {
+    position: static;
+    left: auto;
+    bottom: auto;
+    transform: scale(var(--hero-ctl));
+    transform-origin: center bottom;
+    display: flex;
+  }
+  .hero-deck .panel-btns {
+    gap: 16px;
+    transform: scale(var(--hero-ctl));
+    transform-origin: center bottom;
+  }
 }
 
 /* The paragraph is dropped on mobile screens and short tubes to keep
