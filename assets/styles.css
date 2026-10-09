@@ -12,31 +12,6 @@
   font-style: normal;
   font-display: swap;
 }
-/* A Persian face for the specs tagline. Space Mono is Latin-only, so the
-   `mono` class on .specs-tagline never actually reached a monospaced
-   design for its Persian text — the glyphs fell straight through to
-   Estedad and only the *intent* survived, which is what the old comment
-   here said out loud. Vaziratn Mono is a real Persian mono: uniform
-   advance widths, squared terminals, that hardware-label register the
-   badge beside it already speaks.
-
-   ONE face, at the weight the tagline actually uses. Declaring the regular
-   alongside it would double the console noise for a glyph run that never
-   asks for 400.
-
-   The file is optional and the stack below is ordered so that is safe:
-   until `VazirMono-Bold.woff2` is in assets/fonts the browser falls
-   through to Space Mono (Latin) and then Estedad (Persian), which is
-   exactly today's rendering — no layout shift, no broken plate. It does
-   cost one 404 in the console until the file lands. Vazirmatn is
-   SIL OFL 1.1. */
-@font-face {
-  font-family: 'Vazir Mono';
-  src: url('fonts/VazirMono-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
 @font-face {
   font-family: 'Space Mono';
   src: url('fonts/SpaceMono-Bold.woff2') format('woff2');
@@ -44,6 +19,7 @@
   font-style: normal;
   font-display: swap;
 }
+
 
 @property --c-accent {
   syntax: '<color>';
@@ -2229,19 +2205,21 @@ html[data-show='cast'] .cast-caption {
    budget for a cue the badge already carries, and tracking is a mono-Latin
    trick that breaks the way a joined script reads anyway.
 
-   The typeface finally matches the intent too. The `mono` class used to be
-   a lie here: Space Mono has no Persian glyphs at all, so the Persian fell
-   through to Estedad and the monospaced register was never actually there —
-   only the colour and the weight. Vazir Mono is a real Persian mono, so the
-   line now sets in one. It degrades to today's rendering if the woff2 is
-   not on disk yet; see the @font-face at the top of this file. */
+   The typeface is Estedad and that is a deliberate stop, not an
+   oversight. The `mono` class on this element is a no-op for its Persian
+   text: Space Mono carries no Persian glyphs at all, so they fall straight
+   through — which is why this rule states the stack explicitly rather than
+   inheriting `.mono`, so the Persian face is named and cannot shift if the
+   Latin fallback order is ever reordered.
+
+   A Persian monospace was wanted here and does not exist to buy: there is
+   no Vazir Mono, no vazirmatn-mono and no vazir-code on npm — an earlier
+   pass declared a @font-face for one anyway, which rendered nothing and
+   cost a console 404 per page load. Estedad at 700 with zero tracking and
+   the accent glow carries the register instead. If a Persian mono ever
+   does turn up, this is the one line to change. */
 .specs-tagline {
-  /* Vazir Mono first so a Persian monospace actually wins when the file
-     is present; Space Mono still covers any Latin, and Estedad is the
-     guaranteed fallback. `font-synthesis` off because a synthesised
-     bold on a missing family is what makes Persian look smeared. */
-  font-family: 'Vazir Mono', 'Space Mono', 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
-  font-synthesis: none;
+  font-family: 'Space Mono', 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
   font-size: clamp(0.58rem, 1.8vw, 0.7rem);
   font-weight: 700;
   color: var(--c-accent);
