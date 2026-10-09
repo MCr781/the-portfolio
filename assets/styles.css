@@ -790,7 +790,7 @@ html.coin-hidden .coin-row { visibility: hidden; }
 
    It only works because --coin-art-cap keeps the door inside the foot's
    44px band; see COIN_ART_K in main.js. */
-@media (min-width: 1206px) {
+@media (min-width: 861px) {
   .coin-row {
     position: absolute;
     left: clamp(16px, 2.8vw, 32px);
@@ -801,27 +801,19 @@ html.coin-hidden .coin-row { visibility: hidden; }
     direction: ltr;
   }
 }
-/* The coin door's Persian caption folds away wherever the row cannot have
-   the width for it, and keeps it only in the one band where the row owns
-   its own full-width line:
-
-     <= 860px   hidden — on a phone the caption wraps to two lines and the
-                 row is 58px tall vs the 68px the deck reserved above it,
-                 so the coin door reached up over the stick's base
-   861 - 1205   SHOWN — the row has its own band here (see below), so
-                 there is width to spare and the line "no coin needed" is
-                 the most useful thing on screen
-     >= 1206px  hidden — the row goes back to sharing the foot's line, and
-                 with the caption it is 518px wide against a foot cluster
-                 that starts at 454px at 1280: they overlap. Without it the
-                 row is 358px and clears by 96px.
-
-   The coin art and the pixel INSERT COIN plate stay at every width; the
-   coin door is still a coin door. */
+@media (min-width: 861px) and (max-width: 1205px) {
+  .hero-foot {
+    padding-left: clamp(140px, 16vw, 190px);
+  }
+}
+/* The coin door's Persian caption is hidden on all viewports:
+   - On phones (<= 860px) to prevent height inflation and overlap with stick base.
+   - On desktop and tablet (>= 861px) so the coin row shares the bottom bar cleanly
+     without pushing the control deck up into the sky. */
 @media (max-width: 860px) {
   .coin-fa { display: none; }
 }
-@media (min-width: 1206px) {
+@media (min-width: 861px) {
   .coin-fa { display: none; }
 }
 .coin-slot {
@@ -3248,8 +3240,8 @@ html.lb-lock body {
        calcGrids() measures both (--coin-row-h / --hero-foot-h) and the
        deck clears whichever is taller. */
     bottom: calc(var(--hud-h, 64px) + 8px +
-      max(var(--coin-row-h, 58px), var(--hero-foot-h, 44px)) + 14px);
-    left: clamp(16px, 4vw, 24px);
+      max(var(--coin-row-h, 58px), var(--hero-foot-h, 44px)) + 22px);
+    left: clamp(18px, 4.8vw, 32px);
     right: clamp(16px, 4vw, 24px);
     width: auto;
     display: flex;
@@ -3260,7 +3252,7 @@ html.lb-lock body {
     pointer-events: none;
     z-index: 25;
   }
-  /* Left Thumb: Joystick column */
+  /* Left Thumb: Joystick column — generous breathing room for the thumb */
   .hero-deck .joy-col {
     pointer-events: auto;
     display: flex;
@@ -3268,6 +3260,8 @@ html.lb-lock body {
     align-items: center;
     transform: scale(var(--hero-ctl));
     transform-origin: bottom left;
+    margin-left: clamp(4px, 1.5vw, 10px);
+    margin-bottom: 2px;
   }
   .hero-deck .joy {
     pointer-events: auto;

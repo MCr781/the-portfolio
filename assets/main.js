@@ -2436,7 +2436,7 @@ function farRow(wx, rows) {
      an epic cascading destruction ceremony. */
   function spawnMother(w) {
     var dir = Math.random() < 0.5 ? -1 : 1;
-    var base = Math.round(w.rows * 0.16 + Math.random() * w.rows * 0.04);
+    var base = Math.max(Math.round(w.rows * 0.16), 68) + Math.round(Math.random() * w.rows * 0.04);
     var sz = motherSize(w);
     var mw = sz.w, mh = sz.h;
     /* On an arena too narrow to honour the 10-column standoff, drop the
@@ -4538,37 +4538,23 @@ function farRow(wx, rows) {
       var sway = Math.round(Math.sin(t / 620) * (open > 0.8 ? 1 : 0));
       var ty = hy - 16 - (open > 0.8 ? 1 : 0);
 
-      /* Thin angled suspension lines connecting to humanoid's hands at (cx - 3, hy) and (cx + 2, hy) */
+      /* Triangular suspension lines (ropes) connecting the two canopy ends directly to humanoid hands */
       var hemY = ty + 6;
       if (hy > hemY) {
-        g.fillStyle = 'rgba(255, 255, 255, 0.85)';
-        /* Left outer suspension line: starts at left canopy rim (cx - 8) and angles gracefully inward */
-        g.fillRect(cx - 8 + sway, hemY, 1, 1);
-        g.fillRect(cx - 7 + sway, hemY + 1, 1, 1);
-        g.fillRect(cx - 6 + sway, hemY + 2, 1, 1);
-        g.fillRect(cx - 5 + sway, hemY + 3, 1, 1);
-        g.fillRect(cx - 4 + sway, hemY + 4, 1, 1);
-        for (var y = hemY + 5; y < hy; y++) {
-          g.fillRect(cx - 3 + sway, y, 1, 1);
-        }
+        g.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        var dy = hy - hemY;
+        var xLeft = Math.round(cx - 8 * open) + sway;
+        var xRight = Math.round(cx + 7 * open) + sway;
+        var handL = cx - 3;
+        var handR = cx + 2;
 
-        /* Right outer suspension line: starts at right canopy rim (cx + 7) and angles inward */
-        g.fillRect(cx + 7 + sway, hemY, 1, 1);
-        g.fillRect(cx + 6 + sway, hemY + 1, 1, 1);
-        g.fillRect(cx + 5 + sway, hemY + 2, 1, 1);
-        g.fillRect(cx + 4 + sway, hemY + 3, 1, 1);
-        g.fillRect(cx + 3 + sway, hemY + 4, 1, 1);
-        for (var y2 = hemY + 5; y2 < hy; y2++) {
-          g.fillRect(cx + 2 + sway, y2, 1, 1);
-        }
-
-        /* Subtle interior suspension lines at full bloom */
-        if (open > 0.85) {
-          g.fillStyle = 'rgba(255, 255, 255, 0.35)';
-          g.fillRect(cx - 3 + sway, hemY, 1, 2);
-          g.fillRect(cx - 2 + sway, hemY + 2, 1, 2);
-          g.fillRect(cx + 2 + sway, hemY, 1, 2);
-          g.fillRect(cx + 1 + sway, hemY + 2, 1, 2);
+        /* Crisp triangular diagonals from canopy left/right edges straight to hands */
+        for (var y = hemY; y < hy; y++) {
+          var tLine = (y - hemY) / dy;
+          var xl = Math.round(xLeft + (handL - xLeft) * tLine);
+          var xr = Math.round(xRight + (handR - xRight) * tLine);
+          g.fillRect(xl, y, 1, 1);
+          g.fillRect(xr, y, 1, 1);
         }
       }
 
@@ -5586,10 +5572,15 @@ function farRow(wx, rows) {
       }
       /* the dreadnought mothership is in the sky: FLAGSHIP alert blinks */
       if (w.mother) {
-        if ((Math.floor(w.t / (w.mother.hp <= 10 ? 150 : 300)) % 2) === 0) {
-          drawMText(g, 'FLAGSHIP', rightEdge - mW('FLAGSHIP'), y3, w.mother.hp <= 10 ? PC.redHi : (w.mother.shield > 0 ? '#38bdf8' : '#f59e0b'), sc);
+        var flagW = mW('FLAGSHIP');
+        var flagX = rightEdge - flagW;
+        var rLeftLimit = (w.kills >= 4 ? (x0 + 24 * sc + 31 * sc + 4 * sc + mW('READY')) : (x0 + 24 * sc + mW('CHAIN X' + (w.chain || 2)))) + 8 * sc;
+        if (flagX >= rLeftLimit) {
+          if ((Math.floor(w.t / (w.mother.hp <= 10 ? 150 : 300)) % 2) === 0) {
+            drawMText(g, 'FLAGSHIP', flagX, y3, w.mother.hp <= 10 ? PC.redHi : (w.mother.shield > 0 ? '#38bdf8' : '#f59e0b'), sc);
+          }
+          rightEdge -= flagW + 4 * sc;
         }
-        rightEdge -= mW('FLAGSHIP') + 4 * sc;
       }
       /* dedicated Boss Health Bar (Shield + Core Armor) — always rendered when boss is in active battle */
       if (w.mother && w.mother.state !== 'dying') {
@@ -5597,20 +5588,18 @@ function farRow(wx, rows) {
         var barW = isMobileTube ? Math.min(120, cols - 24) : Math.min(160, cols - 40);
         var barH = isMobileTube ? 4 : 5;
         var barX = Math.round(cols / 2 - barW / 2);
-        /* The title gets its OWN row on every width. It used to sit at
-           y3 + 1 on desktop — and y3 is the row the combat and attract
-           labels are drawn on (MUTANT, FLAGSHIP, CHAIN, COMET), so
-           "DREADNOUGHT SHIELDED" printed straight through "CHAIN" at
-           861px wide. The phone branch already stacked it at y3 + 9; the
-           desktop branch was the outlier, and the narrow-desktop band is
-           exactly where the two collided. */
-        var titleY = Math.round(y3 + 9);
+        /* The title and health bar stack cleanly below row y3 on every screen width.
+           Text on y3 is 5*sc tall, so titleY at y3 + 5*sc + 3 guarantees zero vertical
+           overlap with CHAIN, READY, or right-hand alerts.
+           Title is centered at scale 1 so it perfectly aligns over the boss bar. */
+        var titleY = Math.round(y3 + 5 * sc + 3);
         var barY = Math.round(titleY + 7);
         if (barY < rows * 0.35) {
           g.save();
           var bTitle = MoH.hp <= 10 ? '◆ DREADNOUGHT CRITICAL ◆' : (MoH.shield > 0 ? '◆ DREADNOUGHT SHIELDED ◆' : '◆ DREADNOUGHT CORE EXPOSED ◆');
           var tCol = MoH.hp <= 10 ? PC.redHi : (MoH.shield > 0 ? '#38bdf8' : '#f59e0b');
-          drawMText(g, bTitle, Math.round(cols / 2 - mW(bTitle) / 2), titleY, tCol, 1);
+          var bTitleW = (bTitle.length * 4 - 1);
+          drawMText(g, bTitle, Math.round(cols / 2 - bTitleW / 2), titleY, tCol, 1);
 
           /* Frame */
           g.fillStyle = '#090d16';
