@@ -3249,8 +3249,8 @@ html.lb-lock body {
        deck clears whichever is taller. */
     bottom: calc(var(--hud-h, 64px) + 8px +
       max(var(--coin-row-h, 58px), var(--hero-foot-h, 44px)) + 14px);
-    left: 14px;
-    right: 14px;
+    left: clamp(16px, 4vw, 24px);
+    right: clamp(16px, 4vw, 24px);
     width: auto;
     display: flex;
     direction: ltr; /* left is left thumb, right is right thumb */
@@ -3280,7 +3280,7 @@ html.lb-lock body {
     pointer-events: auto;
     display: flex;
     flex-direction: row;
-    gap: 12px;
+    gap: calc(26px / var(--hero-ctl));
     align-items: flex-end;
     padding-bottom: 4px;
     transform: scale(var(--hero-ctl));
@@ -3448,9 +3448,12 @@ html.lb-lock body {
      buys the stick and the domes their size. */
   .hero-deck .start-col,
   .hero-deck .pstart { display: none !important; }
-  .hero { --hero-ctl-w: 1.3; }
+  .hero { --hero-ctl-w: 1.35; }
 }
-@media (min-width: 352px) and (max-width: 860px) {
+@media (max-width: 350px) {
+  .hero { --hero-ctl-w: 1.2; }
+}
+@media (min-width: 380px) and (max-width: 860px) {
   .hero { --hero-ctl-w: 1.45; }
 }
 
@@ -3487,7 +3490,7 @@ html.lb-lock body {
     display: flex;
   }
   .hero-deck .panel-btns {
-    gap: 16px;
+    gap: 26px;
     transform: scale(var(--hero-ctl));
     transform-origin: center bottom;
   }

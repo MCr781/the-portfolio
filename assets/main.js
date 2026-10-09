@@ -4536,31 +4536,39 @@ function farRow(wx, rows) {
     function drawChute(g, cx, hy, open, t) {
       if (open <= 0.02) { return; }
       var sway = Math.round(Math.sin(t / 620) * (open > 0.8 ? 1 : 0));
-      var ty = hy - 9 - (open > 0.8 ? 1 : 0);
+      var ty = hy - 16 - (open > 0.8 ? 1 : 0);
 
-      /* Thin angled suspension lines connecting to humanoid's hands */
-      var stringLen = hy - (ty + 5);
-      if (stringLen > 0) {
+      /* Thin angled suspension lines connecting to humanoid's hands at (cx - 3, hy) and (cx + 2, hy) */
+      var hemY = ty + 6;
+      if (hy > hemY) {
         g.fillStyle = 'rgba(255, 255, 255, 0.85)';
-        /* Left suspension line: starts at left canopy rim (cx - 5) and angles inward to left hand (cx - 3) */
-        g.fillRect(cx - 5 + sway, ty + 5, 1, 1);
-        g.fillRect(cx - 4 + sway, ty + 6, 1, 1);
-        for (var y = ty + 7; y < hy; y++) {
+        /* Left outer suspension line: starts at left canopy rim (cx - 8) and angles gracefully inward */
+        g.fillRect(cx - 8 + sway, hemY, 1, 1);
+        g.fillRect(cx - 7 + sway, hemY + 1, 1, 1);
+        g.fillRect(cx - 6 + sway, hemY + 2, 1, 1);
+        g.fillRect(cx - 5 + sway, hemY + 3, 1, 1);
+        g.fillRect(cx - 4 + sway, hemY + 4, 1, 1);
+        for (var y = hemY + 5; y < hy; y++) {
           g.fillRect(cx - 3 + sway, y, 1, 1);
         }
 
-        /* Right suspension line: starts at right canopy rim (cx + 4) and angles inward to right hand (cx + 2) */
-        g.fillRect(cx + 4 + sway, ty + 5, 1, 1);
-        g.fillRect(cx + 3 + sway, ty + 6, 1, 1);
-        for (var y2 = ty + 7; y2 < hy; y2++) {
+        /* Right outer suspension line: starts at right canopy rim (cx + 7) and angles inward */
+        g.fillRect(cx + 7 + sway, hemY, 1, 1);
+        g.fillRect(cx + 6 + sway, hemY + 1, 1, 1);
+        g.fillRect(cx + 5 + sway, hemY + 2, 1, 1);
+        g.fillRect(cx + 4 + sway, hemY + 3, 1, 1);
+        g.fillRect(cx + 3 + sway, hemY + 4, 1, 1);
+        for (var y2 = hemY + 5; y2 < hy; y2++) {
           g.fillRect(cx + 2 + sway, y2, 1, 1);
         }
 
-        /* Subtle interior suspension lines at full deployment */
+        /* Subtle interior suspension lines at full bloom */
         if (open > 0.85) {
           g.fillStyle = 'rgba(255, 255, 255, 0.35)';
-          g.fillRect(cx - 1 + sway, ty + 5, 1, 2);
-          g.fillRect(cx + sway, ty + 5, 1, 2);
+          g.fillRect(cx - 3 + sway, hemY, 1, 2);
+          g.fillRect(cx - 2 + sway, hemY + 2, 1, 2);
+          g.fillRect(cx + 2 + sway, hemY, 1, 2);
+          g.fillRect(cx + 1 + sway, hemY + 2, 1, 2);
         }
       }
 
@@ -4569,20 +4577,22 @@ function farRow(wx, rows) {
       var cyanMid = PC.bullet || '#00f0ff';
       var cyanDk = '#008899';
 
-      /* Rounded stepped dome canopy:
+      /* Rounded stepped dome canopy (16px wide at 1x):
          r0: star crown pip
-         r1: rounded dome cap
+         r1: top dome cap
          r2: upper dome curve
          r3: mid-dome widest body
-         r4: lower dome shade
-         r5: 3-lobe scalloped white hem */
+         r4: lower body
+         r5: shaded lower body
+         r6: 4-lobe scalloped white hem */
       var rows = [
         { dy: 0, x: -1, w: 2, cols: [PC.goldHi, PC.gold] },
-        { dy: 1, x: -3, w: 6, cols: [PC.redHi, PC.goldHi, PC.gold, PC.gold, PC.goldHi, cyanHi] },
-        { dy: 2, x: -5, w: 10, cols: [PC.redHi, PC.red, PC.red, PC.goldHi, PC.gold, PC.gold, PC.goldHi, cyanMid, cyanMid, cyanHi] },
-        { dy: 3, x: -6, w: 12, cols: [PC.red, PC.red, PC.red, PC.red, PC.goldHi, PC.gold, PC.gold, PC.goldHi, cyanMid, cyanMid, cyanMid, cyanMid] },
-        { dy: 4, x: -6, w: 12, cols: [PC.redDk, PC.red, PC.red, PC.redDk, PC.goldDk, PC.gold, PC.gold, PC.goldDk, cyanDk, cyanMid, cyanMid, cyanDk] },
-        { dy: 5, x: -6, w: 12, cols: [null, PC.white, PC.white, null, null, PC.white, PC.white, null, null, PC.white, PC.white, null] }
+        { dy: 1, x: -4, w: 8, cols: [PC.redHi, PC.goldHi, PC.gold, PC.gold, PC.gold, PC.goldHi, cyanHi, cyanHi] },
+        { dy: 2, x: -7, w: 14, cols: [PC.redHi, PC.red, PC.red, PC.red, PC.goldHi, PC.gold, PC.gold, PC.gold, PC.gold, PC.goldHi, cyanMid, cyanMid, cyanMid, cyanHi] },
+        { dy: 3, x: -8, w: 16, cols: [PC.redHi, PC.red, PC.red, PC.red, PC.red, PC.goldHi, PC.gold, PC.gold, PC.gold, PC.gold, PC.goldHi, cyanMid, cyanMid, cyanMid, cyanMid, cyanHi] },
+        { dy: 4, x: -8, w: 16, cols: [PC.red, PC.red, PC.red, PC.red, PC.red, PC.goldHi, PC.gold, PC.gold, PC.gold, PC.gold, PC.goldHi, cyanMid, cyanMid, cyanMid, cyanMid, cyanMid] },
+        { dy: 5, x: -8, w: 16, cols: [PC.redDk, PC.red, PC.red, PC.red, PC.redDk, PC.goldDk, PC.gold, PC.gold, PC.gold, PC.goldDk, cyanDk, cyanMid, cyanMid, cyanMid, cyanMid, cyanDk] },
+        { dy: 6, x: -8, w: 16, cols: [null, PC.white, PC.white, null, null, PC.white, PC.white, PC.white, PC.white, null, null, PC.white, PC.white, null, null, null] }
       ];
 
       for (var r = 0; r < rows.length; r++) {
@@ -4626,7 +4636,9 @@ function farRow(wx, rows) {
       }
       var hy = Math.round(H.y) - (((cheering || selfCheer) && H.state === 'ground') ? 1 : 0);
       if (H.state === 'fall') {
-        drawChute(g, hx + 3, hy, Math.min(1, (H.vy || 0) / 40), w.t);
+        var rawOpen = Math.min(1, (H.vy || 0) / 10);
+        var chuteOpen = 1 - Math.pow(1 - rawOpen, 2);
+        drawChute(g, hx + 3, hy, chuteOpen, w.t);
       }
       drawSpr(g, hSpr, hx, hy, HUM_LEG);
     }
