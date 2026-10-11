@@ -15,37 +15,37 @@
   "dir_scheme": "auto",
   "icons": [
     {
-      "src": "/pwa/icons/icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa/icons/icon-maskable-192.png",
+      "src": "icons/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/pwa/icons/icon-maskable-512.png",
+      "src": "icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/pwa/icons/apple-touch-icon.png",
+      "src": "icons/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa/icons/favicon.ico",
+      "src": "icons/favicon.ico",
       "sizes": "16x16 32x32 48x48",
       "type": "image/x-icon",
       "purpose": "any"
@@ -58,7 +58,7 @@
       "description": "نرخ لحظه‌ای طلا، سکه و ارز",
       "url": "/wallet/rates.html",
       "icons": [
-        { "src": "/pwa/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
+        { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
       ]
     },
     {
@@ -67,7 +67,7 @@
       "description": "خرید طلای آب‌شده با نرخ لحظه‌ای",
       "url": "/wallet/index.html?action=buy",
       "icons": [
-        { "src": "/pwa/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
+        { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
       ]
     },
     {
@@ -76,7 +76,7 @@
       "description": "فروشگاه جواهرات طلای ۱۸ عیار",
       "url": "/products.html",
       "icons": [
-        { "src": "/pwa/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
+        { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
       ]
     },
     {
@@ -85,7 +85,7 @@
       "description": "مدیریت حساب کاربری و گلد باکس",
       "url": "/wallet/profile.html",
       "icons": [
-        { "src": "/pwa/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
+        { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }
       ]
     }
   ],

@@ -1,6 +1,4 @@
-@import "tailwindcss";
-
-        :root {
+:root {
             --razan-teal-light: #049e96;
             --razan-teal: #028c85;
             --razan-teal-dark: #00645f;
