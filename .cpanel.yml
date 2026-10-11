@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - /bin/cp -R assets /home/mmrir/public_html/
+    - /bin/cp -R ordibehesht /home/mmrir/public_html/
+    - /bin/cp -R razan /home/mmrir/public_html/
+    - /bin/cp -R talasho /home/mmrir/public_html/
+    - /bin/cp -R yassi /home/mmrir/public_html/
+    - /bin/cp index.html favicon.svg logo.svg robots.txt site.webmanifest sitemap.xml /home/mmrir/public_html/
