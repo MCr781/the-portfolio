@@ -9048,20 +9048,59 @@ function setThumbColumns(box, n) {
   var joyHeld = false;          /* a finger owns the stick right now */
   var joyPointerId = null;      /* and it is this one */
   var joyPivotX = 0, joyPivotY = 0;
-  var joyDead = 16;             /* px of dead zone covering visual ball landing */
-  var joyLean = 6;              /* px of travel that reads as full tilt */
+  var joyDead = 22;             /* px of safe area / dead zone in the stick's center */
+  var joyLean = 16;             /* px of travel beyond dead zone to reach full tilt */
 
   function joyApply(e) {
     var dx = e.clientX - joyPivotX;
     var dy = e.clientY - joyPivotY;
-    /* dead zone: dynamic radius covering visual ball landing so a finger
-       landing away from the exact single-pixel center does not cause an unexpected jump */
-    var ax = dx < 0 ? -Math.max(0, -dx - joyDead) : Math.max(0, dx - joyDead);
-    var ay = dy < 0 ? -Math.max(0, -dy - joyDead) : Math.max(0, dy - joyDead);
-    var kx = Math.max(-1, Math.min(1, ax / joyLean));
-    var ky = Math.max(-1, Math.min(1, ay / joyLean));
-    var nx = Math.round(kx * 3);
-    var ny = Math.round(ky * 3);
+    var dist = Math.hypot(dx, dy);
+
+    var nx = 0;
+    var ny = 0;
+
+    /* safe area: circular dead zone in the middle so a finger resting or
+       landing near the center does not twitch or drift. */
+    if (dist > joyDead) {
+      var travel = Math.min(joyLean, dist - joyDead);
+      var intensity = travel / joyLean;   /* 0..1 throw past safe area */
+
+      var absX = Math.abs(dx);
+      var absY = Math.abs(dy);
+
+      /* Directional deadband & axis dominance:
+         When movement is primarily vertical (up/down flight or dodging terrain),
+         suppress lateral steering so natural thumb curvature does not flip the
+         ship back and forth between left and right.
+         Similarly, when steering horizontally, suppress vertical drift. */
+      var isVertical = absY > absX * 1.35;
+      var isHorizontal = absX > absY * 1.35;
+
+      var kx = 0;
+      var ky = 0;
+
+      if (!isVertical) {
+        var dirX = dx > 0 ? 1 : -1;
+        var ratioX = absX / dist;
+        var valX = ratioX * intensity;
+        if (valX > 0.18) {
+          kx = dirX * Math.min(1, (valX - 0.18) / 0.82 * (isHorizontal ? 1.25 : 1.0));
+        }
+      }
+
+      if (!isHorizontal) {
+        var dirY = dy > 0 ? 1 : -1;
+        var ratioY = absY / dist;
+        var valY = ratioY * intensity;
+        if (valY > 0.18) {
+          ky = dirY * Math.min(1, (valY - 0.18) / 0.82 * (isVertical ? 1.25 : 1.0));
+        }
+      }
+
+      nx = Math.round(kx * 3);
+      ny = Math.round(ky * 3);
+    }
+
     if (nx !== joyTiltX || ny !== joyTiltY) {
       joyTiltX = nx; joyTiltY = ny;
       paintJoy();
@@ -9090,17 +9129,16 @@ function setThumbColumns(box, n) {
       joyPivotX = cvr.left + cvr.width * 0.5;
       joyPivotY = cvr.top + cvr.height * (8 / 38);
       var ballR = Math.round(cvr.width * (7 / 40));
-      joyDead = Math.max(8, Math.round(ballR * 0.8));
-      joyLean = Math.max(4, Math.round(ballR * 0.35));
+      joyDead = Math.max(18, Math.round(ballR * 1.35));
+      joyLean = Math.max(14, Math.round(ballR * 0.95));
       joyHeld = true; joyPointerId = e.pointerId;
       joyPress = true;
       try { joyBox.setPointerCapture(e.pointerId); } catch (_) {}
       joyApply(e);
       paintJoy();
       if (world) { touchDeck(world); }
-      /* a thunk as the hand takes the weight — the old code blipped here
-         too, and it is the only feedback a tap gets */
-      sfx('thruster');
+      /* a tactile blip feedback as the thumb takes the control */
+      if (keys.a || keys.d || keys.w || keys.s) { sfx('thruster'); }
       blip(190, 110, 90);
       e.preventDefault();
     });
