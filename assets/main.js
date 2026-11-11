@@ -847,10 +847,16 @@
   var bootEl = $('#boot');
   var bootCv = $('#bootfx');
   var bootActive = false;
+  /* bootCovering: the opaque boot plate is still over the glass. While
+     it is, the hero canvas renders behind it where nobody can see it —
+     skip that paint and hand the frames back to the boot itself. The
+     moment the lift flick starts, the tube underneath must be live. */
+  var bootCovering = false;
   function killBoot() {
     if (!bootEl) { return; }
     bootEl.hidden = true;
     bootActive = false;
+    bootCovering = false;
     html.classList.remove('booting');
     session('fw-booted', '1');
     doc.removeEventListener('keydown', killBoot);
@@ -858,6 +864,7 @@
   if (bootEl && !reduced.matches && !session('fw-booted')) {
     html.classList.add('booting');
     bootActive = true;
+    bootCovering = true;
     requestAnimationFrame(function () { bootEl.classList.add('go'); });
     setTimeout(function () {
       blip(988, 70);
@@ -867,6 +874,7 @@
     function liftBoot() {
       if (lifted) { return; }
       lifted = true;
+      bootCovering = false;
       bootEl.classList.add('lift');
       html.classList.add('awake');
       setTimeout(killBoot, 720);
@@ -1291,9 +1299,9 @@
       };
       im.src = src;
     }
-    loadSheet('ship', 'assets/spr_ship.webp?v=mm2526');
-    loadSheet('mario', 'assets/spr_mario.webp?v=mm2526');
-    loadSheet('mother', 'assets/spr_mother.webp?v=mm2526');
+    loadSheet('ship', 'assets/spr_ship.webp?v=mm2527');
+    loadSheet('mario', 'assets/spr_mario.webp?v=mm2527');
+    loadSheet('mother', 'assets/spr_mother.webp?v=mm2527');
   }
   initSprSheets();
 
@@ -1507,6 +1515,41 @@
     return acc.trim() || '#d4af37';
   }
 
+  /* Pixel text mounting runs as a queue of jobs, sliced across frames.
+     The whole page's pixel type used to render in one long task (and
+     again on the font-swap heal pass) — measured layout reads per span
+     included. Now: one batched measure pass, jobs that skip when the
+     span's key (kind/text/width/color) is unchanged, and render slices
+     that yield to the compositor instead of blocking it. */
+  var pxQueue = [];
+  var pxSlicing = false;
+  function pxNow() {
+    return (window.performance && performance.now) ? performance.now() : Date.now();
+  }
+  function pxQueueJob(job) {
+    for (var i = 0; i < pxQueue.length; i++) {
+      if (pxQueue[i].span === job.span) { pxQueue[i] = job; return; }
+    }
+    pxQueue.push(job);
+  }
+  function pxSlice() {
+    var t0 = pxNow();
+    while (pxQueue.length) {
+      var job = pxQueue.shift();
+      try { pxRenderJob(job); } catch (e) {}
+      if (pxNow() - t0 > 10) {
+        requestAnimationFrame(pxSlice);
+        return;
+      }
+    }
+    pxSlicing = false;
+  }
+  function pxKick() {
+    if (pxSlicing || !pxQueue.length) { return; }
+    pxSlicing = true;
+    requestAnimationFrame(pxSlice);
+  }
+
   function pxifyEl(span) {
     var kind = span.getAttribute('data-px');
     var conf = PX_CONF[kind];
@@ -1527,16 +1570,26 @@
     }
     var hostW = Math.floor(host.getBoundingClientRect().width);
     if (hostW < 24) { hostW = Math.floor(Math.min(html.clientWidth - 24, 46 * 16)); }
+    var color = conf.color === null ? accentOf(span) : (conf.color || PC.text);
+    var key = kind + '\u2063' + text + '\u2063' + hostW + '\u2063' + color;
+    if (span.__pxKey === key) { return; }   /* already mounted identical — the heal pass is a no-op */
+    pxQueueJob({ span: span, kind: kind, conf: conf, text: text, hostW: hostW, color: color, key: key });
+  }
+
+  function pxRenderJob(job) {
+    var span = job.span, conf = job.conf, hostW = job.hostW;
+    var host = span.parentElement;
+    if (!host) { return; }
     var grid = conf.grid === 'half' ? PXT : (conf.grid || PXG);
     var maxW = Math.max(16, Math.floor(hostW / grid));
     var opts = {
       src: conf.src,
       weight: conf.weight,
-      color: conf.color === null ? accentOf(span) : (conf.color || PC.text),
+      color: job.color,
       maxW: conf.nowrap ? 400 : (conf.chip ? maxW - 4 : maxW),
       centerLines: conf.centerLines
     };
-    var out = pxTextCanvas(text, opts);
+    var out = pxTextCanvas(job.text, opts);
     var mount = doc.createElement('canvas');
     var mw, mh;
     if (conf.chip) {
@@ -1547,7 +1600,7 @@
       mount.width = mw;
       mount.height = mh;
       var mg = mount.getContext('2d');
-      mg.fillStyle = conf.color === null ? accentOf(span) : PC.gold;
+      mg.fillStyle = conf.color === null ? job.color : PC.gold;
       /* border plate (notched 2px corners — the site's cut language) */
       mg.fillRect(1, 0, mw - 2, mh);
       mg.fillRect(0, 1, mw, mh - 2);
@@ -1589,6 +1642,7 @@
     mount.style.height = (mount.height * grid) + 'px';
     var old = host.querySelector('.px-mounted');
     if (old) { old.remove(); }
+    span.__pxKey = job.key;
     span.classList.add('px-on');
     host.appendChild(mount);
   }
@@ -1600,6 +1654,7 @@
     paintDecal();
     paintCoinLabel();
     paintCredit();
+    pxKick();
     /* font-swap heal: the first world build can run against pre-font
        metrics (a taller marquee), leaving the terrain below the fold.
        If the hero's real height has drifted since the build, rebuild. */
@@ -9336,11 +9391,72 @@ function setThumbColumns(box, n) {
       attractIdleMs += dt;
       if (attractIdleMs > 12000) { openAttractShow(attractNextKind); }
     }
-    if (world && heroVisible && fx && !memoHold) { renderWorld(fx, 'hero', t); }
+    if (world && heroVisible && fx && !memoHold && !bootCovering) { renderWorld(fx, 'hero', t); }
     if (t - pipLast > 200) { pipLast = t; if (world) { paintPBtns(); } }
     if (world && bootActive && bfx && !memoHold) { renderWorld(bfx, 'boot', t); }
   }
   requestAnimationFrame(loop);
+
+  /* ── deferred companions · each file earns its ride ───── */
+  /* audio-data.js is a 240KB sound ROM, terrarium.js paints the four
+     offscreen world dioramas, memory.js is the Konami cabinet. None of
+     them are needed to paint the first screen, so none of them ride
+     with the load: the sound ROM lands on the first gesture (and
+     loadAudioSample falls back to assets/audio/*.mp3 until it does),
+     the dioramas land when their worlds near the glass, the cabinet
+     lands on the first hand at the keyboard or the glass. */
+  function injectScript(src, onload) {
+    var s = doc.createElement('script');
+    s.src = src;
+    s.async = true;
+    if (onload) { s.onload = onload; }
+    (doc.head || doc.documentElement).appendChild(s);
+  }
+
+  var audioDataAsked = false;
+  function armAudioData() {
+    if (audioDataAsked) { return; }
+    audioDataAsked = true;
+    injectScript('assets/audio-data.js?v=mm2553');
+  }
+  ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
+    doc.addEventListener(ev, armAudioData, { passive: true, capture: true, once: true });
+  });
+
+  var terrAsked = false;
+  function armTerrarium() {
+    if (terrAsked) { return; }
+    terrAsked = true;
+    injectScript('assets/terrarium.js?v=terr3');
+  }
+  (function () {
+    var worldSects = $$('.world');
+    if (!worldSects.length) { return; }
+    if (window.IntersectionObserver) {
+      var terrIO = new IntersectionObserver(function (ents) {
+        for (var i = 0; i < ents.length; i++) {
+          if (ents[i].isIntersecting) {
+            terrIO.disconnect();
+            armTerrarium();
+            return;
+          }
+        }
+      }, { rootMargin: '900px 0px' });
+      for (var wi = 0; wi < worldSects.length; wi++) { terrIO.observe(worldSects[wi]); }
+    } else {
+      armTerrarium();
+    }
+  })();
+
+  var memoAsked = false;
+  function armMemory() {
+    if (memoAsked) { return; }
+    memoAsked = true;
+    injectScript('assets/memory.js?v=mem1');
+  }
+  ['pointerdown', 'keydown'].forEach(function (ev) {
+    doc.addEventListener(ev, armMemory, { passive: true, capture: true, once: true });
+  });
 
   /* ── konami console + modal ─────────────────────────── */
   var modal = $('#modal');
@@ -9430,7 +9546,20 @@ function setThumbColumns(box, n) {
   };
   function konami() {
     if (window.__fw_memo && window.__fw_memo.enter()) { return; }
-    openModal();
+    /* the cabinet may still be in the wings (it rides in on the first
+       hand at the keys) — call it on stage, then boot it; if it never
+       arrives, the old two-credit thank-you note still stands in. */
+    armMemory();
+    var tries = 0;
+    var retry = setInterval(function () {
+      tries += 1;
+      if (window.__fw_memo && window.__fw_memo.enter()) {
+        clearInterval(retry);
+      } else if (tries > 50) {
+        clearInterval(retry);
+        if (!window.__fw_memo) { openModal(); }
+      }
+    }, 60);
   }
 
   function openModal() {
