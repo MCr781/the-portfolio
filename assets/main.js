@@ -1515,39 +1515,33 @@
     return acc.trim() || '#d4af37';
   }
 
-  /* Pixel text mounting runs as a queue of jobs, sliced across frames.
-     The whole page's pixel type used to render in one long task (and
-     again on the font-swap heal pass) — measured layout reads per span
-     included. Now: one batched measure pass, jobs that skip when the
-     span's key (kind/text/width/color) is unchanged, and render slices
-     that yield to the compositor instead of blocking it. */
+  /* Pixel text mounting runs as a queue of jobs, one job per task.
+     Rendering inside requestAnimationFrame callbacks is a trap: rAF
+     runs inside the rendering step, so every slice drags a style/
+     layout/paint flush into its own long task. setTimeout tasks are
+     pure JS — the browser flushes layout once at the next paint — so
+     the whole queue mounts back-to-back without blocking the main
+     thread (or the boot). Jobs skip when the span's key
+     (kind/text/width/color/font-state) is unchanged, so the font-swap
+     heal pass is a no-op unless the metrics really changed. */
   var pxQueue = [];
   var pxSlicing = false;
-  function pxNow() {
-    return (window.performance && performance.now) ? performance.now() : Date.now();
-  }
   function pxQueueJob(job) {
     for (var i = 0; i < pxQueue.length; i++) {
       if (pxQueue[i].span === job.span) { pxQueue[i] = job; return; }
     }
     pxQueue.push(job);
   }
-  function pxSlice() {
-    var t0 = pxNow();
-    while (pxQueue.length) {
-      var job = pxQueue.shift();
-      try { pxRenderJob(job); } catch (e) {}
-      if (pxNow() - t0 > 10) {
-        requestAnimationFrame(pxSlice);
-        return;
-      }
-    }
-    pxSlicing = false;
+  function pxStep() {
+    if (!pxQueue.length) { pxSlicing = false; return; }
+    var job = pxQueue.shift();
+    try { pxRenderJob(job); } catch (e) {}
+    setTimeout(pxStep, 0);
   }
   function pxKick() {
     if (pxSlicing || !pxQueue.length) { return; }
     pxSlicing = true;
-    requestAnimationFrame(pxSlice);
+    setTimeout(pxStep, 0);
   }
 
   function pxifyEl(span) {
@@ -1571,7 +1565,8 @@
     var hostW = Math.floor(host.getBoundingClientRect().width);
     if (hostW < 24) { hostW = Math.floor(Math.min(html.clientWidth - 24, 46 * 16)); }
     var color = conf.color === null ? accentOf(span) : (conf.color || PC.text);
-    var key = kind + '\u2063' + text + '\u2063' + hostW + '\u2063' + color;
+    var fontsGen = (doc.fonts && doc.fonts.status === 'loaded') ? '1' : '0';
+    var key = kind + '\u2063' + text + '\u2063' + hostW + '\u2063' + color + '\u2063' + fontsGen;
     if (span.__pxKey === key) { return; }   /* already mounted identical — the heal pass is a no-op */
     pxQueueJob({ span: span, kind: kind, conf: conf, text: text, hostW: hostW, color: color, key: key });
   }
@@ -9441,7 +9436,7 @@ function setThumbColumns(box, n) {
             return;
           }
         }
-      }, { rootMargin: '900px 0px' });
+      }, { rootMargin: '300px 0px' });
       for (var wi = 0; wi < worldSects.length; wi++) { terrIO.observe(worldSects[wi]); }
     } else {
       armTerrarium();
